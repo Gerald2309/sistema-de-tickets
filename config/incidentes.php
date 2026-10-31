@@ -16,4 +16,9 @@ return [
         'maximo_textos' => 200,
     ],
 
+    // Cantidad de incidentes que genera VolumenSeeder para medir el rendimiento (máximo 1.000.000; la meta del proyecto es 200.000).
+    'volumen' => [
+        'incidentes' => (int) env('VOLUMEN_INCIDENTES', 200_000),
+    ],
+
 ];
