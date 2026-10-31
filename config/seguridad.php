@@ -16,6 +16,15 @@ return [
     | Peticiones por minuto. El login se limita por correo (fuerza bruta contra una cuenta)
     | y por IP (rociado de correos desde un mismo origen).
     */
+    /*
+    | Búsqueda de texto: longitud mínima de una palabra (el índice de MySQL no guarda las de menos
+    | de 3 letras) y máximo de palabras que se combinan en una búsqueda.
+    */
+    'busqueda' => [
+        'min_token' => 3,
+        'max_terminos' => 5,
+    ],
+
     'limites' => [
         'api' => env('LIMITE_API_POR_MINUTO', 60),
         'login_email' => env('LIMITE_LOGIN_POR_EMAIL', 5),

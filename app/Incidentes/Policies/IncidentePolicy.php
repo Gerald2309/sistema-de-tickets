@@ -16,6 +16,11 @@ class IncidentePolicy
         return new AlcanceIncidentes($usuario->permisos(), $usuario->id);
     }
 
+    public function listar(User $usuario): Response
+    {
+        return $this->permitirSi(self::alcanceDe($usuario)->puedeListar());
+    }
+
     public function crear(User $usuario): Response
     {
         return $this->permitirSi(self::alcanceDe($usuario)->puedeCrear());
