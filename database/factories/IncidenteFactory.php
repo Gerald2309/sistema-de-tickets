@@ -21,7 +21,7 @@ class IncidenteFactory extends Factory
     protected $model = Incidente::class;
 
     // Distribución de estados (% aproximado) y antigüedad máxima en días de cada uno.
-    private const ESTADOS = [
+    public const ESTADOS = [
         'abierto' => ['peso' => 30, 'dias' => 5],
         'en_progreso' => ['peso' => 25, 'dias' => 10],
         'resuelto' => ['peso' => 25, 'dias' => 30],
@@ -29,7 +29,7 @@ class IncidenteFactory extends Factory
     ];
 
     // Horas de plazo para resolver, según la prioridad.
-    private const PLAZO_HORAS = [
+    public const PLAZO_HORAS = [
         'critica' => 4,
         'alta' => 24,
         'media' => 72,
@@ -37,7 +37,7 @@ class IncidenteFactory extends Factory
     ];
 
     // [título, descripción, categoría, prioridades posibles, solución]
-    private const SITUACIONES = [
+    public const SITUACIONES = [
         ['No puedo conectarme a la VPN desde casa', 'Desde ayer la VPN corporativa rechaza mis credenciales con el error 691. Trabajo en remoto y necesito acceso a los servidores de archivos.', 'red', ['media', 'alta'], 'Se restableció el perfil de VPN del usuario y se actualizó el cliente a la última versión. Se verificó el acceso a los servidores de archivos desde la red doméstica.'],
         ['La impresora del segundo piso no imprime', 'La multifuncional de la zona de contabilidad muestra «Error 49.4C02» y los trabajos quedan en cola. Ya se reinició el equipo sin éxito.', 'hardware', ['baja', 'media'], 'Se liberó la cola de impresión, se reinstaló el controlador y se reemplazó el rodillo de arrastre. La impresora quedó imprimiendo con normalidad.'],
         ['El correo corporativo no sincroniza en el celular', 'Desde el cambio de contraseña de la semana pasada el correo no se actualiza en mi teléfono. En el portal web sí funciona.', 'correo', ['baja', 'media'], 'Se eliminó la cuenta del teléfono y se volvió a configurar con la contraseña nueva. La sincronización quedó restablecida.'],
