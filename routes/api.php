@@ -9,6 +9,7 @@ use App\Identidad\Http\Controllers\UsuarioController;
 use App\Incidentes\Http\Controllers\AvisosController;
 use App\Incidentes\Http\Controllers\CatalogoController;
 use App\Incidentes\Http\Controllers\DashboardController;
+use App\Incidentes\Http\Controllers\ExportacionController;
 use App\Incidentes\Http\Controllers\HistorialController;
 use App\Incidentes\Http\Controllers\IncidenteController;
 use App\Incidentes\Http\Controllers\IncidenteLoteController;
@@ -31,7 +32,8 @@ Route::prefix('v1')->group(function () {
 
         Route::get('incidentes', [IncidenteController::class, 'index'])->can('listar', Incidente::class);
         Route::post('incidentes', [IncidenteController::class, 'store'])->can('crear', Incidente::class);
-        // Las rutas de lote van antes de las de un incidente: «lote» no es un id.
+        // Las rutas de «exportar» y de lote van antes de las de un incidente: no son un id.
+        Route::get('incidentes/exportar', ExportacionController::class)->can('listar', Incidente::class);
         Route::patch('incidentes/lote', [IncidenteLoteController::class, 'actualizar'])->can('actualizarEnLote', Incidente::class);
         Route::delete('incidentes/lote', [IncidenteLoteController::class, 'eliminar'])->can('eliminarEnLote', Incidente::class);
 
