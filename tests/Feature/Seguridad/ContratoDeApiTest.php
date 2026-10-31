@@ -68,6 +68,22 @@ class ContratoDeApiTest extends TestCase
         $this->conToken($administrador)->getJson('/api/v1/prueba/solo-administracion')->assertOk();
     }
 
+    public function test_sin_credencial_se_responde_401_antes_de_buscar_el_recurso(): void
+    {
+        $incidente = $this->incidenteDe($this->crearUsuario());
+        $borrado = $this->incidenteDe($this->crearUsuario());
+        $borrado->delete();
+
+        // Si se buscara primero el recurso, un id que existe (401) se distinguiría de uno que no (404)
+        // y cualquiera podría descubrir qué incidentes existen sin iniciar sesión.
+        foreach ([$incidente->id, $borrado->id, 999999] as $id) {
+            $this->sinCredencial()->getJson("/api/v1/incidentes/$id")->assertUnauthorized();
+            $this->sinCredencial()->getJson("/api/v1/incidentes/$id/historial")->assertUnauthorized();
+            $this->sinCredencial()->patchJson("/api/v1/incidentes/$id", ['titulo' => 'x'])->assertUnauthorized();
+            $this->sinCredencial()->deleteJson("/api/v1/incidentes/$id")->assertUnauthorized();
+        }
+    }
+
     public function test_la_api_no_usa_sesion_ni_proteccion_csrf(): void
     {
         $grupo = implode(' ', Route::getMiddlewareGroups()['api'] ?? []);

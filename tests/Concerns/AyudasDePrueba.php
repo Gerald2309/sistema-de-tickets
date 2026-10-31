@@ -90,6 +90,16 @@ trait AyudasDePrueba
         return $this->withToken($token);
     }
 
+    /**
+     * Petición sin credencial: quita la cabecera que dejó withToken y el usuario que conserva la guarda.
+     */
+    protected function sinCredencial(): static
+    {
+        $this->olvidarSesion();
+
+        return $this->flushHeaders();
+    }
+
     private function olvidarSesion(): void
     {
         $this->app['auth']->forgetGuards();

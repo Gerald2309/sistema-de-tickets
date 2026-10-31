@@ -46,6 +46,11 @@ class IncidentePolicy
         return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, int $creador) => $alcance->puedeVerHistorial($creador));
     }
 
+    public function verSimilares(User $usuario, Incidente $incidente): Response
+    {
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, int $creador) => $alcance->puedeVerSimilares($creador));
+    }
+
     /**
      * @param  callable(AlcanceIncidentes, int): bool  $accion
      */

@@ -5,6 +5,7 @@ use App\Identidad\Http\Controllers\PerfilController;
 use App\Incidentes\Http\Controllers\CatalogoController;
 use App\Incidentes\Http\Controllers\HistorialController;
 use App\Incidentes\Http\Controllers\IncidenteController;
+use App\Incidentes\Http\Controllers\SimilaresController;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,8 @@ Route::prefix('v1')->group(function () {
         Route::get('incidentes/{incidente}', [IncidenteController::class, 'show'])->can('ver', 'incidente');
         Route::patch('incidentes/{incidente}', [IncidenteController::class, 'update'])->can('actualizar', 'incidente');
         Route::delete('incidentes/{incidente}', [IncidenteController::class, 'destroy'])->can('eliminar', 'incidente');
+
+        Route::get('incidentes/{incidente}/similares', SimilaresController::class)->can('verSimilares', 'incidente');
 
         // El historial de un incidente borrado sigue consultable (RF-08, RF-18).
         Route::get('incidentes/{incidente}/historial', HistorialController::class)
