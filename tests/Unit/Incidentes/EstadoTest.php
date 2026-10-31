@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Unit\Dominio;
+namespace Tests\Unit\Incidentes;
 
-use App\Dominio\Estado;
-use App\Dominio\Excepciones\TransicionInvalida;
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Excepciones\TransicionInvalida;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

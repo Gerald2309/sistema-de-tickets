@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Dominio\ClavePermiso;
-use App\Models\Permiso;
-use App\Models\Rol;
+use App\Identidad\Dominio\ClavePermiso;
+use App\Identidad\Models\Permiso;
+use App\Identidad\Models\Rol;
 use Illuminate\Database\Seeder;
 
 class RolesSeeder extends Seeder

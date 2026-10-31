@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Incidentes\Dominio;
 
 // Campos del incidente cuyos cambios se registran. La descripción queda fuera.
 enum CampoHistorial: string

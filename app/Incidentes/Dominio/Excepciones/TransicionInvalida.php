@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Dominio\Excepciones;
+namespace App\Incidentes\Dominio\Excepciones;
 
-use App\Dominio\Estado;
+use App\Incidentes\Dominio\Estado;
 use DomainException;
 
 final class TransicionInvalida extends DomainException

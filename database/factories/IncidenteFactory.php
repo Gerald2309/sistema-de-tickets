@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Dominio\Categoria;
-use App\Dominio\Estado;
-use App\Dominio\Prioridad;
-use App\Models\Incidente;
-use App\Models\User;
+use App\Identidad\Models\User;
+use App\Incidentes\Dominio\Categoria;
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Prioridad;
+use App\Incidentes\Models\Incidente;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class IncidenteFactory extends Factory
 {
+    protected $model = Incidente::class;
+
     // Distribución de estados (% aproximado) y antigüedad máxima en días de cada uno.
     private const ESTADOS = [
         'abierto' => ['peso' => 30, 'dias' => 5],

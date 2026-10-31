@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Incidentes\Dominio;
 
 enum EventoHistorial: string
 {

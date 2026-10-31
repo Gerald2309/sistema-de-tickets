@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Auditoria\Dominio;
 
 // Acciones sensibles que quedan registradas en la auditoría. Los cambios de los incidentes
 // no están aquí: tienen su propio historial.

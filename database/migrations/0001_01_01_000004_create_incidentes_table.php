@@ -1,8 +1,8 @@
 <?php
 
-use App\Dominio\Categoria;
-use App\Dominio\Estado;
-use App\Dominio\Prioridad;
+use App\Incidentes\Dominio\Categoria;
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Prioridad;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

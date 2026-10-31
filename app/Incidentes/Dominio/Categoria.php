@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Incidentes\Dominio;
 
 // Lista fija de categorías para agrupar incidentes. Añadir una exige una migración (ENUM de MySQL).
 enum Categoria: string

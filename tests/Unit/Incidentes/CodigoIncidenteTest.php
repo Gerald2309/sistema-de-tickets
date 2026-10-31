@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Dominio;
+namespace Tests\Unit\Incidentes;
 
-use App\Dominio\CodigoIncidente;
+use App\Incidentes\Dominio\CodigoIncidente;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

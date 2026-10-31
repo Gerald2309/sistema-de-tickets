@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Dominio\ClavePermiso;
-use App\Models\Permiso;
+use App\Identidad\Dominio\ClavePermiso;
+use App\Identidad\Models\Permiso;
 use Illuminate\Database\Seeder;
 
 class PermisosSeeder extends Seeder

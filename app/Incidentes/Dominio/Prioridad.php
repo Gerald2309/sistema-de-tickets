@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Incidentes\Dominio;
 
 // Declarada en orden lógico: el ENUM de MySQL ordena por posición, no alfabéticamente.
 enum Prioridad: string

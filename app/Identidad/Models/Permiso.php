@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Identidad\Models;
 
-use App\Dominio\ClavePermiso;
+use App\Identidad\Dominio\ClavePermiso;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 

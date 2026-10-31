@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Dominio\AccionAuditoria;
-use App\Dominio\CampoHistorial;
-use App\Dominio\Estado;
-use App\Dominio\EventoHistorial;
-use App\Models\Auditoria;
-use App\Models\HistorialIncidente;
-use App\Models\Incidente;
-use App\Models\Rol;
-use App\Models\User;
+use App\Auditoria\Dominio\AccionAuditoria;
+use App\Auditoria\Models\Auditoria;
+use App\Identidad\Models\Rol;
+use App\Identidad\Models\User;
+use App\Incidentes\Dominio\CampoHistorial;
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\EventoHistorial;
+use App\Incidentes\Models\HistorialIncidente;
+use App\Incidentes\Models\Incidente;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Incidentes\Dominio;
 
-use App\Dominio\Excepciones\TransicionInvalida;
+use App\Incidentes\Dominio\Excepciones\TransicionInvalida;
 
 // Declarado en el orden del ciclo de vida: el ENUM de MySQL ordena por posición.
 enum Estado: string
