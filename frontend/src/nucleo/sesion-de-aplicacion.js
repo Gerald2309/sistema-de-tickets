@@ -47,9 +47,18 @@ export function conectarAplicacion({ router, queryClient }) {
         query: expirada && actual.fullPath !== '/' ? { destino: actual.fullPath } : {},
       }
       // La caché se borra cuando la pantalla ya se desmontó: antes, sus consultas se volverían a pedir sin token.
+      // Si la navegación no llega (por ejemplo, la pantalla de ingreso es de una versión anterior), se carga la
+      // página de ingreso desde cero: nunca quedan a la vista datos de una sesión cerrada.
       const salir = async () => {
-        await router.replace(destino)
-        queryClient.clear()
+        try {
+          const fallo = await router.replace(destino)
+          if (fallo) {
+            throw fallo
+          }
+          queryClient.clear()
+        } catch {
+          window.location.assign(router.resolve(destino).href)
+        }
       }
       // Cerrar sesión sale con la cortina; una sesión vencida vuelve directo, con su mensaje.
       expirada ? salir() : cubrirCon('Hasta pronto', salir)

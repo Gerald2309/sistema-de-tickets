@@ -15,7 +15,8 @@ No hace falta nada más. El primer arranque tarda unos minutos porque construye 
 dependencias. Al arrancar, el contenedor `app` instala las dependencias de Composer si faltan, genera la clave
 de la aplicación (`backend/storage/app.key`), ejecuta las migraciones y, si la base está vacía, la siembra.
 
-- Aplicación: **http://localhost:8000**
+- Aplicación: **http://localhost:8000**. En Windows conviene **http://127.0.0.1:8000**: con `localhost`, Windows intenta
+  primero por IPv6 y cada conexión espera unos 200 ms antes de usar IPv4.
 - API: `http://localhost:8000/api/v1` (o directa en `http://localhost:8080/api/v1`)
 - Comprobación de salud: `GET http://localhost:8080/up` responde 200
 

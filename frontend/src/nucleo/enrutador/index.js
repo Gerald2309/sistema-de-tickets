@@ -12,6 +12,7 @@ import {
   rutas as rutasIncidentes,
 } from '@/modulos/incidentes/index.js'
 import { decidirAcceso } from './acceso.js'
+import { esDeUnaVersionAnterior, olvidarRecarga, recargarHacia } from './version-nueva.js'
 
 const NOMBRE_PRODUCTO = 'Psicol – Mesa de ayuda'
 
@@ -97,9 +98,19 @@ export function crearEnrutador(historial = createWebHistory()) {
   // Las guardas de los módulos corren después de los permisos.
   enrutador.beforeEach(guardaDePestanas)
 
-  enrutador.afterEach((destino) => {
+  enrutador.afterEach((destino, _origen, fallo) => {
     const titulo = /** @type {string | undefined} */ (destino.meta.titulo)
     document.title = titulo ? `${titulo} · ${NOMBRE_PRODUCTO}` : NOMBRE_PRODUCTO
+    if (!fallo) {
+      olvidarRecarga()
+    }
+  })
+
+  // Una pantalla que no carga porque se publicó una versión nueva: se recarga hacia ella (version-nueva.js).
+  enrutador.onError((error, destino) => {
+    if (!esDeUnaVersionAnterior(error) || !recargarHacia(destino.fullPath)) {
+      console.error(error)
+    }
   })
 
   return enrutador
