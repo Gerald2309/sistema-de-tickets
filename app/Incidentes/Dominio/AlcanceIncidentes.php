@@ -81,6 +81,12 @@ final class AlcanceIncidentes
         return $this->puedeVer($creadorId) && $this->permisos->tiene(ClavePermiso::VerHistorial);
     }
 
+    // El dashboard cuenta solo lo que la persona ve; el permiso decide si accede a él.
+    public function puedeVerDashboard(): bool
+    {
+        return $this->permisos->tiene(ClavePermiso::VerDashboard);
+    }
+
     // El aviso resume incidentes de todas las personas: solo para quien ve todo.
     public function puedeVerAvisos(): bool
     {
