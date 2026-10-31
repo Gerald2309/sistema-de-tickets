@@ -2,6 +2,8 @@
 
 namespace App\Http\Errores;
 
+use App\Identidad\Dominio\Excepciones\RolEnUso;
+use App\Identidad\Dominio\Excepciones\UltimoAdministrador;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Excepciones\TransicionInvalida;
 use Illuminate\Auth\AuthenticationException;
@@ -39,6 +41,18 @@ final class ProblemaHttp
                 tipo: 'urn:incidentes:problema:transicion-invalida',
                 titulo: 'Transición de estado no permitida',
                 extension: ['estados_permitidos' => array_map(fn (Estado $estado) => $estado->value, $excepcion->desde->siguientes())],
+            ),
+            $excepcion instanceof UltimoAdministrador => self::respuesta(
+                409,
+                $excepcion->getMessage(),
+                tipo: 'urn:incidentes:problema:ultimo-administrador',
+                titulo: 'Operación no permitida: último administrador',
+            ),
+            $excepcion instanceof RolEnUso => self::respuesta(
+                409,
+                $excepcion->getMessage(),
+                tipo: 'urn:incidentes:problema:rol-en-uso',
+                titulo: 'Rol en uso',
             ),
             $excepcion instanceof AuthenticationException => self::respuesta(
                 401,
