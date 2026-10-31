@@ -2,6 +2,7 @@ import { storeToRefs } from 'pinia'
 import { onBeforeUnmount, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { aErrorDeApi } from '@/compartido/api/errores.js'
+import { cubrirCon } from '@/compartido/cortina.js'
 import { destinoSeguro } from '@/compartido/utilidades/destino.js'
 import { useSesion } from '../tienda/sesion.js'
 
@@ -49,7 +50,10 @@ export function useIngreso() {
     try {
       await sesion.iniciar(correo.value.trim(), contrasena.value)
       contrasena.value = ''
-      await enrutador.replace(destinoSeguro(ruta.query.destino))
+      // La cortina lleva el nombre de la pantalla a la que se entra (sistema de diseño, Movimiento).
+      const destino = enrutador.resolve(destinoSeguro(ruta.query.destino))
+      const palabra = /** @type {string | undefined} */ (destino.meta.titulo) ?? 'Mesa de ayuda'
+      await cubrirCon(palabra, () => enrutador.replace(destino))
     } catch (causa) {
       const problema = aErrorDeApi(causa)
       contrasena.value = ''

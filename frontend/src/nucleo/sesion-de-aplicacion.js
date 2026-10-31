@@ -1,5 +1,6 @@
 import { watch } from 'vue'
 import { conectarSesion } from '@/compartido/api/cliente.js'
+import { cubrirCon } from '@/compartido/cortina.js'
 import { useSesion } from '@/modulos/identidad/index.js'
 import { usePestanas } from '@/modulos/incidentes/index.js'
 
@@ -38,8 +39,13 @@ export function conectarAplicacion({ router, queryClient }) {
       alCerrarSesion.forEach((limpieza) => limpieza())
       const actual = router.currentRoute.value
       if (actual.name !== 'ingresar') {
-        const recordar = sesion.motivoDeSalida === 'expirada' && actual.fullPath !== '/'
-        router.replace({ name: 'ingresar', query: recordar ? { destino: actual.fullPath } : {} })
+        const expirada = sesion.motivoDeSalida === 'expirada'
+        const destino = {
+          name: 'ingresar',
+          query: expirada && actual.fullPath !== '/' ? { destino: actual.fullPath } : {},
+        }
+        // Cerrar sesión sale con la cortina; una sesión vencida vuelve directo, con su mensaje.
+        expirada ? router.replace(destino) : cubrirCon('Hasta pronto', () => router.replace(destino))
       }
     },
   )
