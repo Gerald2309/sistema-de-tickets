@@ -1,0 +1,179 @@
+/*
+ * Lenguaje de movimiento del sistema de diseño: explica qué cambió y nunca hace esperar. Solo se animan
+ * transform y opacity. Con «reducir movimiento» todo se reduce a un fundido corto (RNF-F11).
+ */
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes crece {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes agita {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes brilla {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes pulso {
+  0% {
+    box-shadow: 0 0 0 0 var(--marca-verde);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+@keyframes destello {
+  from {
+    background-color: var(--acento-fondo);
+  }
+
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes dibuja {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cuenta-atras {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes flota {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(6%, -8%, 0) scale(1.15);
+  }
+}
+
+/* Entrada escalonada: cada elemento indica su orden con --i. */
+.entra {
+  animation: entra 0.5s var(--curva) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.agita {
+  animation: agita 0.45s var(--curva-entrada-salida);
+}
+
+/* Título revelado letra a letra (directiva v-revelar). */
+.revelar-letra {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding: 0.14em 0.02em 0.18em;
+  margin: -0.14em 0 -0.18em;
+}
+
+.revelar-letra > span {
+  display: inline-block;
+}
+
+.revelar-palabra {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Transiciones de Vue reutilizables */
+.texto-enter-active,
+.texto-leave-active {
+  transition:
+    opacity 0.2s var(--curva),
+    transform 0.2s var(--curva);
+}
+
+.texto-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.texto-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.fila-enter-active,
+.fila-leave-active {
+  transition:
+    opacity 0.35s var(--curva),
+    transform 0.35s var(--curva);
+}
+
+.fila-enter-from,
+.fila-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.fila-move {
+  transition: transform 0.4s var(--curva);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
