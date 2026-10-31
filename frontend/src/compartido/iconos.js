@@ -14,7 +14,9 @@ import {
   mdiAccountSwitchOutline,
   mdiAlertCircleOutline,
   mdiAlertOutline,
+  mdiArrowDown,
   mdiArrowRight,
+  mdiArrowUp,
   mdiBellOutline,
   mdiCalendarBlankOutline,
   mdiCalendarRange,
@@ -125,6 +127,8 @@ export const iconos = Object.freeze({
   siguiente: mdiChevronRight,
   desplegar: mdiChevronDown,
   flecha: mdiArrowRight,
+  ascendente: mdiArrowUp,
+  descendente: mdiArrowDown,
   // Formularios
   correo: mdiEmailOutline,
   contrasena: mdiLockOutline,

@@ -1,6 +1,7 @@
 import { watch } from 'vue'
 import { conectarSesion } from '@/compartido/api/cliente.js'
 import { useSesion } from '@/modulos/identidad/index.js'
+import { usePestanas } from '@/modulos/incidentes/index.js'
 
 /** @type {Array<() => void>} */
 const alCerrarSesion = []
@@ -25,6 +26,7 @@ export function conectarAplicacion({ router, queryClient }) {
   const sesion = useSesion()
 
   conectarSesion({ obtenerToken: () => sesion.token, alExpirar: () => sesion.expirar() })
+  alTerminarLaSesion(() => usePestanas().olvidar())
 
   watch(
     () => sesion.token,

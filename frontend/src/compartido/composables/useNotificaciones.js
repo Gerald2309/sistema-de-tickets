@@ -41,14 +41,15 @@ export const useNotificaciones = defineStore('notificaciones', () => {
     return id
   }
 
+  /** @typedef {(titulo: string, detalle?: string) => number} Notificar */
   return {
     lista,
     descartar,
-    exito: (/** @type {string} */ titulo, /** @type {string | undefined} */ detalle) =>
-      notificar('exito', titulo, detalle),
-    error: (/** @type {string} */ titulo, /** @type {string | undefined} */ detalle) =>
-      notificar('error', titulo, detalle),
-    info: (/** @type {string} */ titulo, /** @type {string | undefined} */ detalle) =>
-      notificar('info', titulo, detalle),
+    /** @type {Notificar} */
+    exito: (titulo, detalle) => notificar('exito', titulo, detalle),
+    /** @type {Notificar} */
+    error: (titulo, detalle) => notificar('error', titulo, detalle),
+    /** @type {Notificar} */
+    info: (titulo, detalle) => notificar('info', titulo, detalle),
   }
 })

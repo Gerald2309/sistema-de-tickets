@@ -5,6 +5,11 @@ import {
   rutasPublicas,
   useSesion,
 } from '@/modulos/identidad/index.js'
+import {
+  guardaDePestanas,
+  navegacion as navegacionIncidentes,
+  rutas as rutasIncidentes,
+} from '@/modulos/incidentes/index.js'
 import { decidirAcceso } from './acceso.js'
 
 const NOMBRE_PRODUCTO = 'Psicol – Mesa de ayuda'
@@ -13,7 +18,7 @@ const NOMBRE_PRODUCTO = 'Psicol – Mesa de ayuda'
  * Entradas del menú de todos los módulos, en orden. El menú y la ruta inicial salen de aquí.
  * @type {import('@/modulos/identidad/index.js').EntradaDeNavegacion[]}
  */
-export const navegacion = [...navegacionIdentidad]
+export const navegacion = [...navegacionIncidentes, ...navegacionIdentidad]
 
 /**
  * Rutas de la aplicación: las públicas y, dentro de la estructura con barra y menú, las de cada módulo.
@@ -32,6 +37,7 @@ export const rutas = [
         component: () => import('@/nucleo/paginas/PaginaInicio.vue'),
         meta: { permiso: 'autenticado' },
       },
+      ...rutasIncidentes,
       ...rutasIdentidad,
       {
         path: 'sin-permiso',
@@ -85,6 +91,9 @@ export function crearEnrutador(historial = createWebHistory()) {
     }
     return true
   })
+
+  // Las guardas de los módulos corren después de los permisos.
+  enrutador.beforeEach(guardaDePestanas)
 
   enrutador.afterEach((destino) => {
     const titulo = /** @type {string | undefined} */ (destino.meta.titulo)

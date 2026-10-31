@@ -2,11 +2,13 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
+import DialogoConfirmacion from '@/compartido/componentes/DialogoConfirmacion.vue'
 import PilaAvisos from '@/compartido/componentes/PilaAvisos.vue'
 import AvisoSinConexion from './AvisoSinConexion.vue'
 import BarraSuperior from './BarraSuperior.vue'
 import MenuLateral from './MenuLateral.vue'
 import PaletaComandos from './PaletaComandos.vue'
+import PestanasTickets from './PestanasTickets.vue'
 
 /** Estructura de la aplicación con sesión: barra superior, menú lateral, contenido y piezas globales. */
 const { width } = useDisplay()
@@ -52,6 +54,7 @@ watch(
   />
   <MenuLateral v-model="menuAbierto" :permanente="menuPermanente" />
   <v-main>
+    <PestanasTickets />
     <div id="contenido" ref="contenido" tabindex="-1" class="contenido">
       <AvisoSinConexion />
       <RouterView v-slot="{ Component }">
@@ -62,6 +65,7 @@ watch(
     </div>
   </v-main>
   <PaletaComandos v-model="paletaAbierta" />
+  <DialogoConfirmacion />
   <PilaAvisos />
 </template>
 

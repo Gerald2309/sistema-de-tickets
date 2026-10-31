@@ -47,7 +47,16 @@ http.interceptors.request.use((configuracion) => {
 // revocado: la sesión decide (una sola vez aunque fallen varias peticiones a la vez).
 http.interceptors.response.use(
   (respuesta) => respuesta,
-  (error) => {
+  async (error) => {
+    // Una descarga (responseType blob) recibe también el error como archivo: se lee el problema JSON.
+    const datos = error?.response?.data
+    if (datos instanceof Blob && /json/.test(datos.type)) {
+      try {
+        error.response.data = JSON.parse(await datos.text())
+      } catch {
+        // Si no se puede leer, queda el mensaje genérico.
+      }
+    }
     const problema = aErrorDeApi(error)
     if (problema.estado === 401 && sesion.obtenerToken()) {
       sesion.alExpirar()
