@@ -4,7 +4,6 @@ namespace App\Incidentes\Consultas;
 
 use App\Incidentes\Dominio\AlcanceIncidentes;
 use App\Incidentes\Dominio\ResumenDeIncidentes;
-use App\Incidentes\Dominio\Vencimiento;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -24,12 +23,14 @@ class ResumirIncidentes
                 ->get()
                 ->map(fn (object $fila) => ['estado' => $fila->estado, 'prioridad' => $fila->prioridad, 'cantidad' => (int) $fila->cantidad]);
 
-            $vencidos = Incidente::query()->visiblePara($alcance)->toBase()
-                ->whereIn('estado', array_column(Vencimiento::estadosQueVencen(), 'value'))
-                ->where('fecha_vencimiento', '<', $ahora)
-                ->count();
+            $vencidosPorEstado = Incidente::query()->visiblePara($alcance)->vencidosAl($ahora)->toBase()
+                ->selectRaw('estado, count(*) as cantidad')
+                ->groupBy('estado')
+                ->pluck('cantidad', 'estado')
+                ->map(fn (mixed $cantidad) => (int) $cantidad)
+                ->all();
 
-            return ResumenDeIncidentes::desde($grupos, $vencidos);
+            return ResumenDeIncidentes::desde($grupos, $vencidosPorEstado);
         });
     }
 }

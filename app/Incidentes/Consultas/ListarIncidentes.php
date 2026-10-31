@@ -12,6 +12,7 @@ use App\Incidentes\Dominio\Vencimiento;
 use App\Incidentes\Dominio\VentanaDeVencimiento;
 use App\Incidentes\Models\Incidente;
 use App\Incidentes\Policies\IncidentePolicy;
+use DateTimeInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -52,6 +53,7 @@ class ListarIncidentes
             ->when($filtros->porVencer, fn (Builder $consulta, VentanaDeVencimiento $ventana) => $consulta
                 ->whereIn('estado', array_map(fn (Estado $estado) => $estado->value, Vencimiento::estadosQueVencen()))
                 ->whereBetween('fecha_vencimiento', [$ventana->desde, $ventana->hasta]))
+            ->when($filtros->vencidosAl, fn (Builder $consulta, DateTimeInterface $instante) => $consulta->vencidosAl($instante))
             ->when($filtros->fechaDesde, fn (Builder $consulta) => $consulta->where($columnaDeFecha, '>=', $filtros->fechaDesde))
             ->when($filtros->fechaHasta, fn (Builder $consulta) => $consulta->where($columnaDeFecha, '<=', $filtros->fechaHasta))
             ->orderBy($filtros->ordenarPor->columna(), $sentido)

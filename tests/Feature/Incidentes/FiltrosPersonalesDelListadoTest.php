@@ -7,7 +7,7 @@ use App\Identidad\Models\User;
 use App\Incidentes\Dominio\Estado;
 use Tests\TestCase;
 
-// Filtros por creador, atajos «mis incidentes» y «asignados a mí», y «por vencer».
+// Filtros por creador, atajos «mis incidentes» y «asignados a mí», «por vencer» y «vencidos».
 class FiltrosPersonalesDelListadoTest extends TestCase
 {
     private User $soporte;
@@ -98,6 +98,51 @@ class FiltrosPersonalesDelListadoTest extends TestCase
 
         $this->assertEqualsCanonicalizing([$enElLimite->id, $ahora->id], $this->ids('vence_en_horas=4'));
         $this->assertSame([], $this->ids('vence_en_horas=4&estado=cerrado'));
+    }
+
+    public function test_vencidos_trae_los_pendientes_con_el_vencimiento_ya_pasado(): void
+    {
+        $creador = $this->crearUsuario();
+        $abiertoVencido = $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subDay()]);
+        $enProgresoVencido = $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subMinute(), 'estado' => Estado::EnProgreso]);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()]);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->addHour()]);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subDay(), 'estado' => Estado::Resuelto, 'solucion' => 'Listo.']);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subDay(), 'estado' => Estado::Cerrado, 'solucion' => 'Listo.']);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subDay(), 'deleted_at' => now()]);
+
+        $this->assertSame([$abiertoVencido->id, $enProgresoVencido->id], $this->ids('vencidos=1'));
+        $this->assertSame([$enProgresoVencido->id], $this->ids('vencidos=1&estado=en_progreso'));
+        $this->assertCount(6, $this->ids('vencidos=0'));
+    }
+
+    public function test_vencidos_coincide_con_el_conteo_del_dashboard(): void
+    {
+        $creador = $this->crearUsuario();
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subDay()]);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subHours(3), 'estado' => Estado::EnProgreso]);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->addDay()]);
+        $token = $this->iniciarSesion($this->usuarioConPermisos(ClavePermiso::VerTodos, ClavePermiso::VerDashboard));
+
+        $total = $this->conToken($token)->getJson('/api/v1/incidentes?vencidos=1')->assertOk()->json('meta.total');
+        $this->assertSame(2, $total);
+        $this->conToken($token)->getJson('/api/v1/dashboard')->assertJsonPath('data.vencidos', $total);
+    }
+
+    public function test_vencidos_no_se_combina_con_por_vencer(): void
+    {
+        $this->conToken($this->token)->getJson('/api/v1/incidentes?vencidos=1&vence_en_horas=4')
+            ->assertUnprocessable()->assertJsonValidationErrors(['vencidos'], 'errors');
+    }
+
+    public function test_quien_ve_solo_lo_propio_solo_recibe_sus_vencidos(): void
+    {
+        $solicitante = $this->usuarioConPermisos(ClavePermiso::VerPropios);
+        $propio = $this->incidenteDe($solicitante, ['fecha_vencimiento' => now()->subDay()]);
+        $this->incidenteDe($this->crearUsuario(), ['fecha_vencimiento' => now()->subDay()]);
+        $token = $this->iniciarSesion($solicitante);
+
+        $this->assertSame([$propio->id], collect($this->conToken($token)->getJson('/api/v1/incidentes?vencidos=1')->json('data'))->pluck('id')->all());
     }
 
     public function test_el_plazo_debe_estar_entre_una_hora_y_treinta_dias(): void

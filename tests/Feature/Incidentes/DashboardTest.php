@@ -40,6 +40,7 @@ class DashboardTest extends TestCase
             'por_estado' => ['abierto' => 2, 'en_progreso' => 1, 'resuelto' => 1, 'cerrado' => 1],
             'por_prioridad' => ['baja' => 1, 'media' => 1, 'alta' => 2, 'critica' => 1],
             'vencidos' => 2,
+            'vencidos_por_estado' => ['abierto' => 1, 'en_progreso' => 1],
         ]]);
     }
 

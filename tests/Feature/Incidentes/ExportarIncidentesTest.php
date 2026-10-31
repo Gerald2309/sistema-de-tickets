@@ -81,6 +81,17 @@ class ExportarIncidentesTest extends TestCase
         $this->assertSame([sprintf('INC-%06d', $abierto->id), sprintf('INC-%06d', $otroAbierto->id)], array_column($filas, 0));
     }
 
+    public function test_exporta_solo_los_vencidos_si_se_piden(): void
+    {
+        $creador = $this->crearUsuario();
+        $vencido = $this->incidenteDe($creador, ['fecha_vencimiento' => now()->subDay()]);
+        $this->incidenteDe($creador, ['fecha_vencimiento' => now()->addDay()]);
+
+        [, $filas] = $this->csv('&vencidos=1');
+
+        $this->assertSame([sprintf('INC-%06d', $vencido->id)], array_column($filas, 0));
+    }
+
     public function test_cada_persona_exporta_solo_lo_que_puede_ver(): void
     {
         $solicitante = $this->usuarioConPermisos(ClavePermiso::VerPropios);
