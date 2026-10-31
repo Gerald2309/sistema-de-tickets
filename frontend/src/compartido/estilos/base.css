@@ -1,0 +1,80 @@
+/* Base de la aplicación y ajustes de Vuetify al sistema de diseño (esquinas, pesos, foco). */
+html {
+  font-family: var(--fuente);
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+body {
+  margin: 0;
+  font-size: 14px;
+  font-feature-settings: 'tnum' 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.v-application {
+  font-family: var(--fuente) !important;
+  background: var(--fondo) !important;
+  color: var(--texto);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Esquinas de 4 px en botones, campos, tarjetas y menús; 3 px en chips. */
+.v-btn:not(.v-btn--icon),
+.v-field,
+.v-card,
+.v-menu > .v-overlay__content,
+.v-list {
+  border-radius: var(--radio) !important;
+}
+
+.v-chip {
+  border-radius: var(--radio-chip) !important;
+}
+
+.v-btn {
+  letter-spacing: 0 !important;
+  font-weight: 600 !important;
+}
+
+/* Foco visible y consistente (RNF-F09). */
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* Los campos de Vuetify ya marcan el foco con su borde: sin un segundo contorno dentro. */
+.v-field input:focus-visible,
+.v-field textarea:focus-visible {
+  outline: none;
+}
+
+.salto-al-contenido {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 10000;
+  padding: 8px 12px;
+  background: var(--superficie);
+  color: var(--acento-texto);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-2);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.salto-al-contenido:focus {
+  top: 8px;
+}
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

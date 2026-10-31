@@ -1,0 +1,69 @@
+/*
+ * Tokens del sistema de diseño (F-04, sistema-diseno/index.html). Es el único archivo con colores literales
+ * (RNF-F20, Stylelint lo vigila); el tema de Vuetify usa los mismos valores en nucleo/plugins/vuetify.js.
+ */
+:root {
+  /* Marca Psicol, sin modificar. El cian puro no alcanza 4,5:1 con blanco: no se usa para texto. */
+  --marca-cian: #00a4d6;
+  --marca-naranja: #ff9429;
+  --marca-verde: #8abf22;
+  --marca-noche: #003;
+  --degradado: linear-gradient(90deg, #08a5c9 0%, #42b371 35%, #7abb24 65%, #cda727 100%);
+
+  /* Interfaz */
+  --acento: #007da3;
+  --acento-texto: #05627d;
+  --acento-fondo: #e8f6fb;
+  --acento-borde: #bfe6f3;
+  --texto: #20242c;
+  --suave: #5e6878;
+  --tenue: #8a93a3;
+  --borde: #e2e4e9;
+  --borde-fuerte: #c1c7d0;
+  --fondo: #f3f5f7;
+  --sutil: #fafbfc;
+  --superficie: #fff;
+  --resalte: #e6e9ee;
+
+  /* Semánticos (versiones con contraste AA para texto) */
+  --error: #b42318;
+  --error-fondo: #fef3f2;
+  --error-borde: #fecdca;
+  --exito: #5e8c10;
+  --exito-texto: #3f6b0a;
+  --exito-fondo: #f6faee;
+  --exito-borde: #d5e8b5;
+  --advertencia: #b45309;
+  --advertencia-fondo: #fff7ee;
+  --advertencia-borde: #ffd2a6;
+  --advertencia-icono: #c2580a;
+  --info-fondo: #f2fafd;
+
+  /* Estados y prioridades: siempre acompañados de texto (RNF-F08). */
+  --estado-abierto: #00a4d6;
+  --estado-en-progreso: #ff9429;
+  --estado-resuelto: #8abf22;
+  --estado-cerrado: #98a2b3;
+  --prioridad-critica: #ef4444;
+  --prioridad-alta: #f97316;
+  --prioridad-media: #cda727;
+  --prioridad-baja: #98a2b3;
+
+  /* Forma */
+  --radio: 4px;
+  --radio-chip: 3px;
+  --sombra-1: 0 1px 3px rgb(9 30 66 / 18%), 0 0 1px rgb(9 30 66 / 25%);
+  --sombra-2: 0 12px 32px -12px rgb(16 24 40 / 28%);
+  --anillo-foco: 0 0 0 3px rgb(0 125 163 / 15%);
+
+  /* Tipografía */
+  --fuente: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: ui-monospace, 'SFMono-Regular', consolas, monospace;
+
+  /* Movimiento */
+  --curva: cubic-bezier(0.22, 1, 0.36, 1);
+  --curva-entrada-salida: cubic-bezier(0.76, 0, 0.24, 1);
+  --rapida: 0.15s;
+  --media: 0.4s;
+  --lenta: 0.8s;
+}

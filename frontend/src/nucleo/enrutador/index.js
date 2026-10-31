@@ -1,0 +1,95 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import {
+  navegacion as navegacionIdentidad,
+  rutas as rutasIdentidad,
+  rutasPublicas,
+  useSesion,
+} from '@/modulos/identidad/index.js'
+import { decidirAcceso } from './acceso.js'
+
+const NOMBRE_PRODUCTO = 'Psicol – Mesa de ayuda'
+
+/**
+ * Entradas del menú de todos los módulos, en orden. El menú y la ruta inicial salen de aquí.
+ * @type {import('@/modulos/identidad/index.js').EntradaDeNavegacion[]}
+ */
+export const navegacion = [...navegacionIdentidad]
+
+/**
+ * Rutas de la aplicación: las públicas y, dentro de la estructura con barra y menú, las de cada módulo.
+ * @type {import('vue-router').RouteRecordRaw[]}
+ */
+export const rutas = [
+  ...rutasPublicas,
+  {
+    path: '/',
+    component: () => import('@/nucleo/disposicion/EstructuraDeAplicacion.vue'),
+    meta: { permiso: 'autenticado' },
+    children: [
+      {
+        path: '',
+        name: 'inicio',
+        component: () => import('@/nucleo/paginas/PaginaInicio.vue'),
+        meta: { permiso: 'autenticado' },
+      },
+      ...rutasIdentidad,
+      {
+        path: 'sin-permiso',
+        name: 'sin-permiso',
+        component: () => import('@/nucleo/paginas/PaginaSinPermiso.vue'),
+        meta: { permiso: 'autenticado', titulo: 'Sin permiso' },
+      },
+      {
+        path: ':ruta(.*)*',
+        name: 'no-encontrado',
+        component: () => import('@/nucleo/paginas/PaginaNoEncontrada.vue'),
+        meta: { permiso: 'autenticado', titulo: 'No encontrado' },
+      },
+    ],
+  },
+]
+
+/**
+ * @param {import('vue-router').RouterHistory} [historial] en pruebas, uno en memoria
+ * @returns {import('vue-router').Router}
+ */
+export function crearEnrutador(historial = createWebHistory()) {
+  const enrutador = createRouter({
+    history: historial,
+    routes: rutas,
+    scrollBehavior: (_destino, _origen, posicionGuardada) => posicionGuardada ?? { top: 0 },
+  })
+
+  let sesionRestaurada = false
+
+  enrutador.beforeEach(async (destino) => {
+    const sesion = useSesion()
+    // La primera navegación espera a recuperar la sesión guardada (RF-F04).
+    if (!sesionRestaurada) {
+      sesionRestaurada = true
+      await sesion.restaurar()
+    }
+
+    // La ruta más interna decide; las padre también deben permitirlo.
+    for (const registro of destino.matched) {
+      const decision = decidirAcceso(/** @type {any} */ (registro.meta.permiso), sesion)
+      if (decision.tipo === 'ingresar') {
+        return { name: 'ingresar', query: destino.fullPath === '/' ? {} : { destino: destino.fullPath } }
+      }
+      if (decision.tipo === 'inicio') {
+        return { name: 'inicio' }
+      }
+      if (decision.tipo === 'sin-permiso') {
+        return { name: 'sin-permiso', replace: true }
+      }
+    }
+    return true
+  })
+
+  enrutador.afterEach((destino) => {
+    const titulo = /** @type {string | undefined} */ (destino.meta.titulo)
+    document.title = titulo ? `${titulo} · ${NOMBRE_PRODUCTO}` : NOMBRE_PRODUCTO
+  })
+
+  return enrutador
+}

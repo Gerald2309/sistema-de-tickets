@@ -1,0 +1,63 @@
+# Nginx de la entrada única. Todo es el mismo origen: sin CORS, y el token nunca sale hacia otro origen.
+
+map $http_upgrade $conexion {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 80;
+    server_tokens off;
+    root /usr/share/nginx/html;
+    index index.html;
+    client_max_body_size 1m;
+
+    # La aplicación: cualquier ruta desconocida la resuelve el enrutador del navegador.
+    location / {
+        include /etc/nginx/snippets/cabeceras.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Archivos compilados: su nombre lleva un resumen del contenido, así que se guardan un año.
+    location /assets/ {
+        include /etc/nginx/snippets/cabeceras.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # Configuración que el frontend lee al arrancar. La clave de Reverb es pública por diseño.
+    location = /configuracion.json {
+        include /etc/nginx/snippets/cabeceras.conf;
+        add_header Cache-Control "no-store" always;
+        default_type application/json;
+        return 200 '{"tiempoReal":{"clave":"${REVERB_APP_KEY}"}}';
+    }
+
+    # API de Laravel. Sus respuestas traen sus propias cabeceras de seguridad.
+    location /api/ {
+        proxy_pass http://api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Las descargas grandes (exportación) pueden tardar.
+        proxy_read_timeout 120s;
+    }
+
+    # Conexión WebSocket del navegador con Reverb. Solo /app: la API de publicación de Reverb (/apps) la usa
+    # Laravel por la red interna y no se expone.
+    location /app/ {
+        proxy_pass http://reverb:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $conexion;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 3600s;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}

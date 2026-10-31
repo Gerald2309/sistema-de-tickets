@@ -1,0 +1,145 @@
+/* Piezas de disposición del sistema de diseño que comparten todas las pantallas. */
+.pagina {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 28px 96px;
+}
+
+.pagina--angosta {
+  max-width: 980px;
+}
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.titulo-pagina {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.subtitulo {
+  margin: 6px 0 0;
+  color: var(--suave);
+  font-size: 13px;
+}
+
+.migas {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+  color: var(--suave);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.migas a {
+  color: var(--suave);
+  text-decoration: none;
+}
+
+.migas a:hover {
+  color: var(--texto);
+}
+
+/* Tarjeta plana con borde de 1 px y cabecera propia. */
+.tarjeta {
+  overflow: hidden;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  transition: box-shadow var(--rapida);
+}
+
+.tarjeta--elevable:hover {
+  box-shadow: var(--sombra-1);
+}
+
+.tarjeta__cabecera {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tarjeta__titulo {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tarjeta__cuerpo {
+  padding: 16px;
+}
+
+.nota {
+  color: var(--suave);
+  font-size: 12.5px;
+}
+
+/* Formulario con la explicación de cada sección a la izquierda. */
+.formulario-por-secciones {
+  padding: 24px 28px;
+}
+
+.seccion {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 2fr;
+  gap: 24px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.seccion:first-child {
+  padding-top: 0;
+}
+
+.seccion--ultima {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.seccion__titulo {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.seccion__ayuda {
+  margin: 0;
+  color: var(--suave);
+  font-size: 13px;
+}
+
+.formulario-por-secciones__pie {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+@media (width <= 760px) {
+  .pagina {
+    padding: 16px 16px 96px;
+  }
+
+  .seccion {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .formulario-por-secciones {
+    padding: 16px;
+  }
+}
