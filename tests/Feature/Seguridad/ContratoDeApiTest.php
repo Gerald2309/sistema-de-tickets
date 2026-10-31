@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Seguridad;
 
+use App\Http\Middleware\CabecerasDeApi;
 use Illuminate\Routing\Route as RutaDeLaApi;
 use Illuminate\Support\Facades\Route;
 use RuntimeException;
@@ -139,6 +140,27 @@ class ContratoDeApiTest extends TestCase
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('Cache-Control', 'no-store, private');
+    }
+
+    public function test_las_respuestas_de_error_llevan_las_mismas_cabeceras_de_seguridad(): void
+    {
+        $token = $this->iniciarSesion($this->crearUsuario());
+
+        $errores = [
+            401 => $this->sinCredencial()->getJson('/api/v1/incidentes'),
+            403 => $this->conToken($token)->getJson('/api/v1/usuarios'),
+            404 => $this->conToken($token)->getJson('/api/v1/incidentes/999999'),
+            422 => $this->sinCredencial()->postJson('/api/v1/auth/login', []),
+        ];
+
+        foreach ($errores as $estado => $respuesta) {
+            $respuesta->assertStatus($estado);
+            foreach (CabecerasDeApi::CABECERAS as $nombre => $valor) {
+                $this->assertStringContainsString($valor, $respuesta->headers->get($nombre), "{$estado}: falta {$nombre}");
+            }
+        }
+
+        $this->assertSame("default-src 'none'; frame-ancestors 'none'", $errores[401]->headers->get('Content-Security-Policy'));
     }
 
     /**
