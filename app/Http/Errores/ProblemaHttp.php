@@ -19,10 +19,10 @@ final class ProblemaHttp
 {
     private const DETALLES = [
         401 => 'Falta la credencial o no es válida.',
-        403 => 'No tienes permiso para realizar esta acción.',
+        403 => 'No tiene permiso para realizar esta acción.',
         404 => 'El recurso no existe o no está disponible.',
         405 => 'Método no permitido para esta ruta.',
-        429 => 'Demasiadas peticiones. Intenta de nuevo más tarde.',
+        429 => 'Demasiadas peticiones. Intente de nuevo más tarde.',
     ];
 
     // Con la depuración activa (solo desarrollo) un error inesperado se deja al manejador por defecto.
