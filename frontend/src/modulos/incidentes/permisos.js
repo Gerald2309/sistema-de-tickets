@@ -4,7 +4,8 @@
  * Se aplican a incidentes que la persona ya ve, así que no repiten la regla de visibilidad.
  */
 
-/** @typedef {{ tiene: (permiso: string) => boolean, perfil: { id: number } | null }} Sesion */
+/** @typedef {import('@/modulos/identidad/index.js').Permiso} Permiso */
+/** @typedef {{ tiene: (permiso: Permiso) => boolean, perfil: { id: number } | null }} Sesion */
 /** @typedef {Pick<import('./tipos.js').Incidente, 'creador'>} ConCreador */
 
 /**

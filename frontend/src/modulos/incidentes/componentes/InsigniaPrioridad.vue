@@ -11,7 +11,7 @@ const presentacion = computed(() => presentarPrioridad(props.prioridad))
 </script>
 
 <template>
-  <span class="prioridad" :class="{ 'prioridad--caja': caja }">
+  <span class="prioridad" :class="{ 'insignia-caja': caja }">
     <v-icon :icon="presentacion.icono" size="16" :style="{ color: presentacion.color }" aria-hidden="true" />
     {{ presentacion.nombre }}
   </span>
@@ -23,15 +23,5 @@ const presentacion = computed(() => presentarPrioridad(props.prioridad))
   gap: 4px;
   align-items: center;
   white-space: nowrap;
-}
-
-.prioridad--caja {
-  height: 24px;
-  padding: 0 9px;
-  font-size: 12.5px;
-  font-weight: 500;
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
 }
 </style>

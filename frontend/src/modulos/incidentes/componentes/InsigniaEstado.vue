@@ -11,7 +11,7 @@ const presentacion = computed(() => presentarEstado(props.estado))
 </script>
 
 <template>
-  <span class="estado" :class="{ 'estado--caja': caja }">
+  <span class="estado" :class="{ 'insignia-caja': caja }">
     <span class="estado__punto" :style="{ background: presentacion.color }" aria-hidden="true" />
     <Transition name="texto" mode="out-in">
       <span :key="estado">{{ presentacion.nombre }}</span>
@@ -25,16 +25,6 @@ const presentacion = computed(() => presentarEstado(props.estado))
   gap: 8px;
   align-items: center;
   white-space: nowrap;
-}
-
-.estado--caja {
-  height: 24px;
-  padding: 0 9px;
-  font-size: 12.5px;
-  font-weight: 500;
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
 }
 
 .estado__punto {

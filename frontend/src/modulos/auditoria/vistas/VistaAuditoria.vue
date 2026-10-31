@@ -167,10 +167,6 @@ const limpiar = () =>
 </template>
 
 <style scoped>
-.tenue {
-  color: var(--tenue);
-}
-
 .tenue-suave {
   color: var(--suave);
 }
