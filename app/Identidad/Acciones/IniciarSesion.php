@@ -34,7 +34,10 @@ class IniciarSesion
                 return [null, $usuario?->id];
             }
 
-            return [$usuario->createToken('api', ['*'], $ahora->copy()->addMinutes((int) config('sanctum.expiration'))), $usuario->id];
+            $token = $usuario->createToken('api', ['*'], $ahora->copy()->addMinutes((int) config('sanctum.expiration')));
+            $this->cerrarSesionesSobrantes($usuario);
+
+            return [$token, $usuario->id];
         });
 
         if ($token === null) {
@@ -45,5 +48,15 @@ class IniciarSesion
         }
 
         return $token;
+    }
+
+    // Quedan las sesiones más recientes (incluida la nueva); las más antiguas se cierran.
+    private function cerrarSesionesSobrantes(User $usuario): void
+    {
+        $sobrantes = $usuario->tokens()->orderByDesc('id')->skip((int) config('seguridad.sesiones_maximas'))->take(PHP_INT_MAX)->pluck('id');
+
+        if ($sobrantes->isNotEmpty()) {
+            $usuario->tokens()->whereIn('id', $sobrantes)->delete();
+        }
     }
 }

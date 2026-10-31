@@ -4,6 +4,7 @@ namespace App\Incidentes\Http\Requests;
 
 use App\Incidentes\Dominio\AlcanceIncidentes;
 use App\Incidentes\Dominio\Categoria;
+use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Policies\IncidentePolicy;
 use Illuminate\Foundation\Http\FormRequest;
@@ -35,6 +36,19 @@ abstract class IncidenteRequest extends FormRequest
                 'integer',
                 Rule::exists('users', 'id')->where('activo', true),
             ],
+        ];
+    }
+
+    /**
+     * Cambiar el estado y escribir la solución, que solo se registra al resolver (la acción lo comprueba).
+     *
+     * @return array<string, list<mixed>>
+     */
+    protected function reglasDeEstado(): array
+    {
+        return [
+            'estado' => ['sometimes', Rule::enum(Estado::class)],
+            'solucion' => ['sometimes', 'required', 'string', 'max:10000'],
         ];
     }
 

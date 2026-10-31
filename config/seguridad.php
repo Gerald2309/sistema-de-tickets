@@ -25,6 +25,9 @@ return [
         'max_terminos' => 5,
     ],
 
+    // Sesiones abiertas a la vez por persona: al iniciar otra, se cierran las más antiguas.
+    'sesiones_maximas' => (int) env('SESIONES_MAXIMAS', 5),
+
     'limites' => [
         'api' => env('LIMITE_API_POR_MINUTO', 60),
         'login_email' => env('LIMITE_LOGIN_POR_EMAIL', 5),

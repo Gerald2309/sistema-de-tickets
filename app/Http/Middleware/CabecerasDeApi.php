@@ -17,6 +17,7 @@ class CabecerasDeApi
         'Content-Security-Policy' => "default-src 'none'; frame-ancestors 'none'",
         'X-Frame-Options' => 'DENY',
         'Referrer-Policy' => 'no-referrer',
+        'Permissions-Policy' => 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
     ];
 
     public function handle(Request $request, Closure $next): Response

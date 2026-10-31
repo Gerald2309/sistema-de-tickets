@@ -10,13 +10,18 @@ use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\FiltrosDeIncidentes;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Dominio\TerminosDeBusqueda;
+use App\Incidentes\Dominio\VentanaDeVencimiento;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Rule;
 
 class ListarIncidentesRequest extends FormRequest
 {
+    // Hasta 30 días.
+    private const MAXIMO_HORAS_POR_VENCER = 720;
+
     // Los permisos los comprueba la ruta (->can('listar')).
     public function authorize(): bool
     {
@@ -34,6 +39,11 @@ class ListarIncidentesRequest extends FormRequest
             'estado' => ['nullable', Rule::enum(Estado::class)],
             'categoria' => ['nullable', Rule::enum(Categoria::class)],
             'usuario_asignado_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'usuario_creador_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            // Atajos: «los que yo creé» y «los que me asignaron a mí». No se combinan con el filtro por persona.
+            'mios' => ['nullable', 'boolean', 'prohibits:usuario_creador_id'],
+            'asignados_a_mi' => ['nullable', 'boolean', 'prohibits:usuario_asignado_id'],
+            'vence_en_horas' => ['nullable', 'integer', 'between:1,'.self::MAXIMO_HORAS_POR_VENCER],
             'fecha_desde' => ['nullable', 'date_format:'.IncidenteRequest::FORMATOS_FECHA],
             'fecha_hasta' => ['nullable', 'date_format:'.IncidenteRequest::FORMATOS_FECHA, 'after_or_equal:fecha_desde'],
             'campo_fecha' => ['nullable', Rule::enum(CampoFecha::class)],
@@ -67,7 +77,13 @@ class ListarIncidentesRequest extends FormRequest
             prioridad: $this->enum('prioridad', Prioridad::class),
             estado: $this->enum('estado', Estado::class),
             categoria: $this->enum('categoria', Categoria::class),
-            usuarioAsignadoId: $this->filled('usuario_asignado_id') ? $this->integer('usuario_asignado_id') : null,
+            usuarioAsignadoId: $this->boolean('asignados_a_mi')
+                ? $this->user()->id
+                : ($this->filled('usuario_asignado_id') ? $this->integer('usuario_asignado_id') : null),
+            usuarioCreadorId: $this->boolean('mios')
+                ? $this->user()->id
+                : ($this->filled('usuario_creador_id') ? $this->integer('usuario_creador_id') : null),
+            porVencer: $this->filled('vence_en_horas') ? $this->ventanaPorVencer() : null,
             fechaDesde: $this->fecha('fecha_desde'),
             fechaHasta: $this->fecha('fecha_hasta'),
             campoFecha: $this->enum('campo_fecha', CampoFecha::class) ?? CampoFecha::Vencimiento,
@@ -87,6 +103,13 @@ class ListarIncidentesRequest extends FormRequest
             (int) config('seguridad.busqueda.min_token'),
             (int) config('seguridad.busqueda.max_terminos'),
         );
+    }
+
+    private function ventanaPorVencer(): VentanaDeVencimiento
+    {
+        $ahora = Date::now();
+
+        return new VentanaDeVencimiento($ahora, $ahora->copy()->addHours($this->integer('vence_en_horas')));
     }
 
     // Los límites del rango se comparan en UTC, que es como se guardan las fechas.

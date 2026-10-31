@@ -32,6 +32,7 @@ return new class extends Migration
             $table->index(['fecha_vencimiento', 'deleted_at']);
             $table->index(['created_at', 'deleted_at']);
             $table->index(['estado', 'prioridad', 'deleted_at']); // dashboard (consulta combinada)
+            $table->index(['estado', 'fecha_vencimiento', 'deleted_at']); // vencidos del dashboard
             $table->fullText(['titulo', 'descripcion']);
         });
     }
