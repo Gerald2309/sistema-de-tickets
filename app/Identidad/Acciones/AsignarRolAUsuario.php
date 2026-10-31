@@ -33,7 +33,7 @@ class AsignarRolAUsuario
                 $this->registrarAuditoria->ejecutar(AccionAuditoria::RolAsignado, $administrador->id, $usuario->id, "Rol «{$nombreDelRol}»", $ip);
             }
 
-            return $usuario->load('rol');
+            return $usuario->load(['rol', 'cliente']);
         });
     }
 }

@@ -25,6 +25,7 @@ class PerfilYSesionesTest extends TestCase
                 'name' => $usuario->name,
                 'email' => $usuario->email,
                 'rol' => ['id' => $usuario->rol->id, 'nombre' => $usuario->rol->nombre],
+                'cliente' => null,
                 'permisos' => ['crear_incidente', 'ver_todos'],
             ]]);
 

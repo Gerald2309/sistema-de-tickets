@@ -50,6 +50,7 @@ class ListarIncidentes
             ->when($filtros->categoria, fn (Builder $consulta, Categoria $categoria) => $consulta->where('categoria', $categoria->value))
             ->when($filtros->usuarioAsignadoId, fn (Builder $consulta) => $consulta->where('usuario_asignado_id', $filtros->usuarioAsignadoId))
             ->when($filtros->usuarioCreadorId, fn (Builder $consulta) => $consulta->where('usuario_creador_id', $filtros->usuarioCreadorId))
+            ->when($filtros->clienteId, fn (Builder $consulta) => $consulta->where('cliente_id', $filtros->clienteId))
             ->when($filtros->porVencer, fn (Builder $consulta, VentanaDeVencimiento $ventana) => $consulta
                 ->whereIn('estado', array_map(fn (Estado $estado) => $estado->value, Vencimiento::estadosQueVencen()))
                 ->whereBetween('fecha_vencimiento', [$ventana->desde, $ventana->hasta]))

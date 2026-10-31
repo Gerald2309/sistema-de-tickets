@@ -13,7 +13,8 @@ class CrearIncidente
     public function __construct(private readonly RegistrarHistorial $registrarHistorial) {}
 
     /**
-     * El creador y el estado inicial no vienen de la petición: son el usuario autenticado y "abierto".
+     * El creador, su empresa y el estado inicial no vienen de la petición: son el usuario autenticado, la
+     * empresa a la que pertenece en este momento (F-10) y "abierto".
      *
      * @param  array<string, mixed>  $datos  ya validados
      */
@@ -22,6 +23,7 @@ class CrearIncidente
         return DB::transaction(function () use ($creador, $datos) {
             $incidente = Incidente::create($datos + [
                 'usuario_creador_id' => $creador->id,
+                'cliente_id' => $creador->cliente_id,
                 'estado' => Estado::Abierto,
             ]);
 

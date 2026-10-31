@@ -20,6 +20,8 @@ class VolumenSeeder extends Seeder
 
     private const SOPORTE = 50;
 
+    private const EMPRESAS = 20;
+
     // Los pendientes son recientes; los terminados, de los últimos dos años.
     private const DIAS_DE_ANTIGUEDAD = ['abierto' => 30, 'en_progreso' => 30, 'resuelto' => 730, 'cerrado' => 730];
 
@@ -32,15 +34,36 @@ class VolumenSeeder extends Seeder
 
         $cantidad = min((int) config('incidentes.volumen.incidentes'), 1_000_000);
 
-        [$primerSolicitante, $primerSoporte] = $this->crearUsuarios();
+        $primeraEmpresa = $this->crearEmpresas();
+        [$primerSolicitante, $primerSoporte] = $this->crearUsuarios($primeraEmpresa);
         $this->crearIncidentes($cantidad, $primerSolicitante, $primerSoporte);
+        // Cada incidente con la empresa de quien lo reportó (F-10).
+        DB::statement('UPDATE incidentes i JOIN users u ON u.id = i.usuario_creador_id SET i.cliente_id = u.cliente_id');
         $this->crearHistorial();
     }
 
     /**
+     * @return int id de la primera empresa (los ids son seguidos)
+     */
+    private function crearEmpresas(): int
+    {
+        $ahora = now();
+        DB::table('clientes')->insert(array_map(fn (int $n) => [
+            'nombre' => "Empresa de volumen {$n}",
+            'activo' => true,
+            'created_at' => $ahora,
+            'updated_at' => $ahora,
+        ], range(1, self::EMPRESAS)));
+
+        return (int) DB::table('clientes')->where('nombre', 'Empresa de volumen 1')->value('id');
+    }
+
+    /**
+     * Los solicitantes se reparten entre las empresas; el personal de soporte no tiene.
+     *
      * @return array{int, int} id del primer solicitante y del primer usuario de soporte (los ids son seguidos)
      */
-    private function crearUsuarios(): array
+    private function crearUsuarios(int $primeraEmpresa): array
     {
         $clave = Hash::make(Str::random(32));
         $ahora = now();
@@ -55,6 +78,7 @@ class VolumenSeeder extends Seeder
                 'password' => $clave,
                 'activo' => true,
                 'rol_id' => $esSolicitante ? $roles['Solicitante'] : $roles['Soporte N'.(1 + $i % 3)],
+                'cliente_id' => $esSolicitante ? $primeraEmpresa + $i % self::EMPRESAS : null,
                 'created_at' => $ahora,
                 'updated_at' => $ahora,
             ];

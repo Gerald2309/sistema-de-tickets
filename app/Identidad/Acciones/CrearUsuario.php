@@ -12,14 +12,15 @@ class CrearUsuario
     public function __construct(private readonly RegistrarAuditoria $registrarAuditoria) {}
 
     /**
-     * @param  array{name: string, email: string, password: string, rol_id: int}  $datos
+     * @param  array{name: string, email: string, password: string, rol_id: int, cliente_id: int|null}  $datos
      */
     public function ejecutar(User $administrador, array $datos, ?string $ip): User
     {
         return DB::transaction(function () use ($administrador, $datos, $ip) {
-            $usuario = User::create($datos)->refresh()->load('rol');
+            $usuario = User::create($datos)->refresh()->load(['rol', 'cliente']);
 
-            $this->registrarAuditoria->ejecutar(AccionAuditoria::UsuarioCreado, $administrador->id, $usuario->id, "Rol «{$usuario->rol->nombre}»", $ip);
+            $empresa = $usuario->cliente ? " · Empresa «{$usuario->cliente->nombre}»" : '';
+            $this->registrarAuditoria->ejecutar(AccionAuditoria::UsuarioCreado, $administrador->id, $usuario->id, "Rol «{$usuario->rol->nombre}»{$empresa}", $ip);
 
             return $usuario;
         });

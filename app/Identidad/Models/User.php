@@ -14,8 +14,9 @@ use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property-read Rol $rol todo usuario tiene rol (rol_id no admite nulos)
+ * @property-read Cliente|null $cliente empresa cliente; nula para el personal de Psicol
  */
-#[Fillable(['name', 'email', 'password', 'activo', 'rol_id'])]
+#[Fillable(['name', 'email', 'password', 'activo', 'rol_id', 'cliente_id'])]
 #[Hidden(['password'])]
 #[UseFactory(UserFactory::class)]
 class User extends Authenticatable
@@ -31,6 +32,14 @@ class User extends Authenticatable
     public function rol(): BelongsTo
     {
         return $this->belongsTo(Rol::class, 'rol_id');
+    }
+
+    /**
+     * @return BelongsTo<Cliente, $this>
+     */
+    public function cliente(): BelongsTo
+    {
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
     /**

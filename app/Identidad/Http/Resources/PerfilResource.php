@@ -26,6 +26,7 @@ class PerfilResource extends JsonResource
             'name' => $usuario->name,
             'email' => $usuario->email,
             'rol' => ['id' => $usuario->rol->id, 'nombre' => $usuario->rol->nombre],
+            'cliente' => $usuario->cliente ? ['id' => $usuario->cliente->id, 'nombre' => $usuario->cliente->nombre] : null,
             'permisos' => $permisos->claves(),
         ];
     }

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Incidentes;
 
 use App\Identidad\Dominio\ClavePermiso;
+use App\Identidad\Models\Cliente;
 use App\Identidad\Models\User;
 use App\Incidentes\Dominio\Estado;
 use OpenSpout\Reader\XLSX\Reader;
@@ -42,9 +43,11 @@ class ExportarIncidentesTest extends TestCase
 
     public function test_descarga_un_csv_con_los_encabezados_y_los_datos_de_cada_incidente(): void
     {
-        $creador = $this->crearUsuario('Solicitante', ['name' => 'Marta Ruiz']);
+        $empresa = Cliente::factory()->create(['nombre' => 'Constructora Andina']);
+        $creador = $this->crearUsuario('Solicitante', ['name' => 'Marta Ruiz', 'cliente_id' => $empresa->id]);
         $asignado = $this->crearUsuario('Soporte N1', ['name' => 'Luis Pardo']);
         $incidente = $this->incidenteDe($creador, [
+            'cliente_id' => $empresa->id,
             'titulo' => 'Sin internet, piso 3',
             'descripcion' => 'No hay conexión desde "esta mañana".',
             'usuario_asignado_id' => $asignado->id,
@@ -59,14 +62,15 @@ class ExportarIncidentesTest extends TestCase
         [$encabezados, $filas] = $this->csv('');
 
         $this->assertSame('Código', $encabezados[0]);
-        $this->assertCount(13, $encabezados);
+        $this->assertCount(14, $encabezados);
+        $this->assertSame('Empresa', $encabezados[9]);
         $this->assertCount(1, $filas);
         $this->assertSame(sprintf('INC-%06d', $incidente->id), $filas[0][0]);
         $this->assertSame('Sin internet, piso 3', $filas[0][1]);
         $this->assertSame('No hay conexión desde "esta mañana".', $filas[0][2]);
         $this->assertSame(['media', 'abierto', 'otros'], array_slice($filas[0], 3, 3));
-        $this->assertSame(['Marta Ruiz', 'Luis Pardo'], array_slice($filas[0], 7, 2));
-        $this->assertSame(['Sí'], [$filas[0][10]]);
+        $this->assertSame(['Marta Ruiz', 'Luis Pardo', 'Constructora Andina'], array_slice($filas[0], 7, 3));
+        $this->assertSame(['Sí'], [$filas[0][11]]);
     }
 
     public function test_aplica_los_mismos_filtros_y_orden_que_el_listado(): void
