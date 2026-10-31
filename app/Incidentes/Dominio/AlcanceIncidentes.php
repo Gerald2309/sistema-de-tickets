@@ -37,6 +37,17 @@ final class AlcanceIncidentes
         return $this->permisos->tiene(ClavePermiso::VerTodos);
     }
 
+    // Ve únicamente lo que creó: tiene `ver_propios` y no `ver_todos`.
+    public function veSoloLoPropio(): bool
+    {
+        return ! $this->veTodo() && $this->permisos->tiene(ClavePermiso::VerPropios);
+    }
+
+    public function usuarioId(): int
+    {
+        return $this->usuarioId;
+    }
+
     public function puedeVer(int $creadorId): bool
     {
         return $this->veTodo() || ($this->permisos->tiene(ClavePermiso::VerPropios) && $this->esPropio($creadorId));

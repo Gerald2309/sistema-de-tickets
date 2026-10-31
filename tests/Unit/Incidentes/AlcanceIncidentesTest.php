@@ -49,6 +49,15 @@ class AlcanceIncidentesTest extends TestCase
         $this->assertTrue($this->soporte()->puedeVer(self::AJENO));
     }
 
+    public function test_ve_solo_lo_propio_si_tiene_ver_propios_y_no_ver_todos(): void
+    {
+        $this->assertTrue($this->solicitante()->veSoloLoPropio());
+        $this->assertFalse($this->soporte()->veSoloLoPropio());
+        $this->assertFalse($this->alcance()->veSoloLoPropio());
+        $this->assertFalse($this->alcance(ClavePermiso::CrearIncidente)->veSoloLoPropio());
+        $this->assertSame(self::YO, $this->solicitante()->usuarioId());
+    }
+
     public function test_sin_permisos_no_ve_ni_lista_ni_crea(): void
     {
         $nada = $this->alcance();

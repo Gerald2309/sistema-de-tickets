@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('catalogos', CatalogoController::class)->can('autenticado');
 
+        Route::get('incidentes', [IncidenteController::class, 'index'])->can('listar', Incidente::class);
         Route::post('incidentes', [IncidenteController::class, 'store'])->can('crear', Incidente::class);
         Route::get('incidentes/{incidente}', [IncidenteController::class, 'show'])->can('ver', 'incidente');
         Route::patch('incidentes/{incidente}', [IncidenteController::class, 'update'])->can('actualizar', 'incidente');

@@ -15,7 +15,7 @@ use Illuminate\Validation\Rule;
 abstract class IncidenteRequest extends FormRequest
 {
     // ISO 8601 con zona horaria: con desfase (2026-10-30T15:00:00-05:00) o en UTC con la letra Z (2026-10-30T20:00:00Z).
-    private const FORMATOS_FECHA = 'Y-m-d\TH:i:sP,Y-m-d\TH:i:s\Z';
+    public const FORMATOS_FECHA = 'Y-m-d\TH:i:sP,Y-m-d\TH:i:s\Z';
 
     /**
      * @param  string  $presencia  'required' al crear; 'sometimes' al actualizar.

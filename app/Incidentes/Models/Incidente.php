@@ -3,12 +3,14 @@
 namespace App\Incidentes\Models;
 
 use App\Identidad\Models\User;
+use App\Incidentes\Dominio\AlcanceIncidentes;
 use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
 use Database\Factories\IncidenteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +38,21 @@ class Incidente extends Model
     public const RELACIONES_VISIBLES = ['creador:id,name', 'asignado:id,name'];
 
     protected $with = self::RELACIONES_VISIBLES;
+
+    /**
+     * Deja solo los incidentes que ese alcance puede ver. Es la misma regla que aplica la Policy,
+     * expresada como consulta: sin permisos de lectura no devuelve nada.
+     *
+     * @param  Builder<Incidente>  $consulta
+     */
+    public function scopeVisiblePara(Builder $consulta, AlcanceIncidentes $alcance): void
+    {
+        match (true) {
+            $alcance->veTodo() => null,
+            $alcance->veSoloLoPropio() => $consulta->where('usuario_creador_id', $alcance->usuarioId()),
+            default => $consulta->whereRaw('1 = 0'),
+        };
+    }
 
     public function creador(): BelongsTo
     {
