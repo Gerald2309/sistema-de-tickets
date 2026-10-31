@@ -6,6 +6,7 @@ use App\Identidad\Dominio\ClavePermiso;
 use App\Identidad\Models\Permiso;
 use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
+use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Models\Incidente;
@@ -62,6 +63,7 @@ abstract class TestCase extends BaseTestCase
             'usuario_asignado_id' => null,
             'estado' => Estado::Abierto,
             'prioridad' => Prioridad::Media,
+            'categoria' => Categoria::Otros,
             'solucion' => null,
             'fecha_vencimiento' => now()->addDays(3),
         ]);

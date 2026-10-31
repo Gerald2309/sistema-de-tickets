@@ -51,21 +51,24 @@ class ActualizarIncidente
      */
     private function validarCambioDeEstado(Incidente $actual, array $datos): void
     {
-        if (! isset($datos['estado'])) {
-            return;
-        }
-
-        $nuevo = Estado::from($datos['estado']);
+        $nuevo = isset($datos['estado']) ? Estado::from($datos['estado']) : null;
 
         // Pedir el estado en el que ya está no es una transición: no cambia nada.
-        if ($nuevo === $actual->estado) {
-            return;
+        $cambiaDeEstado = $nuevo !== null && $nuevo !== $actual->estado;
+
+        if ($cambiaDeEstado) {
+            $actual->estado->pasarA($nuevo);
         }
 
-        $actual->estado->pasarA($nuevo);
+        $resuelve = $cambiaDeEstado && $nuevo->exigeSolucion();
+
+        // La solución se escribe una sola vez, en la petición que resuelve el incidente.
+        if (isset($datos['solucion']) && ! $resuelve) {
+            throw ValidationException::withMessages(['solucion' => [trans('incidentes.solucion_solo_al_resolver')]]);
+        }
 
         // Una solución anterior (de una resolución previa) sirve si no llega una nueva.
-        if ($nuevo->exigeSolucion() && blank($datos['solucion'] ?? $actual->solucion)) {
+        if ($resuelve && blank($datos['solucion'] ?? $actual->solucion)) {
             throw ValidationException::withMessages(['solucion' => [trans('incidentes.solucion_obligatoria')]]);
         }
     }
