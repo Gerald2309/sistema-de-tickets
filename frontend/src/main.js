@@ -16,7 +16,8 @@ import { revelar } from '@/compartido/movimiento.js'
 import { crearEnrutador } from '@/nucleo/enrutador/index.js'
 import { crearClienteDeConsultas } from '@/nucleo/plugins/consultas.js'
 import { crearVuetify } from '@/nucleo/plugins/vuetify.js'
-import { conectarAplicacion } from '@/nucleo/sesion-de-aplicacion.js'
+import { conectarTiempoReal } from '@/nucleo/plugins/tiempo-real.js'
+import { alTerminarLaSesion, conectarAplicacion } from '@/nucleo/sesion-de-aplicacion.js'
 
 // Raíz de composición: aquí se crean y se unen las piezas; el resto de la aplicación solo las usa.
 const aplicacion = createApp(App)
@@ -30,6 +31,8 @@ aplicacion.use(router)
 aplicacion.directive('revelar', revelar)
 
 conectarAplicacion({ router, queryClient })
+// Sin esperar: la aplicación funciona igual sin WebSocket (refresco periódico de respaldo).
+conectarTiempoReal({ queryClient, alTerminarLaSesion })
 
 aplicacion.config.errorHandler = (/** @type {unknown} */ error) => {
   // En producción no se muestran detalles; la pantalla afectada presenta su propio mensaje.

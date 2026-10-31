@@ -8,6 +8,7 @@ export { rutas, guardaDePestanas } from './rutas.js'
 export { usePestanas, MAXIMO_DE_PESTANAS } from './tienda/pestanas.js'
 export { claves as clavesDeIncidentes } from './api/claves.js'
 export { presentarEstado } from './presentacion.js'
+export { invalidarIncidentes } from './composables/useInvalidacion.js'
 
 /** @typedef {import('./tienda/pestanas.js').Pestana} Pestana */
 
