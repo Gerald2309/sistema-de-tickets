@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property-read Rol $rol todo usuario tiene rol (rol_id no admite nulos)
+ */
 #[Fillable(['name', 'email', 'password', 'activo', 'rol_id'])]
 #[Hidden(['password'])]
 #[UseFactory(UserFactory::class)]
@@ -22,6 +25,9 @@ class User extends Authenticatable
 
     private ?ConjuntoPermisos $conjuntoDePermisos = null;
 
+    /**
+     * @return BelongsTo<Rol, $this>
+     */
     public function rol(): BelongsTo
     {
         return $this->belongsTo(Rol::class, 'rol_id');

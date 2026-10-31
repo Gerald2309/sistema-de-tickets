@@ -17,6 +17,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property-read User $creador todo incidente tiene creador (usuario_creador_id no admite nulos)
+ * @property-read User|null $asignado
+ */
 #[Fillable([
     'titulo',
     'descripcion',
@@ -54,16 +58,25 @@ class Incidente extends Model
         };
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_creador_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function asignado(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_asignado_id');
     }
 
+    /**
+     * @return HasMany<HistorialIncidente, $this>
+     */
     public function historial(): HasMany
     {
         return $this->hasMany(HistorialIncidente::class, 'incidente_id');

@@ -130,6 +130,8 @@ class DatosDemoSeeder extends Seeder
     // Creación y cada paso de estado hasta el actual, repartidos entre la creación y la última actualización.
     private function registrarHistorial(Incidente $incidente): void
     {
+        assert($incidente->created_at !== null);
+
         $filas = [[
             'incidente_id' => $incidente->id,
             'usuario_id' => $incidente->usuario_creador_id,

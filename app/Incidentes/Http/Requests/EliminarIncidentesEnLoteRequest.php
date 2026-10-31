@@ -29,6 +29,6 @@ class EliminarIncidentesEnLoteRequest extends FormRequest
      */
     public function ids(): array
     {
-        return array_map('intval', $this->validated('ids'));
+        return array_values(array_map('intval', $this->validated('ids')));
     }
 }

@@ -2,12 +2,17 @@
 
 namespace App\Incidentes\Http\Requests;
 
+use App\Incidentes\Models\Incidente;
+
 class ActualizarIncidenteRequest extends IncidenteRequest
 {
     // Permiso por campo: editar, cambiar el estado y reasignar son capacidades distintas.
     public function authorize(): bool
     {
-        return $this->alcance()->puedeModificar(array_keys($this->all()), $this->route('incidente')->usuario_creador_id);
+        /** @var Incidente $incidente */
+        $incidente = $this->route('incidente');
+
+        return $this->alcance()->puedeModificar(array_keys($this->all()), $incidente->usuario_creador_id);
     }
 
     /**

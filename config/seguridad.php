@@ -25,6 +25,9 @@ return [
         'max_terminos' => 5,
     ],
 
+    // Direcciones del proxy que termina el TLS (separadas por comas, o `*`). Vacío: no se confía en ninguna.
+    'proxies_confiables' => env('TRUSTED_PROXIES', ''),
+
     // Sesiones abiertas a la vez por persona: al iniciar otra, se cierran las más antiguas.
     'sesiones_maximas' => (int) env('SESIONES_MAXIMAS', 5),
 

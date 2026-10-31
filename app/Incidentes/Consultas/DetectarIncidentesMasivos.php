@@ -30,14 +30,19 @@ class DetectarIncidentesMasivos
                 (int) config('incidentes.avisos.minimo_incidentes'),
                 (int) config('incidentes.avisos.minimo_personas'),
             ])
+            ->toBase()
             ->get()
-            ->map(fn (Incidente $grupo) => new AvisoDeIncidenteMasivo(
-                $grupo->categoria,
-                (int) $grupo->incidentes,
-                (int) $grupo->personas,
-                $this->palabrasQueSeRepiten($grupo->categoria, $desde),
-                $desde,
-            ))
+            ->map(function (object $grupo) use ($desde) {
+                $categoria = Categoria::from($grupo->categoria);
+
+                return new AvisoDeIncidenteMasivo(
+                    $categoria,
+                    (int) $grupo->incidentes,
+                    (int) $grupo->personas,
+                    $this->palabrasQueSeRepiten($categoria, $desde),
+                    $desde,
+                );
+            })
             ->all();
 
         usort($avisos, fn (AvisoDeIncidenteMasivo $a, AvisoDeIncidenteMasivo $b) => $b->incidentes <=> $a->incidentes ?: strcmp($a->categoria->value, $b->categoria->value));
@@ -59,7 +64,7 @@ class DetectarIncidentesMasivos
             ->all();
 
         return PalabrasRepetidas::desde(
-            $textos,
+            array_values($textos),
             (int) config('seguridad.busqueda.min_token'),
             (int) config('incidentes.avisos.maximo_palabras'),
         );

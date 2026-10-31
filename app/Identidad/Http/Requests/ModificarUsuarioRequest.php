@@ -3,6 +3,7 @@
 namespace App\Identidad\Http\Requests;
 
 use App\Identidad\Http\Requests\Concerns\NormalizaCorreo;
+use App\Identidad\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -22,6 +23,7 @@ class ModificarUsuarioRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var User $usuario */
         $usuario = $this->route('usuario');
 
         return [
