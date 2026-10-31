@@ -25,6 +25,8 @@ export default [
       'vue/require-default-prop': 'off',
       'no-console': ['error', { allow: ['warn', 'error'] }],
       eqeqeq: ['error', 'always'],
+      // Omitir propiedades con `const { quitada: _quitada, ...resto }` es intencional.
+      'no-unused-vars': ['error', { ignoreRestSiblings: true }],
       'prefer-const': 'error',
       // Los tipos de lo que se exporta van documentados (RNF-F17): vue-tsc los comprueba.
       'jsdoc/require-jsdoc': [

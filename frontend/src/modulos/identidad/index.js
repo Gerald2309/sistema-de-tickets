@@ -15,6 +15,7 @@
 
 export { rutas, rutasPublicas } from './rutas.js'
 export { useSesion } from './tienda/sesion.js'
+export { clavesDeIdentidad, useBuscadorDePersonas, useEmpresas } from './composables/usePersonas.js'
 
 /** @type {EntradaDeNavegacion[]} */
 export const navegacion = []
