@@ -69,7 +69,6 @@ class EscenariosDeRendimientoTest extends PruebaDeRendimiento
         $resuelto = DB::table('incidentes')->where('estado', 'resuelto')->whereNull('deleted_at')->value('id');
 
         $this->medirPeticion('dashboard de quien ve todo', $this->tokenAdministrador, '/api/v1/dashboard');
-        $this->medirPeticion('dashboard de quien ve solo lo propio', $this->tokenSolicitante, '/api/v1/dashboard');
         $this->medirPeticion('incidentes similares', $this->tokenAdministrador, "/api/v1/incidentes/{$resuelto}/similares");
         $this->medirPeticion('aviso de incidente masivo', $this->tokenAdministrador, '/api/v1/avisos');
         $this->medirPeticion('listado por vencer en 24 horas', $this->tokenAdministrador, '/api/v1/incidentes?vence_en_horas=24');

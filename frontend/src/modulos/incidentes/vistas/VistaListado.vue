@@ -15,7 +15,6 @@ import { useDescarga } from '../composables/useDescarga.js'
 import { usePrecargaDeIncidente } from '../composables/useIncidente.js'
 import { useListadoIncidentes } from '../composables/useListadoIncidentes.js'
 import { POR_PAGINA, TAMANOS_DE_PAGINA } from '../filtros.js'
-import { puedeModificar } from '../permisos.js'
 
 const sesion = useSesion()
 const listado = useListadoIncidentes()
@@ -24,8 +23,6 @@ const lote = useAccionesEnLote(() => [...seleccion.value], listado.limpiarSelecc
 const descarga = useDescarga(() => filtros.value)
 const precargar = usePrecargaDeIncidente()
 
-/** @param {import('../tipos.js').Incidente} incidente */
-const puedeEditar = (incidente) => puedeModificar(sesion, incidente)
 const seleccionable = computed(() => Object.values(lote.permite.value).some(Boolean))
 const hayFiltros = computed(() => {
   const { vista: _vista, orden: _orden, dir: _dir, por: _por, pagina: _pagina, ...resto } = filtros.value
@@ -115,7 +112,6 @@ const actualizado = computed(() => {
         :orden="filtros.orden ?? 'id'"
         :dir="filtros.dir ?? 'desc'"
         :hay-filtros="hayFiltros"
-        :puede-editar="puedeEditar"
         @alternar="listado.alternar"
         @alternar-todos="listado.alternarTodos"
         @ordenar="listado.ordenar"

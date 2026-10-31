@@ -1,18 +1,16 @@
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 const CLAVE_ALMACEN = 'mesa-de-ayuda.pestanas'
 export const MAXIMO_DE_PESTANAS = 8
 
 /**
- * Pestaña de un ticket. Recuerda en qué pantalla quedó (detalle o edición), como una pestaña del navegador.
+ * Pestaña de un ticket, como una pestaña del navegador.
  * @typedef {object} Pestana
  * @property {number} id
  * @property {string | null} codigo null hasta que llega el incidente
  * @property {string} titulo
  * @property {string | null} estado para el punto de color
- * @property {'detalle' | 'edicion'} pantalla
- * @property {boolean} sinGuardar tiene un formulario modificado
  */
 
 /** @returns {Pestana[]} */
@@ -28,8 +26,6 @@ function leerGuardadas() {
             codigo: typeof p.codigo === 'string' ? p.codigo : null,
             titulo: typeof p.titulo === 'string' ? p.titulo : '',
             estado: typeof p.estado === 'string' ? p.estado : null,
-            pantalla: 'detalle',
-            sinGuardar: false,
           }))
       : []
   } catch {
@@ -49,8 +45,7 @@ export const usePestanas = defineStore('pestanas', () => {
     lista,
     (pestanas) => {
       try {
-        const guardables = pestanas.map(({ id, codigo, titulo, estado }) => ({ id, codigo, titulo, estado }))
-        sessionStorage.setItem(CLAVE_ALMACEN, JSON.stringify(guardables))
+        sessionStorage.setItem(CLAVE_ALMACEN, JSON.stringify(pestanas))
       } catch {
         // Sin almacenamiento, las pestañas viven solo en memoria.
       }
@@ -62,29 +57,18 @@ export const usePestanas = defineStore('pestanas', () => {
   const buscar = (id) => lista.value.find((pestana) => pestana.id === id)
 
   /**
-   * Abre la pestaña del incidente o activa la existente. Con 8 abiertas cierra la más antigua sin cambios sin
-   * guardar; si todas los tienen, no abre.
+   * Abre la pestaña del incidente o activa la existente. Con 8 abiertas cierra la más antigua.
    * @param {number} id
-   * @param {Pestana['pantalla']} [pantalla]
-   * @returns {boolean} se abrió o ya estaba
+   * @returns {void}
    */
-  function abrir(id, pantalla = 'detalle') {
-    const existente = buscar(id)
-    if (existente) {
-      existente.pantalla = pantalla
-      activa.value = id
-      return true
-    }
-    if (lista.value.length >= MAXIMO_DE_PESTANAS) {
-      const indice = lista.value.findIndex((pestana) => !pestana.sinGuardar)
-      if (indice === -1) {
-        return false
+  function abrir(id) {
+    if (!buscar(id)) {
+      if (lista.value.length >= MAXIMO_DE_PESTANAS) {
+        lista.value.shift()
       }
-      lista.value.splice(indice, 1)
+      lista.value.push({ id, codigo: null, titulo: '', estado: null })
     }
-    lista.value.push({ id, codigo: null, titulo: '', estado: null, pantalla, sinGuardar: false })
     activa.value = id
-    return true
   }
 
   /**
@@ -118,18 +102,6 @@ export const usePestanas = defineStore('pestanas', () => {
     }
   }
 
-  /**
-   * @param {number} id
-   * @param {boolean} valor
-   * @returns {void}
-   */
-  function marcarSinGuardar(id, valor) {
-    const pestana = buscar(id)
-    if (pestana) {
-      pestana.sinGuardar = valor
-    }
-  }
-
   /** @returns {void} ninguna pestaña activa: se está en otra pantalla */
   function desactivar() {
     activa.value = null
@@ -149,12 +121,10 @@ export const usePestanas = defineStore('pestanas', () => {
   return {
     lista,
     activa,
-    hayCambiosSinGuardar: computed(() => lista.value.some((pestana) => pestana.sinGuardar)),
     buscar,
     abrir,
     cerrar,
     describir,
-    marcarSinGuardar,
     desactivar,
     olvidar,
   }

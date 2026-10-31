@@ -176,12 +176,17 @@ describe('administración', { timeout: 20_000 }, () => {
     await esperarPintado()
   }
 
-  it('usuarios: desactivar pide confirmación y, si la API lo impide, explica por qué', async () => {
-    /** @type {unknown} */
-    let recibido
+  it('usuarios: desactivar pregunta qué pasa con sus incidentes sin resolver y, si la API lo impide, explica por qué', async () => {
+    /** @type {unknown[]} */
+    const recibidos = []
     servidor.use(
+      manejador.get(api('usuarios/:id/incidentes-abiertos'), () => HttpResponse.json({ data: { total: 3 } })),
+      manejador.post(api('usuarios/:id/incidentes-abiertos/traspaso'), async ({ request }) => {
+        recibidos.push({ traspaso: await request.json() })
+        return HttpResponse.json({ data: { traspasados: 3 } })
+      }),
       manejador.patch(api('usuarios/:id'), async ({ request }) => {
-        recibido = await request.json()
+        recibidos.push(await request.json())
         return HttpResponse.json(
           {
             status: 422,
@@ -195,11 +200,14 @@ describe('administración', { timeout: 20_000 }, () => {
     const envoltorio = await abrir('/administracion/usuarios', 'Luis Pardo')
 
     await elegirEnFila(envoltorio, 'Ana Gómez', 'Desactivar')
-    const dialogo = /** @type {HTMLElement} */ (document.querySelector('[role="alertdialog"]'))
-    expect(dialogo.textContent).toContain('¿Desactivar a Ana Gómez?')
+    await vi.waitFor(() => expect(document.body.textContent).toContain('¿Desactivar a Ana Gómez?'))
+    await vi.waitFor(() => expect(document.body.textContent).toContain('sin resolver'))
+    expect(document.body.textContent).toContain('Devolverlos a la cola sin asignar')
+    const dialogo = /** @type {HTMLElement} */ (document.querySelector('.dialogo-desactivar'))
     ;[...dialogo.querySelectorAll('button')].find((boton) => boton.textContent?.trim() === 'Desactivar')?.click()
 
-    await vi.waitFor(() => expect(recibido).toEqual({ activo: false }))
+    // Por defecto vuelven a la cola, y después se desactiva.
+    await vi.waitFor(() => expect(recibidos).toEqual([{ traspaso: { usuario_asignado_id: null } }, { activo: false }]))
     await vi.waitFor(() =>
       expect(document.body.textContent).toContain('No se puede desactivar al último administrador activo.'),
     )

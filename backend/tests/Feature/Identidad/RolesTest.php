@@ -37,7 +37,7 @@ class RolesTest extends TestCase
 
         $solicitante = collect($respuesta->json('data'))->firstWhere('nombre', 'Solicitante');
         $this->assertSame(2, $solicitante['usuarios']);
-        $this->assertSame(['crear_incidente', 'editar_propios', 'ver_dashboard', 'ver_historial', 'ver_propios'], $solicitante['permisos']);
+        $this->assertSame(['crear_incidente', 'editar_propios', 'ver_historial', 'ver_propios'], $solicitante['permisos']);
     }
 
     public function test_muestra_un_rol_y_responde_404_si_no_existe(): void
@@ -45,7 +45,7 @@ class RolesTest extends TestCase
         $rol = Rol::where('nombre', 'Soporte N1')->firstOrFail();
 
         $this->conToken($this->token)->getJson("/api/v1/roles/{$rol->id}")
-            ->assertOk()->assertJsonPath('data.nombre', 'Soporte N1')->assertJsonCount(7, 'data.permisos');
+            ->assertOk()->assertJsonPath('data.nombre', 'Soporte N1')->assertJsonCount(6, 'data.permisos');
         $this->conToken($this->token)->getJson('/api/v1/roles/999999')->assertNotFound();
     }
 

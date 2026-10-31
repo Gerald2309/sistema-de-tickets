@@ -28,6 +28,12 @@ class CabecerasDeApi
             $respuesta->headers->set($nombre, $valor);
         }
 
+        // HSTS solo tiene efecto sobre HTTPS (el navegador lo ignora en HTTP): detrás de un proxy con TLS, el
+        // navegador ya no vuelve a intentar HTTP durante un año.
+        if ($request->isSecure()) {
+            $respuesta->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+
         return $respuesta;
     }
 }

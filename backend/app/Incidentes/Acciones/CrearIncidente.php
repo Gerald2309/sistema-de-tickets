@@ -7,6 +7,7 @@ use App\Incidentes\Dominio\EntradaHistorial;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\TipoDeCambio;
 use App\Incidentes\Models\Incidente;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 class CrearIncidente
@@ -20,22 +21,44 @@ class CrearIncidente
      * El creador, su empresa y el estado inicial no vienen de la petición: son el usuario autenticado, la
      * empresa a la que pertenece en este momento (F-10) y "abierto".
      *
+     * Con clave de idempotencia, repetir la petición devuelve el incidente ya creado en vez de otro igual
+     * (`wasRecentlyCreated` dice cuál de los dos casos fue).
+     *
      * @param  array<string, mixed>  $datos  ya validados
      */
-    public function ejecutar(User $creador, array $datos): Incidente
+    public function ejecutar(User $creador, array $datos, ?string $claveDeIdempotencia = null): Incidente
     {
-        return DB::transaction(function () use ($creador, $datos) {
-            $incidente = Incidente::create($datos + [
-                'usuario_creador_id' => $creador->id,
-                'cliente_id' => $creador->cliente_id,
-                'estado' => Estado::Abierto,
-            ]);
+        $previo = $this->yaCreado($creador, $claveDeIdempotencia);
+        if ($previo !== null) {
+            return $previo;
+        }
 
-            $this->registrarHistorial->ejecutar($incidente, $creador, [EntradaHistorial::creacion()]);
-            $this->avisarCambios->registrar($incidente, TipoDeCambio::Creado);
+        try {
+            return DB::transaction(function () use ($creador, $datos, $claveDeIdempotencia) {
+                $incidente = Incidente::create($datos + [
+                    'usuario_creador_id' => $creador->id,
+                    'cliente_id' => $creador->cliente_id,
+                    'estado' => Estado::Abierto,
+                    'clave_de_idempotencia' => $claveDeIdempotencia,
+                ]);
 
-            // Se recarga para traer los valores por defecto de la base (prioridad y categoría), que viven solo allí.
-            return $incidente->refresh()->load(Incidente::RELACIONES_VISIBLES);
-        });
+                $this->registrarHistorial->ejecutar($incidente, $creador, [EntradaHistorial::creacion()]);
+                $this->avisarCambios->registrar($incidente, TipoDeCambio::Creado);
+
+                // Se recarga para traer los valores por defecto de la base (prioridad y categoría), que viven solo allí.
+                return $incidente->refresh()->load(Incidente::RELACIONES_VISIBLES);
+            });
+        } catch (UniqueConstraintViolationException $duplicado) {
+            // Dos envíos simultáneos con la misma clave: el otro ya lo creó y la transacción de este se deshizo.
+            return $this->yaCreado($creador, $claveDeIdempotencia) ?? throw $duplicado;
+        }
+    }
+
+    private function yaCreado(User $creador, ?string $claveDeIdempotencia): ?Incidente
+    {
+        return $claveDeIdempotencia === null ? null : Incidente::query()
+            ->where('usuario_creador_id', $creador->id)
+            ->where('clave_de_idempotencia', $claveDeIdempotencia)
+            ->first();
     }
 }

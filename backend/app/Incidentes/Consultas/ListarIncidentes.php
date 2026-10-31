@@ -18,12 +18,23 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ListarIncidentes
 {
+    // El listado no lleva los textos largos (descripción y solución, hasta 10 000 caracteres cada uno): ninguna
+    // lista los muestra y el detalle los trae. La exportación sí los necesita y usa la consulta completa.
+    private const COLUMNAS_DEL_LISTADO = [
+        'incidentes.id', 'titulo', 'prioridad', 'estado', 'categoria', 'calificacion', 'usuario_creador_id',
+        'usuario_asignado_id', 'cliente_id', 'fecha_vencimiento', 'incidentes.created_at', 'incidentes.updated_at',
+    ];
+
     /**
      * @return LengthAwarePaginator<int, Incidente>
      */
     public function ejecutar(User $actor, FiltrosDeIncidentes $filtros): LengthAwarePaginator
     {
-        return $this->consulta($actor, $filtros)->paginate($filtros->porPagina)->withQueryString();
+        return $this->consulta($actor, $filtros)
+            ->select(self::COLUMNAS_DEL_LISTADO)
+            ->withCount(Incidente::conteoDeMensajesSinLeer($actor->id, IncidentePolicy::alcanceDe($actor)))
+            ->paginate($filtros->porPagina)
+            ->withQueryString();
     }
 
     /**

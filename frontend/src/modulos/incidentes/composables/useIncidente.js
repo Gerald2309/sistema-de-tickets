@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ErrorDeApi, mensajeDeError } from '@/compartido/api/errores.js'
@@ -13,11 +13,19 @@ import {
   obtenerHistorial,
   obtenerIncidente,
   obtenerSimilares,
+  tomarIncidente,
 } from '../api/incidentes.js'
 import { claves } from '../api/claves.js'
-import { partesEditables } from '../permisos.js'
+import {
+  NADA_EDITABLE,
+  partesEditables,
+  puedeConfirmarSolucion,
+  puedeDejarSinAsignar,
+  puedeTomar,
+} from '../permisos.js'
 import { presentarEstado } from '../presentacion.js'
 import { usePestanas } from '../tienda/pestanas.js'
+import { useConfirmacionDeSolucion } from './useConfirmacionDeSolucion.js'
 import { useInvalidacion } from './useInvalidacion.js'
 
 /**
@@ -43,7 +51,7 @@ export function usePrecargaDeIncidente() {
 
 /**
  * Caso de uso del detalle (RF-F27 a RF-F34): el incidente y lo que lo rodea, cada parte pedida solo si los
- * permisos la permiten, y las acciones de cambiar estado y eliminar.
+ * permisos la permiten, y las acciones de cambiar estado, clasificar, reasignar, confirmar la solución y eliminar.
  * @param {() => number} idActual
  */
 export function useDetalleIncidente(idActual) {
@@ -76,9 +84,12 @@ export function useDetalleIncidente(idActual) {
     },
   )
 
-  const historial = useQuery({
+  // Por tramos, lo más reciente primero: «Ver más» trae los cambios anteriores.
+  const historial = useInfiniteQuery({
     queryKey: computed(() => claves.historial(id.value)),
-    queryFn: ({ signal }) => obtenerHistorial(id.value, signal),
+    queryFn: ({ pageParam, signal }) => obtenerHistorial(id.value, pageParam, signal),
+    initialPageParam: /** @type {string | null} */ (null),
+    getNextPageParam: (tramo) => tramo.siguiente,
     enabled: computed(() => sesion.tiene('ver_historial')),
   })
   const similares = useQuery({
@@ -154,6 +165,44 @@ export function useDetalleIncidente(idActual) {
       .catch(() => false)
   }
 
+  // Clasificar y reasignar desde las propiedades, sin pasar por el formulario.
+  const ajuste = useMutation({
+    /** @param {{ prioridad?: string, categoria?: string, fechaVencimiento?: string, asignadoId?: number | null }} cambios */
+    mutationFn: (cambios) => actualizarIncidente(id.value, cambios),
+    onSuccess: async (actualizado) => {
+      notificaciones.exito('Cambios guardados', actualizado.codigo)
+      await trasCambiarIncidentes([actualizado.id])
+    },
+    onError: (causa) => notificaciones.error('No se guardó el cambio', mensajeDeError(causa)),
+  })
+
+  /**
+   * @param {Parameters<typeof ajuste.mutateAsync>[0]} cambios
+   * @returns {Promise<boolean>} se aplicó
+   */
+  async function ajustar(cambios) {
+    return ajuste
+      .mutateAsync(cambios)
+      .then(() => true)
+      .catch(() => false)
+  }
+
+  // Quien lo reportó dice si la solución sirvió: lo cierra o lo devuelve a soporte.
+  const confirmacionDeSolucion = useConfirmacionDeSolucion()
+
+  const toma = useMutation({
+    mutationFn: () => tomarIncidente(id.value),
+    onSuccess: async (tomado) => {
+      notificaciones.exito(`${tomado.codigo} es suyo`, 'Ya puede trabajarlo y responder al solicitante.')
+      await trasCambiarIncidentes([tomado.id])
+    },
+    // Un 409 dice por qué no (alguien lo tomó primero); se refresca para mostrar quién lo atiende.
+    onError: async (causa) => {
+      notificaciones.error('No se pudo tomar', mensajeDeError(causa))
+      await trasCambiarIncidentes([id.value])
+    },
+  })
+
   const eliminacion = useMutation({ mutationFn: () => eliminarIncidente(id.value) })
 
   /** @returns {Promise<void>} pide confirmación; después cierra la pestaña y vuelve al listado */
@@ -186,16 +235,23 @@ export function useDetalleIncidente(idActual) {
     incidente,
     veTodo,
     historial,
+    entradasDelHistorial: computed(() => historial.data.value?.pages.flatMap((tramo) => tramo.elementos)),
     similares,
     otrosDelSolicitante,
     empresa,
-    partes: computed(() =>
-      incidente.value
-        ? partesEditables(sesion, incidente.value)
-        : { contenido: false, estado: false, asignacion: false },
-    ),
+    partes: computed(() => (incidente.value ? partesEditables(sesion, incidente.value) : NADA_EDITABLE)),
+    puedeDejarSinAsignar: computed(() => puedeDejarSinAsignar(sesion)),
+    puedeTomar: computed(() => incidente.value !== undefined && puedeTomar(sesion, incidente.value)),
+    puedeConfirmar: computed(() => incidente.value !== undefined && puedeConfirmarSolucion(sesion, incidente.value)),
+    /** @param {Parameters<typeof confirmacionDeSolucion.confirmar>[1]} respuesta */
+    confirmar: (respuesta) => confirmacionDeSolucion.confirmar(id.value, respuesta),
+    confirmando: confirmacionDeSolucion.confirmando,
+    tomar: () => toma.mutateAsync().catch(() => {}),
+    tomando: computed(() => toma.isPending.value),
     puedeEliminar: computed(() => sesion.tiene('borrar')),
     cambiarEstado,
+    ajustar,
+    ajustando: computed(() => ajuste.isPending.value),
     cambiandoEstado: computed(() => cambioDeEstado.isPending.value),
     errorDeEstado,
     eliminar,

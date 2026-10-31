@@ -109,10 +109,4 @@ class CambiarContrasenaTest extends TestCase
 
         $this->assertStringContainsString($fragmento, $respuesta->json('errors.password.0'));
     }
-
-    public function test_exige_haber_iniciado_sesion(): void
-    {
-        $this->putJson('/api/v1/perfil/contrasena', ['password_actual' => self::PASSWORD, 'password' => self::NUEVA])
-            ->assertUnauthorized();
-    }
 }

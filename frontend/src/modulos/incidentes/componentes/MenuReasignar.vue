@@ -1,12 +1,16 @@
 <script setup>
-import { useBuscadorDePersonas } from '@/modulos/identidad/index.js'
+import { computed } from 'vue'
+import { agruparPorRol, useBuscadorDePersonas } from '@/modulos/identidad/index.js'
 
 /**
- * Buscador de la persona a quien reasignar en lote. Vive dentro del menú, que se monta al abrirse: la lista de
- * personas solo se pide si alguien va a reasignar.
+ * Buscador de la persona a quien reasignar, en lote o desde el detalle. Vive dentro del menú, que se monta al
+ * abrirse: la lista de personas solo se pide si alguien va a reasignar. Solo aparecen quienes atienden
+ * incidentes, agrupados por nivel. `quitable` ofrece dejarlo sin asignar.
  */
-const emit = defineEmits(['elegir'])
-const personas = useBuscadorDePersonas()
+defineProps({ quitable: { type: Boolean, default: false } })
+const emit = defineEmits(['elegir', 'quitar'])
+const personas = useBuscadorDePersonas({ paraAsignar: true })
+const opciones = computed(() => agruparPorRol(personas.personas.value))
 
 /** @param {string | null} texto */
 const buscar = (texto) => (personas.texto.value = texto ?? '')
@@ -17,7 +21,7 @@ const elegir = (id) => id && emit('elegir', id)
 <template>
   <v-card class="reasignar" min-width="280">
     <v-autocomplete
-      :items="personas.personas.value"
+      :items="opciones"
       item-title="nombre"
       item-value="id"
       label="Asignar a"
@@ -29,6 +33,9 @@ const elegir = (id) => id && emit('elegir', id)
       @update:search="buscar"
       @update:model-value="elegir"
     />
+    <v-btn v-if="quitable" variant="text" size="small" class="mt-2" block @click="emit('quitar')"
+      >Dejar sin asignar</v-btn
+    >
   </v-card>
 </template>
 

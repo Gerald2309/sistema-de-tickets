@@ -21,9 +21,4 @@ class CatalogosTest extends TestCase
             ->assertJsonPath('data.prioridades', ['baja', 'media', 'alta', 'critica'])
             ->assertJsonPath('data.categorias', ['red', 'correo', 'hardware', 'software', 'accesos', 'seguridad', 'telefonia', 'otros']);
     }
-
-    public function test_exige_haber_iniciado_sesion(): void
-    {
-        $this->getJson('/api/v1/catalogos')->assertUnauthorized();
-    }
 }

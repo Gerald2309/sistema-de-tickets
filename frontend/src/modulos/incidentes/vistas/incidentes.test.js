@@ -57,6 +57,7 @@ beforeEach(() => {
     manejador.get(api('incidentes/:id'), ({ params }) => HttpResponse.json({ data: incidente(Number(params.id)) })),
     manejador.get(api('incidentes/:id/historial'), () => HttpResponse.json({ data: [] })),
     manejador.get(api('incidentes/:id/similares'), () => HttpResponse.json({ data: [] })),
+    manejador.get(api('incidentes/:id/mensajes'), () => HttpResponse.json({ data: [] })),
     manejador.get(api('personas'), () => HttpResponse.json({ data: [] })),
     manejador.get(api('clientes'), () => HttpResponse.json({ data: [], meta: { total: 0 } })),
     manejador.get(api('catalogos'), () =>
@@ -151,6 +152,94 @@ describe('incidentes', { timeout: 20_000 }, () => {
     expect(montada.envoltorio.find('h1').text()).toBe('Incidente 2')
   })
 
+  it('en un incidente ajeno que atiende, lo clasifica desde las propiedades', async () => {
+    /** @type {unknown} */
+    let recibido
+    const ajeno = {
+      ...incidente(4),
+      creador: { id: 30, name: 'Úrsula Apodaca' },
+      asignado: { id: 7, name: 'Camila Ríos' },
+    }
+    servidor.use(
+      manejador.get(api('incidentes/:id'), () => HttpResponse.json({ data: ajeno })),
+      manejador.patch(api('incidentes/:id'), async ({ request }) => {
+        recibido = await request.json()
+        return HttpResponse.json({ data: { ...ajeno, prioridad: 'critica' } })
+      }),
+    )
+    montada = await montarAplicacion('/incidentes/4')
+    const envoltorio = montada.envoltorio
+    await vi.waitFor(() => expect(envoltorio.find('h1').text()).toBe('Incidente 4'), { timeout: 8000 })
+
+    expect(envoltorio.findAll('a').some((enlace) => enlace.text() === 'Editar')).toBe(false)
+    expect(envoltorio.find('[aria-labelledby="titulo-propiedades"]').text()).toContain('cambiar categoría')
+
+    await envoltorio
+      .findAll('button')
+      .find((boton) => boton.text().includes('cambiar prioridad'))
+      ?.trigger('click')
+    await esperarPintado()
+    const critica = [...document.querySelectorAll('.v-list-item')].find(
+      (item) => item.textContent?.trim() === 'Crítica',
+    )
+    if (critica instanceof HTMLElement) {
+      critica.click()
+    }
+
+    await vi.waitFor(() => expect(recibido).toEqual({ prioridad: 'critica' }))
+    await vi.waitFor(() => expect(document.body.textContent).toContain('Cambios guardados'))
+  })
+
+  it('nadie edita el título ni la descripción: el detalle ofrece asignar, no editar', async () => {
+    montada = await montarAplicacion('/incidentes/5')
+    await vi.waitFor(() => expect(montada.envoltorio.find('h1').text()).toBe('Incidente 5'), { timeout: 8000 })
+
+    expect(montada.envoltorio.text()).not.toContain('Editar')
+    const asignacion = montada.envoltorio.find('[aria-labelledby="titulo-asignacion"]')
+    expect(asignacion.findAll('button').some((boton) => /Asignar|Reasignar/.test(boton.text()))).toBe(true)
+  })
+
+  it('la conversación marca las notas internas y envía lo escrito', async () => {
+    const mensaje = (id, cuerpo, interno, autor) => ({
+      id,
+      cuerpo,
+      interno,
+      autor,
+      adjuntos: [],
+      created_at: '2026-10-26T13:00:00Z',
+    })
+    /** @type {FormData | null} */
+    let enviado = null
+    servidor.use(
+      manejador.get(api('incidentes/:id/mensajes'), () =>
+        HttpResponse.json({
+          data: [
+            mensaje(1, 'No imprime.', false, { id: 7, name: 'Camila Ríos' }),
+            mensaje(2, 'Revisar el controlador.', true, { id: 9, name: 'Luis Pardo' }),
+          ],
+        }),
+      ),
+      manejador.post(api('incidentes/:id/mensajes'), async ({ request }) => {
+        enviado = await request.formData()
+        return HttpResponse.json(
+          { data: mensaje(3, '¿Ya reinició?', false, { id: 7, name: 'Camila Ríos' }) },
+          { status: 201 },
+        )
+      }),
+    )
+    montada = await montarAplicacion('/incidentes/2')
+    await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('Revisar el controlador.'), { timeout: 8000 })
+
+    expect(montada.envoltorio.find('.mensaje--interno').text()).toContain('Nota interna')
+    expect(montada.envoltorio.find('.mensaje--propio').text()).toContain('No imprime.')
+
+    await montada.envoltorio.find('form.redactor textarea').setValue('¿Ya reinició?')
+    await montada.envoltorio.find('form.redactor').trigger('submit')
+
+    await vi.waitFor(() => expect(enviado?.get('cuerpo')).toBe('¿Ya reinició?'))
+    expect(enviado?.has('interno')).toBe(false)
+  })
+
   it('un incidente que ya no existe cierra su pestaña y vuelve al listado con aviso', async () => {
     servidor.use(
       manejador.get(api('incidentes/:id'), () =>
@@ -163,18 +252,21 @@ describe('incidentes', { timeout: 20_000 }, () => {
     expect(document.body.textContent).toContain('no está disponible')
   })
 
-  it('el formulario pone bajo su campo el error de la API y no pierde lo escrito', async () => {
+  it('el formulario pone bajo su campo el error de la API, no pierde lo escrito y reintenta con la misma clave', async () => {
+    /** @type {(string | null)[]} */
+    const claves = []
     servidor.use(
-      manejador.post(api('incidentes'), () =>
-        HttpResponse.json(
+      manejador.post(api('incidentes'), ({ request }) => {
+        claves.push(request.headers.get('Idempotency-Key'))
+        return HttpResponse.json(
           {
             status: 422,
             detail: 'Los datos no son válidos.',
             errors: { titulo: ['Ya existe un incidente abierto con ese título.'] },
           },
           { status: 422 },
-        ),
-      ),
+        )
+      }),
     )
     montada = await montarAplicacion('/incidentes/nuevo')
     await vi.waitFor(() => expect(montada.envoltorio.find('form').exists()).toBe(true), { timeout: 8000 })
@@ -197,5 +289,12 @@ describe('incidentes', { timeout: 20_000 }, () => {
       },
     )
     expect(/** @type {HTMLInputElement} */ (titulo.element).value).toBe('Sin internet')
+
+    // Corregido y reenviado, el mismo formulario repite la clave: si el primer envío hubiera llegado, no se duplica.
+    await titulo.setValue('Sin internet en el piso 3')
+    await montada.envoltorio.find('form').trigger('submit')
+    await vi.waitFor(() => expect(claves).toHaveLength(2))
+    expect(claves[0]).toMatch(/^[0-9a-f-]{36}$/)
+    expect(claves[1]).toBe(claves[0])
   })
 })

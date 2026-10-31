@@ -48,10 +48,10 @@ El enunciado invita a proponer mejoras sobre el stack mínimo sin alterar lo sol
 
 ## 7. Observabilidad
 
-- **Hoy:** errores con formato RFC 9457 hacia el cliente y registro de Laravel en archivo.
+- **Hoy:** errores con formato RFC 9457 hacia el cliente y registro de Laravel en archivo. Cada petición lleva un identificador (`X-Request-Id`) que aparece en el registro de Nginx, en cada línea de log de Laravel y en la respuesta; un error 500 solo entrega ese identificador.
 - **Propuesta:**
-  - registros estructurados en JSON;
-  - Sentry (o OpenTelemetry) en backend y frontend, con el mismo identificador por petición;
+  - registros en JSON (`LOG_STDERR_FORMATTER=Monolog\Formatter\JsonFormatter`) hacia un agregador;
+  - Sentry (o OpenTelemetry) en backend y frontend, con ese mismo identificador;
   - Laravel Pulse para ver consultas lentas y uso.
 - **Costo:** bajo.
 
@@ -66,16 +66,30 @@ El enunciado invita a proponer mejoras sobre el stack mínimo sin alterar lo sol
 - **Hoy:** `docker compose up -d` levanta todo con valores de demostración. Es cómodo para evaluar, pero no para producción.
 - **Propuesta:**
   - imágenes de producción ya compiladas (sin montar el código);
-  - HTTPS y WebSocket seguro (`wss`);
+  - HTTPS y WebSocket seguro (`wss`), con el TLS en el proxy. La API ya envía `Strict-Transport-Security` cuando la petición llega por HTTPS (con `TRUSTED_PROXIES` apuntando al proxy), así que basta con activar el certificado;
   - secretos fuera del repositorio y migraciones como paso del despliegue.
 - **Integración continua:** el flujo `.github/workflows/integracion-continua.yml` se añadiría a ese camino.
 
 ## 10. Calidad de las pruebas
 
 - **Hoy:**
-  - 420 pruebas en el backend;
-  - 114 unitarias y de integración en el frontend, con más del 80 % de cobertura;
+  - 479 pruebas en el backend, más una suite de rendimiento aparte que mide tiempos y revisa con `EXPLAIN` que el listado use índices sobre 200 000 incidentes;
+  - 128 unitarias y de integración en el frontend, con más del 80 % de cobertura;
   - 21 recorridos de punta a punta en Chromium, Firefox y WebKit, con revisión de accesibilidad automática.
 - **Propuesta:**
   - pruebas de mutación (Infection en PHP, Stryker en JavaScript), que miden si las pruebas detectan errores y no solo qué líneas recorren;
   - comparación visual de capturas contra el diseño aprobado.
+
+## 11. Paginación por cursor en el listado
+
+- **Hoy:** el listado pagina con `LIMIT/OFFSET`, con un máximo por página. Con los índices actuales, las primeras páginas responden rápido aun con 200 000 incidentes, pero una página muy profunda obliga a MySQL a saltar todas las filas anteriores.
+- **Propuesta:** paginación por cursor (keyset): «los siguientes después de este id» en lugar de «la página 400».
+- **Por qué no ahora:** el cursor no permite saltar a una página concreta ni ordenar por cualquier columna sin un cursor compuesto, y la tabla ofrece las dos cosas. Se cambiaría a «cargar más» junto con el diseño de la tabla.
+- **Costo:** medio: cambian el contrato del listado y su pie de tabla.
+
+## 12. Renovación de la sesión
+
+- **Hoy:** el token expira a las 8 horas (`SANCTUM_EXPIRATION`), hay un máximo de sesiones por persona y se revoca al salir, al cambiar la contraseña o al desactivar la cuenta. Al expirar, se vuelve a iniciar sesión.
+- **Propuesta:** tokens de vida corta (15 minutos) con renovación rotativa: cada renovación invalida el token anterior, y hay un tope absoluto de duración de la sesión.
+- **Por qué no ahora:** renovar sin rotación ni tope alarga la vida de un token robado; hacerlo bien conviene junto con la cookie `HttpOnly` de la propuesta 2.
+- **Costo:** medio.

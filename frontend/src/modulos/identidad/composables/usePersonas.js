@@ -7,8 +7,9 @@ import { useSesion } from '../tienda/sesion.js'
 
 /**
  * Selector de personas (asignar, filtrar): busca mientras se escribe y resuelve los nombres de los ids ya
- * elegidos (por ejemplo, los de un filtro que viene en la dirección).
- * @param {{ incluirInactivas?: boolean, elegidos?: import('vue').MaybeRefOrGetter<number[]> }} [opciones]
+ * elegidos (por ejemplo, los de un filtro que viene en la dirección). `paraAsignar` deja solo a quienes
+ * atienden incidentes, con su rol.
+ * @param {{ incluirInactivas?: boolean, paraAsignar?: boolean, elegidos?: import('vue').MaybeRefOrGetter<number[]> }} [opciones]
  */
 export function useBuscadorDePersonas(opciones = {}) {
   const sesion = useSesion()
@@ -19,10 +20,17 @@ export function useBuscadorDePersonas(opciones = {}) {
 
   const coincidencias = useQuery({
     queryKey: computed(() =>
-      clavesDeIdentidad.busquedaDePersonas({ texto: texto.value, inactivas: !!opciones.incluirInactivas }),
+      clavesDeIdentidad.busquedaDePersonas({
+        texto: texto.value,
+        inactivas: !!opciones.incluirInactivas,
+        paraAsignar: !!opciones.paraAsignar,
+      }),
     ),
     queryFn: ({ signal }) =>
-      buscarPersonas({ texto: texto.value, incluirInactivas: opciones.incluirInactivas }, signal),
+      buscarPersonas(
+        { texto: texto.value, incluirInactivas: opciones.incluirInactivas, paraAsignar: opciones.paraAsignar },
+        signal,
+      ),
     enabled: permitido,
     staleTime: 60_000,
     placeholderData: keepPreviousData,
@@ -30,8 +38,10 @@ export function useBuscadorDePersonas(opciones = {}) {
 
   const ids = computed(() => toValue(opciones.elegidos) ?? [])
   const elegidas = useQuery({
-    queryKey: computed(() => clavesDeIdentidad.busquedaDePersonas({ ids: ids.value })),
-    queryFn: ({ signal }) => buscarPersonas({ ids: ids.value }, signal),
+    queryKey: computed(() =>
+      clavesDeIdentidad.busquedaDePersonas({ ids: ids.value, paraAsignar: !!opciones.paraAsignar }),
+    ),
+    queryFn: ({ signal }) => buscarPersonas({ ids: ids.value, paraAsignar: opciones.paraAsignar }, signal),
     enabled: computed(() => permitido.value && ids.value.length > 0),
     staleTime: 5 * 60_000,
   })
@@ -49,6 +59,31 @@ export function useBuscadorDePersonas(opciones = {}) {
   const nombreDe = (id) => personas.value.find((persona) => persona.id === id)?.nombre
 
   return { texto, personas, cargando: coincidencias.isFetching, permitido, nombreDe }
+}
+
+// El administrador reparte el trabajo: va después de los niveles de soporte.
+const ROL_AL_FINAL = 'Administrador'
+
+/**
+ * Opciones de un selector agrupadas por rol (Soporte N1, N2, N3 y al final el administrador), cada grupo con
+ * su subtítulo. Sin rol (otra búsqueda), van sin agrupar.
+ * @param {import('../tipos.js').Persona[]} personas
+ * @returns {Array<import('../tipos.js').Persona | { type: 'subheader', title: string }>}
+ */
+export function agruparPorRol(personas) {
+  /** @type {Map<string, import('../tipos.js').Persona[]>} */
+  const grupos = new Map()
+  for (const persona of personas) {
+    const rol = persona.rol ?? ''
+    grupos.set(rol, [...(grupos.get(rol) ?? []), persona])
+  }
+  const roles = [...grupos.keys()].sort(
+    (a, b) => Number(a === ROL_AL_FINAL) - Number(b === ROL_AL_FINAL) || a.localeCompare(b, 'es'),
+  )
+  return roles.flatMap((rol) => [
+    ...(rol ? [{ type: /** @type {const} */ ('subheader'), title: rol }] : []),
+    ...(grupos.get(rol) ?? []),
+  ])
 }
 
 /** Empresas cliente activas, para filtros (G-03). */

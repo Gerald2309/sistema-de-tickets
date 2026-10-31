@@ -14,8 +14,8 @@ export const GRUPOS_DE_PERMISOS = Object.freeze([
       { clave: 'ver_propios', nombre: 'Ver los propios', descripcion: 'Solo los que creó la persona.' },
       {
         clave: 'editar_propios',
-        nombre: 'Editar los propios',
-        descripcion: 'Título, descripción, prioridad, categoría y vencimiento de los suyos.',
+        nombre: 'Clasificar los propios',
+        descripcion: 'Prioridad, categoría y vencimiento de los suyos, mientras nadie los ha tomado.',
       },
       {
         clave: 'ver_todos',
@@ -24,8 +24,8 @@ export const GRUPOS_DE_PERMISOS = Object.freeze([
       },
       {
         clave: 'editar_todos',
-        nombre: 'Editar todos',
-        descripcion: 'Los mismos campos en cualquier incidente que vea.',
+        nombre: 'Clasificar los que atiende',
+        descripcion: 'Los mismos campos en los incidentes que atiende.',
       },
       { clave: 'cambiar_estado', nombre: 'Cambiar estado', descripcion: 'Avanzar el estado y registrar la solución.' },
       { clave: 'reasignar', nombre: 'Reasignar', descripcion: 'Elegir o cambiar a quién está asignado.' },

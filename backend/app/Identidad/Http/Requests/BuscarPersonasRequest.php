@@ -24,6 +24,7 @@ class BuscarPersonasRequest extends FormRequest
             'ids' => ['nullable', 'array', 'max:'.BuscarPersonas::MAXIMO],
             'ids.*' => ['integer', 'min:1', 'distinct'],
             'incluir_inactivas' => ['nullable', 'boolean'],
+            'para_asignar' => ['nullable', 'boolean'],
         ];
     }
 
@@ -43,5 +44,10 @@ class BuscarPersonasRequest extends FormRequest
     public function incluirInactivas(): bool
     {
         return $this->boolean('incluir_inactivas');
+    }
+
+    public function paraAsignar(): bool
+    {
+        return $this->boolean('para_asignar');
     }
 }

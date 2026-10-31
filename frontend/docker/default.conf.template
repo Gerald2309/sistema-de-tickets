@@ -1,5 +1,8 @@
 # Nginx de la entrada única. Todo es el mismo origen: sin CORS, y el token nunca sale hacia otro origen.
 
+# El registro de accesos incluye el identificador de cada petición, el mismo que recibe la API.
+log_format con_peticion '$remote_addr - [$time_local] "$request" $status $body_bytes_sent $request_time peticion=$request_id';
+
 map $http_upgrade $conexion {
     default upgrade;
     '' close;
@@ -8,6 +11,7 @@ map $http_upgrade $conexion {
 server {
     listen 80;
     server_tokens off;
+    access_log /var/log/nginx/access.log con_peticion;
     root /usr/share/nginx/html;
     index index.html;
     client_max_body_size 1m;
@@ -36,11 +40,15 @@ server {
 
     # API de Laravel. Sus respuestas traen sus propias cabeceras de seguridad.
     location /api/ {
+        # Mensajes con imágenes: el mismo tope que la API.
+        client_max_body_size 26m;
         proxy_pass http://api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        # El mismo identificador en el log de Nginx y en el de la API (correlación de punta a punta).
+        proxy_set_header X-Request-Id $request_id;
         # Las descargas grandes (exportación) pueden tardar.
         proxy_read_timeout 120s;
     }

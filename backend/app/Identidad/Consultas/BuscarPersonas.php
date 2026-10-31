@@ -6,7 +6,8 @@ use App\Identidad\Models\User;
 use Illuminate\Support\Collection;
 
 // Personas para elegir en un selector: asignar un incidente o filtrar por persona. Devuelve solo lo mínimo
-// para esa tarea (id, nombre y si está activa) y como mucho MAXIMO coincidencias, sin paginar.
+// para esa tarea (id, nombre y si está activa) y como mucho MAXIMO coincidencias, sin paginar. Para asignar,
+// solo quienes atienden incidentes y con su rol, para agruparlos por nivel.
 class BuscarPersonas
 {
     public const MAXIMO = 20;
@@ -16,12 +17,13 @@ class BuscarPersonas
      *                          el texto y se devuelven aunque estén inactivas: el filtro puede ser de un incidente viejo.
      * @return Collection<int, User>
      */
-    public function ejecutar(?string $texto, array $ids, bool $incluirInactivas): Collection
+    public function ejecutar(?string $texto, array $ids, bool $incluirInactivas, bool $paraAsignar = false): Collection
     {
         $porIds = $ids !== [];
 
         return User::query()
-            ->select(['id', 'name', 'activo'])
+            ->select(['id', 'name', 'activo', 'rol_id'])
+            ->when($paraAsignar, fn ($consulta) => $consulta->atiendenIncidentes()->with('rol:id,nombre'))
             ->when($porIds, fn ($consulta) => $consulta->whereIn('id', $ids))
             ->when(! $porIds && $texto !== null, fn ($consulta) => $consulta->where('name', 'like', '%'.addcslashes((string) $texto, '%_\\').'%'))
             ->when(! $porIds && ! $incluirInactivas, fn ($consulta) => $consulta->where('activo', true))

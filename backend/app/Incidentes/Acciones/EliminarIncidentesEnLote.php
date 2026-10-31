@@ -25,7 +25,7 @@ class EliminarIncidentesEnLote
         $alcance = IncidentePolicy::alcanceDe($autor);
 
         foreach ($incidentes as $incidente) {
-            if (! $alcance->puedeBorrar($incidente->usuario_creador_id)) {
+            if (! $alcance->puedeBorrar($incidente->participantes())) {
                 throw new AuthorizationException;
             }
         }

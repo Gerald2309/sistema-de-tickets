@@ -1,7 +1,6 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useConfirmacion } from '@/compartido/composables/useConfirmacion.js'
 import { iconos } from '@/compartido/iconos.js'
 import { presentarEstado, usePestanas } from '@/modulos/incidentes/index.js'
 
@@ -11,7 +10,6 @@ import { presentarEstado, usePestanas } from '@/modulos/incidentes/index.js'
  * el foco, Intro o clic abren, Supr o el clic central cierran.
  */
 const pestanas = usePestanas()
-const confirmacion = useConfirmacion()
 const ruta = useRoute()
 const enrutador = useRouter()
 const barra = ref(/** @type {HTMLElement | null} */ (null))
@@ -26,30 +24,13 @@ watch(
 const enListado = computed(() => ruta.name === 'incidentes')
 
 /** @param {import('@/modulos/incidentes/index.js').Pestana} pestana */
-const destinoDe = (pestana) => ({
-  name: pestana.pantalla === 'edicion' ? 'editar-incidente' : 'incidente',
-  params: { id: pestana.id },
-})
+const destinoDe = (pestana) => ({ name: 'incidente', params: { id: pestana.id } })
 
 /**
  * @param {number} id
  * @returns {Promise<void>}
  */
 async function cerrar(id) {
-  const pestana = pestanas.buscar(id)
-  if (pestana?.sinGuardar) {
-    const confirmado = await confirmacion.pedir({
-      titulo: 'Hay cambios sin guardar',
-      texto: `Si cierra ${pestana.codigo ?? 'la pestaña'}, se pierden los cambios del formulario.`,
-      accion: 'Cerrar sin guardar',
-      peligrosa: true,
-    })
-    if (!confirmado) {
-      return
-    }
-    // El formulario ya no debe volver a preguntar al salir.
-    pestanas.marcarSinGuardar(id, false)
-  }
   const eraActiva = pestanas.activa === id
   const siguiente = pestanas.cerrar(id)
   if (eraActiva) {
@@ -125,7 +106,6 @@ function alPulsarTecla(evento) {
         />
         <span class="pt__codigo">{{ pestana.codigo ?? `#${pestana.id}` }}</span>
         <span class="pt__titulo">{{ pestana.titulo }}</span>
-        <span v-if="pestana.sinGuardar" class="pt__sin-guardar" aria-label="cambios sin guardar" />
         <!-- La × es para el puntero; con teclado se cierra con Supr (aria-keyshortcuts). Un botón dentro del
              enlace sería un control interactivo anidado. -->
         <span class="pt__cerrar" aria-hidden="true" @click.prevent.stop="cerrar(pestana.id)">
@@ -245,14 +225,6 @@ function alPulsarTecla(evento) {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.pt__sin-guardar {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  background: var(--marca-naranja);
-  border-radius: 50%;
 }
 
 .pt__cerrar {

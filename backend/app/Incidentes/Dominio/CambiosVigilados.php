@@ -3,7 +3,7 @@
 namespace App\Incidentes\Dominio;
 
 // Decide qué cambios de un incidente quedan en el historial: los campos vigilados (CampoHistorial)
-// cuyo valor es distinto. La descripción y la solución no se vigilan.
+// cuyo valor es distinto.
 final class CambiosVigilados
 {
     /**

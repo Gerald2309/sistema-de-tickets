@@ -8,12 +8,14 @@
  * @property {number} id
  * @property {string} codigo INC-000605
  * @property {string} titulo
- * @property {string} descripcion
+ * @property {string} descripcion vacía en el listado: solo el detalle trae los textos largos
  * @property {string} categoria
  * @property {string} prioridad
  * @property {string} estado
  * @property {string[]} estadosSiguientes los que permite la API desde el estado actual
- * @property {string | null} solucion
+ * @property {string | null} solucion null también en el listado
+ * @property {number | null} calificacion de 1 a 5, la que dio quien lo reportó al confirmar la solución
+ * @property {number} mensajesSinLeer de la conversación, para quien pregunta (0 si la respuesta no lo trae)
  * @property {boolean} vencido
  * @property {string} fechaVencimiento
  * @property {Referencia} creador
@@ -49,6 +51,24 @@
  * @property {string | null} valorAnterior
  * @property {string | null} valorNuevo
  * @property {Referencia} autor
+ * @property {string} creadoEn
+ */
+
+/**
+ * @typedef {object} Adjunto imagen de un mensaje
+ * @property {number} id
+ * @property {string} nombre nombre del archivo en el equipo de quien la envió
+ * @property {string} tipo
+ * @property {number} bytes
+ */
+
+/**
+ * @typedef {object} Mensaje mensaje de la conversación de un incidente
+ * @property {number} id
+ * @property {string | null} cuerpo falta si el mensaje es solo imágenes
+ * @property {boolean} interno nota interna: solo la ve soporte
+ * @property {Referencia} autor
+ * @property {Adjunto[]} adjuntos
  * @property {string} creadoEn
  */
 

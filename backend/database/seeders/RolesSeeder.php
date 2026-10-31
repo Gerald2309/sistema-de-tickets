@@ -30,12 +30,12 @@ class RolesSeeder extends Seeder
      */
     private function rolesIniciales(): array
     {
+        // Soporte toma incidentes libres y pasa los suyos; repartir o mover los de otros es del administrador.
         $soporte = [
             ClavePermiso::CrearIncidente,
             ClavePermiso::VerTodos,
             ClavePermiso::EditarTodos,
             ClavePermiso::CambiarEstado,
-            ClavePermiso::Reasignar,
             ClavePermiso::VerHistorial,
             ClavePermiso::VerDashboard,
         ];
@@ -54,12 +54,12 @@ class RolesSeeder extends Seeder
                 ClavePermiso::AdministrarUsuarios,
                 ClavePermiso::VerAuditoria,
             ],
+            // Quien reporta sigue sus propias solicitudes; las métricas del panel son para soporte.
             'Solicitante' => [
                 ClavePermiso::CrearIncidente,
                 ClavePermiso::VerPropios,
                 ClavePermiso::EditarPropios,
                 ClavePermiso::VerHistorial,
-                ClavePermiso::VerDashboard,
             ],
             'Soporte N1' => $soporte,
             'Soporte N2' => $soporte,

@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed } from 'vue'
+import { computed, toValue } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { mensajeDeError } from '@/compartido/api/errores.js'
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
@@ -12,7 +12,14 @@ import {
 } from '@/compartido/utilidades/consulta.js'
 import { clavesDeIdentidad } from '../api/claves.js'
 import { listarRoles } from '../api/roles.js'
-import { asignarRol, crearUsuario, listarUsuarios, modificarUsuario } from '../api/usuarios.js'
+import {
+  asignarRol,
+  contarIncidentesAbiertos,
+  crearUsuario,
+  listarUsuarios,
+  modificarUsuario,
+  traspasarIncidentesAbiertos,
+} from '../api/usuarios.js'
 import { useSesion } from '../tienda/sesion.js'
 
 /** @typedef {import('../tipos.js').FiltrosDeUsuarios} FiltrosDeUsuarios */
@@ -113,6 +120,11 @@ export function useEdicionDeUsuarios() {
       if (datos.correo !== original.correo) cambios.correo = datos.correo
       if (datos.clienteId !== (original.cliente?.id ?? null)) cambios.clienteId = datos.clienteId
       if (datos.activo !== original.activo) cambios.activo = datos.activo
+      // Desactivar desde el panel devuelve sus incidentes sin resolver a la cola: nadie queda esperando a quien
+      // ya no puede entrar. Para pasarlos a otra persona está «Desactivar» en la lista.
+      if (cambios.activo === false) {
+        await traspasarIncidentesAbiertos(original.id, null)
+      }
       let usuario = Object.keys(cambios).length ? await modificarUsuario(original.id, cambios) : original
       if (datos.rolId !== original.rol.id) {
         usuario = await asignarRol(original.id, datos.rolId)
@@ -128,14 +140,21 @@ export function useEdicionDeUsuarios() {
   })
 
   const activacion = useMutation({
-    /** @param {{ usuario: Usuario, activo: boolean }} pedido */
-    mutationFn: ({ usuario, activo }) => modificarUsuario(usuario.id, { activo }),
-    onSuccess: async (usuario) => {
+    /**
+     * Antes de desactivar, sus incidentes sin resolver pasan a `destinoId` o, con null, vuelven a la cola.
+     * @param {{ usuario: Usuario, activo: boolean, destinoId?: number | null }} pedido
+     */
+    mutationFn: async ({ usuario, activo, destinoId = null }) => {
+      const traspasados = activo ? 0 : await traspasarIncidentesAbiertos(usuario.id, destinoId)
+      return { usuario: await modificarUsuario(usuario.id, { activo }), traspasados }
+    },
+    onSuccess: async ({ usuario, traspasados }, { destinoId }) => {
+      const destino = destinoId ? 'pasaron a la persona elegida' : 'volvieron a la cola sin asignar'
       notificaciones.exito(
         usuario.activo ? 'Usuario reactivado' : 'Usuario desactivado',
         usuario.activo
           ? `${usuario.nombre} puede volver a iniciar sesión.`
-          : `Se cerraron las sesiones de ${usuario.nombre}.`,
+          : `Se cerraron las sesiones de ${usuario.nombre}.${traspasados ? ` Sus ${traspasados} incidentes sin resolver ${destino}.` : ''}`,
       )
       await trasCambiar(usuario.id)
     },
@@ -151,11 +170,12 @@ export function useEdicionDeUsuarios() {
   /**
    * Desactiva o reactiva; si la API lo impide (el último administrador activo), lo avisa.
    * @param {Usuario} usuario
+   * @param {number | null} [destinoId] al desactivar, a quién pasan sus incidentes sin resolver (null: a la cola)
    * @returns {Promise<void>}
    */
-  async function alternarActivo(usuario) {
+  async function alternarActivo(usuario, destinoId = null) {
     await activacion
-      .mutateAsync({ usuario, activo: !usuario.activo })
+      .mutateAsync({ usuario, activo: !usuario.activo, destinoId })
       .catch((causa) =>
         notificaciones.error(
           `No se pudo ${usuario.activo ? 'desactivar' : 'reactivar'}`,
@@ -177,4 +197,18 @@ export function useEdicionDeUsuarios() {
   }
 
   return { guardado, alternarActivo, restablecer, restableciendo: computed(() => restablecimiento.isPending.value) }
+}
+
+/**
+ * Cuántos incidentes sin resolver tiene asignados alguien, para preguntar qué hacer con ellos al desactivarlo.
+ * @param {import('vue').MaybeRefOrGetter<Usuario | null>} usuario sin persona, no consulta
+ */
+export function useIncidentesAbiertos(usuario) {
+  const id = computed(() => toValue(usuario)?.id ?? null)
+  return useQuery({
+    queryKey: computed(() => clavesDeIdentidad.incidentesAbiertos(id.value ?? 0)),
+    queryFn: ({ signal }) => contarIncidentesAbiertos(/** @type {number} */ (id.value), signal),
+    enabled: computed(() => id.value !== null),
+    staleTime: 0,
+  })
 }

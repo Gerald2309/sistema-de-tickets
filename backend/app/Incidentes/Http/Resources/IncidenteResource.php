@@ -26,12 +26,16 @@ class IncidenteResource extends JsonResource
             'id' => $incidente->id,
             'codigo' => CodigoIncidente::deId($incidente->id),
             'titulo' => $incidente->titulo,
-            'descripcion' => $incidente->descripcion,
+            // Los textos largos no van en el listado (ListarIncidentes no los consulta).
+            'descripcion' => $this->whenHas('descripcion'),
             'categoria' => $incidente->categoria->value,
             'prioridad' => $incidente->prioridad->value,
             'estado' => $incidente->estado->value,
             'estados_siguientes' => array_map(fn (Estado $estado) => $estado->value, $incidente->estado->siguientes()),
-            'solucion' => $incidente->solucion,
+            'solucion' => $this->whenHas('solucion'),
+            'calificacion' => $incidente->calificacion,
+            // Solo en el listado y el detalle: depende de quién pregunta.
+            'mensajes_sin_leer' => $this->whenHas('mensajes_sin_leer', fn () => (int) $incidente->getAttribute('mensajes_sin_leer')),
             'vencido' => Vencimiento::estaVencido($incidente->fecha_vencimiento, $incidente->estado, Date::now()),
             'fecha_vencimiento' => $incidente->fecha_vencimiento->copy()->utc()->toIso8601ZuluString(),
             'creador' => ['id' => $incidente->creador->id, 'name' => $incidente->creador->name],

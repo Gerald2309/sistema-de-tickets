@@ -78,6 +78,16 @@ trait AyudasDePrueba
     }
 
     /**
+     * Incidente de un solicitante que ya tomó esa persona: el caso de quien lo trabaja.
+     *
+     * @param  array<string, mixed>  $atributos
+     */
+    protected function incidenteAtendidoPor(User $agente, array $atributos = []): Incidente
+    {
+        return $this->incidenteDe($this->crearUsuario(), $atributos + ['usuario_asignado_id' => $agente->id]);
+    }
+
+    /**
      * Inicia sesión con una petición real y devuelve el token en texto. Las pruebas usan tokens
      * reales (no Sanctum::actingAs) para poder comprobar logout y revocaciones.
      */

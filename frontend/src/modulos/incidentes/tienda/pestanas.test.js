@@ -21,24 +21,12 @@ describe('pestañas de tickets', () => {
     expect(pestanas.activa).toBe(1)
   })
 
-  it(`con ${MAXIMO_DE_PESTANAS} abiertas, la novena cierra la más antigua sin cambios sin guardar`, () => {
+  it(`con ${MAXIMO_DE_PESTANAS} abiertas, la novena cierra la más antigua`, () => {
     const pestanas = usePestanas()
-    for (let id = 1; id <= MAXIMO_DE_PESTANAS; id++) pestanas.abrir(id)
-    pestanas.marcarSinGuardar(1, true)
+    for (let id = 1; id <= MAXIMO_DE_PESTANAS + 1; id++) pestanas.abrir(id)
 
-    expect(pestanas.abrir(9)).toBe(true)
-    expect(pestanas.lista.map((p) => p.id)).toEqual([1, 3, 4, 5, 6, 7, 8, 9])
-  })
-
-  it('si todas tienen cambios sin guardar, no abre otra', () => {
-    const pestanas = usePestanas()
-    for (let id = 1; id <= MAXIMO_DE_PESTANAS; id++) {
-      pestanas.abrir(id)
-      pestanas.marcarSinGuardar(id, true)
-    }
-
-    expect(pestanas.abrir(9)).toBe(false)
-    expect(pestanas.lista).toHaveLength(MAXIMO_DE_PESTANAS)
+    expect(pestanas.lista.map((p) => p.id)).toEqual([2, 3, 4, 5, 6, 7, 8, 9])
+    expect(pestanas.activa).toBe(9)
   })
 
   it('al cerrar la activa indica la de la derecha; si no hay, la de la izquierda; si no, el listado', () => {
@@ -65,7 +53,6 @@ describe('pestañas de tickets', () => {
     const pestanas = usePestanas()
     pestanas.abrir(5)
     pestanas.describir(5, { codigo: 'INC-000005', titulo: 'Impresora', estado: 'abierto' })
-    pestanas.marcarSinGuardar(5, true)
     await nextTick()
 
     expect(JSON.parse(sessionStorage.getItem(CLAVE) ?? '[]')).toEqual([
@@ -74,7 +61,7 @@ describe('pestañas de tickets', () => {
 
     setActivePinia(createPinia())
     const recargadas = usePestanas()
-    expect(recargadas.lista[0]).toMatchObject({ id: 5, codigo: 'INC-000005', sinGuardar: false })
+    expect(recargadas.lista[0]).toMatchObject({ id: 5, codigo: 'INC-000005' })
 
     recargadas.olvidar()
     await nextTick()
@@ -85,8 +72,6 @@ describe('pestañas de tickets', () => {
   it('ignora lo guardado que no tiene forma de pestaña', () => {
     sessionStorage.setItem(CLAVE, JSON.stringify([{ id: 'x' }, { id: 3, titulo: 4 }, null]))
 
-    expect(usePestanas().lista).toEqual([
-      { id: 3, codigo: null, titulo: '', estado: null, pantalla: 'detalle', sinGuardar: false },
-    ])
+    expect(usePestanas().lista).toEqual([{ id: 3, codigo: null, titulo: '', estado: null }])
   })
 })

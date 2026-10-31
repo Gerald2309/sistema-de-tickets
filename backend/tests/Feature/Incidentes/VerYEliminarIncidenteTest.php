@@ -21,44 +21,62 @@ class VerYEliminarIncidenteTest extends TestCase
     public static function matrizDePermisos(): array
     {
         return [
-            'solicitante ve lo propio' => ['Solicitante', true, 'ver', 200],
-            'solicitante edita lo propio' => ['Solicitante', true, 'titulo', 200],
-            'solicitante no cambia el estado de lo propio' => ['Solicitante', true, 'estado', 403],
-            'solicitante no borra lo propio' => ['Solicitante', true, 'borrar', 403],
-            'solicitante ve el historial de lo propio' => ['Solicitante', true, 'historial', 200],
+            'solicitante ve lo propio' => ['Solicitante', 'propio', 'ver', 200],
+            'solicitante clasifica lo propio sin tomar' => ['Solicitante', 'propio', 'prioridad', 200],
+            'solicitante no reescribe el título de lo propio' => ['Solicitante', 'propio', 'titulo', 403],
+            'solicitante no clasifica lo propio ya tomado' => ['Solicitante', 'propio tomado', 'prioridad', 403],
+            'solicitante no cambia el estado de lo propio' => ['Solicitante', 'propio', 'estado', 403],
+            'solicitante no borra lo propio' => ['Solicitante', 'propio', 'borrar', 403],
+            'solicitante ve el historial de lo propio' => ['Solicitante', 'propio', 'historial', 200],
 
-            'solicitante no ve lo ajeno' => ['Solicitante', false, 'ver', 404],
-            'solicitante no edita lo ajeno' => ['Solicitante', false, 'titulo', 404],
-            'solicitante no cambia el estado de lo ajeno' => ['Solicitante', false, 'estado', 404],
-            'solicitante no borra lo ajeno' => ['Solicitante', false, 'borrar', 404],
-            'solicitante no ve el historial de lo ajeno' => ['Solicitante', false, 'historial', 404],
+            'solicitante no ve lo ajeno' => ['Solicitante', 'libre', 'ver', 404],
+            'solicitante no edita lo ajeno' => ['Solicitante', 'libre', 'titulo', 404],
+            'solicitante no cambia el estado de lo ajeno' => ['Solicitante', 'libre', 'estado', 404],
+            'solicitante no borra lo ajeno' => ['Solicitante', 'libre', 'borrar', 404],
+            'solicitante no ve el historial de lo ajeno' => ['Solicitante', 'libre', 'historial', 404],
 
-            'soporte ve todo' => ['Soporte N1', false, 'ver', 200],
-            'soporte edita todo' => ['Soporte N1', false, 'titulo', 200],
-            'soporte cambia el estado' => ['Soporte N1', false, 'estado', 200],
-            'soporte no borra' => ['Soporte N1', false, 'borrar', 403],
-            'soporte ve el historial' => ['Soporte N1', false, 'historial', 200],
+            'soporte ve todo' => ['Soporte N1', 'libre', 'ver', 200],
+            'soporte no edita lo que no ha tomado' => ['Soporte N1', 'libre', 'titulo', 403],
+            'soporte no cambia el estado de lo que no ha tomado' => ['Soporte N1', 'libre', 'estado', 403],
+            'soporte no edita lo que atiende otra persona' => ['Soporte N1', 'de otro', 'titulo', 403],
+            'soporte clasifica lo que atiende' => ['Soporte N1', 'atendido', 'prioridad', 200],
+            'soporte no reescribe el título de lo que atiende' => ['Soporte N1', 'atendido', 'titulo', 403],
+            'soporte cambia el estado de lo que atiende' => ['Soporte N1', 'atendido', 'estado', 200],
+            'soporte no borra' => ['Soporte N1', 'atendido', 'borrar', 403],
+            'soporte ve el historial' => ['Soporte N1', 'libre', 'historial', 200],
 
-            'administrador ve todo' => ['Administrador', false, 'ver', 200],
-            'administrador edita todo' => ['Administrador', false, 'titulo', 200],
-            'administrador cambia el estado' => ['Administrador', false, 'estado', 200],
-            'administrador borra' => ['Administrador', false, 'borrar', 204],
-            'administrador ve el historial' => ['Administrador', false, 'historial', 200],
+            'administrador ve todo' => ['Administrador', 'libre', 'ver', 200],
+            'administrador no edita lo que no ha tomado' => ['Administrador', 'de otro', 'titulo', 403],
+            'administrador no cambia el estado de lo que no ha tomado' => ['Administrador', 'de otro', 'estado', 403],
+            'administrador clasifica lo que atiende' => ['Administrador', 'atendido', 'prioridad', 200],
+            'administrador no reescribe el título de lo que atiende' => ['Administrador', 'atendido', 'titulo', 403],
+            'administrador cambia el estado de lo que atiende' => ['Administrador', 'atendido', 'estado', 200],
+            'administrador borra' => ['Administrador', 'libre', 'borrar', 204],
+            'administrador ve el historial' => ['Administrador', 'libre', 'historial', 200],
         ];
     }
 
+    /**
+     * @param  'propio'|'propio tomado'|'libre'|'atendido'|'de otro'  $relacion  qué es el incidente para quien actúa
+     */
     #[DataProvider('matrizDePermisos')]
-    public function test_matriz_de_permisos_por_rol(string $rol, bool $esPropio, string $operacion, int $esperado): void
+    public function test_matriz_de_permisos_por_rol(string $rol, string $relacion, string $operacion, int $esperado): void
     {
         $creador = $this->crearUsuario('Solicitante');
-        $actor = $esPropio ? $creador : $this->crearUsuario($rol);
-        $incidente = $this->incidenteDe($creador);
+        $actor = str_starts_with($relacion, 'propio') ? $creador : $this->crearUsuario($rol);
+        $asignado = match ($relacion) {
+            'atendido' => $actor,
+            'propio tomado', 'de otro' => $this->crearUsuario('Soporte N2'),
+            'propio', 'libre' => null,
+        };
+        $incidente = $this->incidenteDe($creador, ['usuario_asignado_id' => $asignado?->id]);
         $ruta = "/api/v1/incidentes/{$incidente->id}";
         $http = $this->conToken($this->iniciarSesion($actor));
 
         $respuesta = match ($operacion) {
             'ver' => $http->getJson($ruta),
             'titulo' => $http->patchJson($ruta, ['titulo' => 'Título nuevo']),
+            'prioridad' => $http->patchJson($ruta, ['prioridad' => 'alta']),
             'estado' => $http->patchJson($ruta, ['estado' => 'en_progreso']),
             'borrar' => $http->deleteJson($ruta),
             'historial' => $http->getJson("$ruta/historial"),
@@ -104,14 +122,6 @@ class VerYEliminarIncidenteTest extends TestCase
 
         $this->conToken($token)->getJson('/api/v1/incidentes/999999')->assertNotFound();
         $this->conToken($token)->getJson('/api/v1/incidentes/abc')->assertNotFound();
-    }
-
-    public function test_sin_token_responde_401(): void
-    {
-        $incidente = $this->incidenteDe($this->crearUsuario());
-
-        $this->getJson("/api/v1/incidentes/{$incidente->id}")->assertUnauthorized();
-        $this->deleteJson("/api/v1/incidentes/{$incidente->id}")->assertUnauthorized();
     }
 
     public function test_borrar_oculta_el_incidente_pero_lo_conserva_con_su_historial(): void

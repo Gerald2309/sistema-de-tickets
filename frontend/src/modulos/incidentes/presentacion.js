@@ -42,7 +42,9 @@ export const CATEGORIAS = Object.freeze({
 /** @type {Readonly<Record<string, string>>} */
 export const CAMPOS_DE_HISTORIAL = Object.freeze({
   titulo: 'Título',
+  descripcion: 'Descripción',
   estado: 'Estado',
+  solucion: 'Solución',
   prioridad: 'Prioridad',
   usuario_asignado: 'Asignado',
   fecha_vencimiento: 'Vencimiento',

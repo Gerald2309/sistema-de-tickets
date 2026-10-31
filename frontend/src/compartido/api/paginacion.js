@@ -21,6 +21,23 @@ export function aPagina(cuerpo, aElemento) {
   }
 }
 
+/**
+ * @template T
+ * @typedef {{ elementos: T[], siguiente: string | null }} Tramo parte de una lista paginada por cursor
+ */
+
+/**
+ * Convierte una colección paginada por cursor de Laravel (`data` + `meta.next_cursor`) en un Tramo: sus
+ * elementos y el cursor para pedir los siguientes (null si no hay más).
+ * @template T
+ * @param {any} cuerpo respuesta de la API
+ * @param {(elemento: any) => T} aElemento adaptador de cada elemento
+ * @returns {Tramo<T>}
+ */
+export function aTramo(cuerpo, aElemento) {
+  return { elementos: (cuerpo.data ?? []).map(aElemento), siguiente: cuerpo.meta?.next_cursor ?? null }
+}
+
 /** @typedef {{ id: number, nombre: string }} Referencia persona, rol o empresa abreviados */
 
 /**

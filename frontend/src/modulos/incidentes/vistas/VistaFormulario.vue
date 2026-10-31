@@ -2,27 +2,22 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import BotonEnvio from '@/compartido/componentes/BotonEnvio.vue'
-import EsqueletoDeCarga from '@/compartido/componentes/EsqueletoDeCarga.vue'
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
 import SelectorFechaHora from '@/compartido/componentes/SelectorFechaHora.vue'
 import { useConfirmacion } from '@/compartido/composables/useConfirmacion.js'
 import { iconos } from '@/compartido/iconos.js'
-import { useBuscadorDePersonas } from '@/modulos/identidad/index.js'
-import CodigoTicket from '../componentes/CodigoTicket.vue'
-import { usePestanas } from '../tienda/pestanas.js'
+import { agruparPorRol, useBuscadorDePersonas } from '@/modulos/identidad/index.js'
 import { MAXIMO_DESCRIPCION, MAXIMO_TITULO, useFormularioIncidente } from '../composables/useFormularioIncidente.js'
 import { CATEGORIAS, PRIORIDADES, nombreDeCategoria, presentarPrioridad } from '../presentacion.js'
 
-const props = defineProps({ id: { type: Number, default: undefined } })
-
-const formulario = useFormularioIncidente(() => props.id)
-const { campos, creando, habilitado, erroresDe, tocar, alEscribir } = formulario
+const formulario = useFormularioIncidente()
+const { campos, erroresDe, tocar, alEscribir } = formulario
 const confirmacion = useConfirmacion()
-const pestanas = usePestanas()
 const raiz = ref(/** @type {HTMLElement | null} */ (null))
 
 const elegidos = computed(() => (campos.asignadoId ? [campos.asignadoId] : []))
-const personas = useBuscadorDePersonas({ elegidos })
+const personas = useBuscadorDePersonas({ paraAsignar: true, elegidos })
+const opcionesDePersona = computed(() => agruparPorRol(personas.personas.value))
 /** @param {string | null} texto */
 const buscarPersona = (texto) => (personas.texto.value = texto ?? '')
 
@@ -40,15 +35,6 @@ const categorias = computed(() =>
   })),
 )
 
-const MOTIVO = 'Su rol no permite cambiar este dato.'
-/** @param {import('../composables/useFormularioIncidente.js').Campo} campo */
-const ayudaDe = (campo, ayuda = '') => (habilitado(campo) ? ayuda : MOTIVO)
-
-const titulo = computed(() => (creando.value ? 'Nuevo incidente' : 'Editar incidente'))
-const volver = computed(() =>
-  creando.value ? { name: 'incidentes' } : { name: 'incidente', params: { id: props.id } },
-)
-
 /** Al enviar con errores, el primer campo con error recibe el foco y se agita (RF-F37). */
 async function enviar() {
   const conError = await formulario.guardar()
@@ -62,11 +48,9 @@ async function enviar() {
   requestAnimationFrame(() => contenedor?.classList.add('agita'))
 }
 
-// Cambios sin guardar (RF-F39): salir a otra ruta o pestaña pregunta; cerrar o recargar, el navegador avisa.
+// Cambios sin guardar (RF-F39): salir a otra ruta pregunta; cerrar o recargar, el navegador avisa.
 onBeforeRouteLeave(async () => {
-  // Si su pestaña ya se cerró, la confirmación ya se pidió al cerrarla.
-  const pestanaCerrada = props.id !== undefined && !pestanas.buscar(props.id)
-  if (!formulario.modificado.value || formulario.guardando.value || pestanaCerrada) {
+  if (!formulario.modificado.value || formulario.guardando.value) {
     return true
   }
   const confirmado = await confirmacion.pedir({
@@ -91,31 +75,13 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
     <nav class="migas entra" aria-label="Migas de pan">
       <RouterLink :to="{ name: 'incidentes' }">Incidentes</RouterLink>
       <v-icon :icon="iconos.siguiente" size="14" />
-      <template v-if="!creando && formulario.original.data.value">
-        <RouterLink :to="volver"><CodigoTicket :codigo="formulario.original.data.value.codigo" /></RouterLink>
-        <v-icon :icon="iconos.siguiente" size="14" />
-      </template>
-      <span aria-current="page">{{ creando ? 'Nuevo' : 'Editar' }}</span>
+      <span aria-current="page">Nuevo</span>
     </nav>
     <header class="cabecera">
-      <h1 v-revelar class="titulo-pagina">{{ titulo }}</h1>
+      <h1 v-revelar class="titulo-pagina">Nuevo incidente</h1>
     </header>
 
-    <MensajeEnPagina
-      v-if="!creando && formulario.original.isError.value"
-      tipo="error"
-      titulo="No se pudo cargar el incidente"
-      reintentable
-      @reintentar="formulario.original.refetch()"
-    >
-      {{ formulario.original.error.value?.message }}
-    </MensajeEnPagina>
-
-    <div v-else-if="!formulario.cargado.value" class="tarjeta formulario__cargando" aria-busy="true">
-      <EsqueletoDeCarga v-for="n in 4" :key="n" alto="48px" />
-    </div>
-
-    <form v-else class="tarjeta entra" style="--i: 3" novalidate @submit.prevent="enviar">
+    <form class="tarjeta entra" style="--i: 3" novalidate @submit.prevent="enviar">
       <div class="formulario-por-secciones">
         <MensajeEnPagina v-if="formulario.errorGeneral.value" tipo="error" titulo="No se pudo guardar" class="mb-4">
           {{ formulario.errorGeneral.value }}
@@ -124,7 +90,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
         <section class="seccion">
           <div>
             <h2 class="seccion__titulo">Información</h2>
-            <p class="seccion__ayuda">Qué ocurre, con el detalle que necesite soporte.</p>
+            <p class="seccion__ayuda">Qué ocurre, con el detalle que necesite soporte. No se puede cambiar después.</p>
           </div>
           <div class="formulario__campos">
             <div data-campo="titulo">
@@ -133,9 +99,6 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
                 label="Título *"
                 :counter="MAXIMO_TITULO"
                 :maxlength="MAXIMO_TITULO"
-                :disabled="!habilitado('titulo')"
-                :hint="ayudaDe('titulo')"
-                persistent-hint
                 :error-messages="erroresDe('titulo')"
                 autofocus
                 @blur="tocar('titulo')"
@@ -150,9 +113,6 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
                 auto-grow
                 :counter="MAXIMO_DESCRIPCION"
                 :maxlength="MAXIMO_DESCRIPCION"
-                :disabled="!habilitado('descripcion')"
-                :hint="ayudaDe('descripcion')"
-                persistent-hint
                 :error-messages="erroresDe('descripcion')"
                 @blur="tocar('descripcion')"
                 @update:model-value="alEscribir('descripcion')"
@@ -172,9 +132,6 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
                 v-model="campos.prioridad"
                 label="Prioridad *"
                 :items="prioridades"
-                :disabled="!habilitado('prioridad')"
-                :hint="ayudaDe('prioridad')"
-                persistent-hint
                 :error-messages="erroresDe('prioridad')"
                 @update:model-value="alEscribir('prioridad')"
               />
@@ -184,9 +141,6 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
                 v-model="campos.categoria"
                 label="Categoría *"
                 :items="categorias"
-                :disabled="!habilitado('categoria')"
-                :hint="ayudaDe('categoria')"
-                persistent-hint
                 :error-messages="erroresDe('categoria')"
                 @update:model-value="alEscribir('categoria')"
               />
@@ -204,15 +158,17 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
               <v-autocomplete
                 v-model="campos.asignadoId"
                 label="Asignar a"
-                :items="personas.personas.value"
+                :items="opcionesDePersona"
                 item-title="nombre"
                 item-value="id"
                 clearable
                 no-filter
                 :loading="personas.cargando.value"
                 no-data-text="Escriba un nombre"
-                :disabled="!habilitado('asignadoId')"
-                :hint="ayudaDe('asignadoId', 'Opcional. Puede asignarlo después.')"
+                :disabled="!formulario.puedeAsignar.value"
+                :hint="
+                  formulario.puedeAsignar.value ? 'Opcional. Puede asignarlo después.' : 'Su rol no permite asignarlo.'
+                "
                 persistent-hint
                 :error-messages="erroresDe('asignadoId')"
                 @update:search="buscarPersona"
@@ -223,8 +179,6 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
               <SelectorFechaHora
                 v-model="campos.vencimiento"
                 etiqueta="Fecha de vencimiento *"
-                :deshabilitado="!habilitado('vencimiento')"
-                :ayuda="habilitado('vencimiento') ? '' : MOTIVO"
                 :errores="erroresDe('vencimiento')"
                 @blur="tocar('vencimiento')"
                 @update:model-value="alEscribir('vencimiento')"
@@ -234,21 +188,14 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
         </section>
       </div>
       <footer class="formulario__pie">
-        <v-btn variant="text" :to="volver">Cancelar</v-btn>
-        <BotonEnvio :texto="creando ? 'Crear incidente' : 'Guardar cambios'" :pendiente="formulario.guardando.value" />
+        <v-btn variant="text" :to="{ name: 'incidentes' }">Cancelar</v-btn>
+        <BotonEnvio texto="Crear incidente" :pendiente="formulario.guardando.value" />
       </footer>
     </form>
   </div>
 </template>
 
 <style scoped>
-.formulario__cargando {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px 28px;
-}
-
 .formulario__campos {
   display: flex;
   flex-direction: column;

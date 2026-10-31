@@ -50,6 +50,6 @@
 
 /** @typedef {{ id: number, nombre: string, permisos: string[], usuarios: number }} Rol */
 
-/** @typedef {{ id: number, nombre: string, activo: boolean }} Persona para asignar o filtrar (G-05) */
+/** @typedef {{ id: number, nombre: string, activo: boolean, rol?: string }} Persona para asignar o filtrar (G-05); el rol solo al asignar */
 
 export {}

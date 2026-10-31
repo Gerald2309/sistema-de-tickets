@@ -5,6 +5,15 @@ import { iconos } from '@/compartido/iconos.js'
 
 const notificaciones = useNotificaciones()
 const { lista } = storeToRefs(notificaciones)
+
+/**
+ * @param {import('@/compartido/composables/useNotificaciones.js').Notificacion} aviso
+ * @returns {void}
+ */
+function alPulsarAccion(aviso) {
+  aviso.accion?.alPulsar()
+  notificaciones.descartar(aviso.id)
+}
 </script>
 
 <template>
@@ -20,6 +29,15 @@ const { lista } = storeToRefs(notificaciones)
         <b>{{ aviso.titulo }}</b>
         <div v-if="aviso.detalle" class="aviso__detalle">{{ aviso.detalle }}</div>
       </div>
+      <v-btn
+        v-if="aviso.accion"
+        variant="text"
+        size="small"
+        color="primary"
+        class="aviso__accion"
+        @click="alPulsarAccion(aviso)"
+        >{{ aviso.accion.texto }}</v-btn
+      >
       <v-btn
         :icon="iconos.cerrar"
         variant="text"
@@ -105,6 +123,10 @@ const { lista } = storeToRefs(notificaciones)
   font-size: 13.5px;
 }
 
+.aviso__accion {
+  margin: -4px 0 0;
+}
+
 .aviso__cerrar {
   margin: -4px 0 0;
 }
@@ -118,6 +140,10 @@ const { lista } = storeToRefs(notificaciones)
   background: var(--degradado);
   transform-origin: left;
   animation: cuenta-atras 3.6s linear forwards;
+}
+
+.aviso:has(.aviso__accion) .aviso__tiempo {
+  animation-duration: 7.2s;
 }
 
 .aviso-enter-active {

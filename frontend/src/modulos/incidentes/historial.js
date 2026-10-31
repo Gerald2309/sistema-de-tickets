@@ -13,6 +13,9 @@ import { CAMPOS_DE_HISTORIAL, nombreDeCategoria, presentarEstado, presentarPrior
  */
 const vencimientoLocal = (valor) => fechaHora(`${valor.replace(' ', 'T')}Z`)
 
+/** Campos de texto largo: no caben en una línea, así que se comparan aparte. */
+const TEXTOS_LARGOS = new Set(['descripcion', 'solucion'])
+
 /**
  * @param {string | null} campo
  * @param {string | null} valor
@@ -42,7 +45,7 @@ function valorLegible(campo, valor, nombreDePersona) {
 /**
  * @param {import('./tipos.js').EntradaHistorial} entrada
  * @param {(id: number) => string | undefined} nombreDePersona
- * @returns {{ texto: string, detalle: string, color: string }}
+ * @returns {{ texto: string, detalle: string, color: string, comparacion?: { antes: string | null, despues: string | null } }}
  */
 export function describirEntrada(entrada, nombreDePersona) {
   const color =
@@ -60,6 +63,14 @@ export function describirEntrada(entrada, nombreDePersona) {
   }
   const nombreDelCampo =
     CAMPOS_DE_HISTORIAL[/** @type {keyof typeof CAMPOS_DE_HISTORIAL} */ (entrada.campo)] ?? entrada.campo ?? 'Un dato'
+  if (TEXTOS_LARGOS.has(entrada.campo ?? '')) {
+    return {
+      texto: `Cambió ${nombreDelCampo.toLowerCase()}`,
+      detalle: '',
+      color,
+      comparacion: { antes: entrada.valorAnterior, despues: entrada.valorNuevo },
+    }
+  }
   return {
     texto: `Cambió ${nombreDelCampo.toLowerCase()}`,
     detalle: `${valorLegible(entrada.campo, entrada.valorAnterior, nombreDePersona)} → ${valorLegible(entrada.campo, entrada.valorNuevo, nombreDePersona)}`,

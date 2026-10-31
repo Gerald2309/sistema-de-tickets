@@ -1,11 +1,12 @@
 import { http } from '@/compartido/api/cliente.js'
-import { aPagina } from '@/compartido/api/paginacion.js'
+import { aPagina, aTramo } from '@/compartido/api/paginacion.js'
 import {
   aAviso,
   aCatalogos,
   aCuerpoDeIncidente,
   aEntradaHistorial,
   aIncidente,
+  aMensaje,
   aParametrosDeListado,
   aResumenPanel,
   aSimilar,
@@ -50,12 +51,16 @@ export async function obtenerIncidente(id, senal) {
 }
 
 /**
- * `POST incidentes` (API 6).
+ * `POST incidentes` (API 6). Con la misma clave de idempotencia, un reintento devuelve el incidente ya creado
+ * en vez de duplicarlo.
  * @param {Parameters<typeof aCuerpoDeIncidente>[0]} campos
+ * @param {string} claveDeIdempotencia UUID, uno por formulario
  * @returns {Promise<Incidente>}
  */
-export async function crearIncidente(campos) {
-  const { data } = await http.post('incidentes', aCuerpoDeIncidente(campos))
+export async function crearIncidente(campos, claveDeIdempotencia) {
+  const { data } = await http.post('incidentes', aCuerpoDeIncidente(campos), {
+    headers: { 'Idempotency-Key': claveDeIdempotencia },
+  })
   return aIncidente(data.data)
 }
 
@@ -71,6 +76,28 @@ export async function actualizarIncidente(id, cambios) {
 }
 
 /**
+ * `POST incidentes/{id}/tomar`: queda asignado a quien lo toma.
+ * @param {number} id
+ * @returns {Promise<Incidente>}
+ */
+export async function tomarIncidente(id) {
+  const { data } = await http.post(`incidentes/${id}/tomar`)
+  return aIncidente(data.data)
+}
+
+/**
+ * `POST incidentes/{id}/confirmacion`: quien lo reportó dice si la solución sirvió. Si sirvió, se cierra con
+ * su calificación; si no, vuelve a soporte con el motivo en la conversación.
+ * @param {number} id
+ * @param {{ solucionado: true, calificacion: number | null } | { solucionado: false, motivo: string }} respuesta
+ * @returns {Promise<Incidente>}
+ */
+export async function confirmarSolucion(id, respuesta) {
+  const { data } = await http.post(`incidentes/${id}/confirmacion`, respuesta)
+  return aIncidente(data.data)
+}
+
+/**
  * `DELETE incidentes/{id}` (API 9).
  * @param {number} id
  * @returns {Promise<void>}
@@ -80,14 +107,79 @@ export async function eliminarIncidente(id) {
 }
 
 /**
- * `GET incidentes/{id}/historial` (API 10).
+ * `GET incidentes/{id}/historial` (API 10): un tramo, del cambio más reciente al más antiguo.
  * @param {number} id
+ * @param {string | null} cursor null para el primer tramo
  * @param {AbortSignal} [senal]
- * @returns {Promise<import('../tipos.js').EntradaHistorial[]>}
+ * @returns {Promise<import('@/compartido/api/paginacion.js').Tramo<import('../tipos.js').EntradaHistorial>>}
  */
-export async function obtenerHistorial(id, senal) {
-  const { data } = await http.get(`incidentes/${id}/historial`, { signal: senal })
-  return data.data.map(aEntradaHistorial)
+export async function obtenerHistorial(id, cursor, senal) {
+  const { data } = await http.get(`incidentes/${id}/historial`, {
+    params: { cursor: cursor ?? undefined },
+    signal: senal,
+  })
+  return aTramo(data, aEntradaHistorial)
+}
+
+/**
+ * `GET incidentes/{id}/mensajes`: un tramo de la conversación, del mensaje más reciente al anterior, sin las
+ * notas internas si la persona no puede leerlas.
+ * @param {number} id
+ * @param {string | null} cursor null para el primer tramo (lo último)
+ * @param {AbortSignal} [senal]
+ * @returns {Promise<import('@/compartido/api/paginacion.js').Tramo<import('../tipos.js').Mensaje>>}
+ */
+export async function obtenerConversacion(id, cursor, senal) {
+  const { data } = await http.get(`incidentes/${id}/mensajes`, {
+    params: { cursor: cursor ?? undefined },
+    signal: senal,
+  })
+  return aTramo(data, aMensaje)
+}
+
+/**
+ * `PUT incidentes/{id}/lectura`: deja leída la conversación hasta su último mensaje.
+ * @param {number} id
+ * @returns {Promise<void>}
+ */
+export async function marcarConversacionLeida(id) {
+  await http.put(`incidentes/${id}/lectura`)
+}
+
+/**
+ * `POST incidentes/{id}/mensajes`: en formulario multiparte, porque lleva imágenes.
+ * @param {number} id
+ * @param {{ cuerpo: string, interno: boolean, imagenes: File[] }} mensaje
+ * @returns {Promise<import('../tipos.js').Mensaje>}
+ */
+export async function escribirMensaje(id, { cuerpo, interno, imagenes }) {
+  const formulario = new FormData()
+  if (cuerpo.trim()) {
+    formulario.append('cuerpo', cuerpo)
+  }
+  if (interno) {
+    formulario.append('interno', '1')
+  }
+  imagenes.forEach((imagen) => formulario.append('imagenes[]', imagen))
+  const { data } = await http.post(`incidentes/${id}/mensajes`, formulario, { timeout: 120_000 })
+  return aMensaje(data.data)
+}
+
+/**
+ * Una imagen de la conversación. Se pide con el token, así que llega como Blob: un `<img>` no podría
+ * enviarlo.
+ * @param {number} id
+ * @param {number} mensajeId
+ * @param {number} adjuntoId
+ * @param {AbortSignal} [senal]
+ * @returns {Promise<Blob>}
+ */
+export async function obtenerAdjunto(id, mensajeId, adjuntoId, senal) {
+  const { data } = await http.get(`incidentes/${id}/mensajes/${mensajeId}/adjuntos/${adjuntoId}`, {
+    responseType: 'blob',
+    signal: senal,
+  })
+  return data
 }
 
 /**

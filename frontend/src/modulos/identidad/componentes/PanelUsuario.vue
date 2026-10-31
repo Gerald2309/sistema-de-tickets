@@ -166,6 +166,9 @@ async function guardar() {
         <b>Puede iniciar sesión</b>
         <InterruptorCompacto v-model="datos.activo" etiqueta="Puede iniciar sesión" />
       </label>
+      <p v-if="usuario?.activo && !datos.activo" class="nota">
+        Al guardar, sus incidentes sin resolver volverán a la cola sin asignar.
+      </p>
       <p v-if="servidor.errores.activo" class="panel-usuario__error">{{ servidor.errores.activo[0] }}</p>
     </form>
     <template #pie>

@@ -12,6 +12,11 @@ class PersonaController extends Controller
 {
     public function __invoke(BuscarPersonasRequest $request, BuscarPersonas $buscarPersonas): AnonymousResourceCollection
     {
-        return PersonaResource::collection($buscarPersonas->ejecutar($request->texto(), $request->ids(), $request->incluirInactivas()));
+        return PersonaResource::collection($buscarPersonas->ejecutar(
+            $request->texto(),
+            $request->ids(),
+            $request->incluirInactivas(),
+            $request->paraAsignar(),
+        ));
     }
 }

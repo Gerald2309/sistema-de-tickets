@@ -2,11 +2,13 @@
 
 namespace App\Identidad\Models;
 
+use App\Identidad\Dominio\ClavePermiso;
 use App\Identidad\Dominio\ConjuntoPermisos;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -50,6 +52,16 @@ class User extends Authenticatable
         return $this->conjuntoDePermisos ??= new ConjuntoPermisos(
             $this->loadMissing('rol.permisos')->rol->permisos->map(fn (Permiso $permiso) => $permiso->clave),
         );
+    }
+
+    /**
+     * Quien atiende incidentes: su rol puede cambiarles el estado. Solo a esas personas se les asigna uno.
+     *
+     * @param  Builder<self>  $consulta
+     */
+    public function scopeAtiendenIncidentes(Builder $consulta): void
+    {
+        $consulta->whereHas('rol.permisos', fn (Builder $permisos) => $permisos->where('clave', ClavePermiso::CambiarEstado->value));
     }
 
     /**

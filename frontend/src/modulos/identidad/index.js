@@ -19,7 +19,7 @@ import { iconos } from '@/compartido/iconos.js'
 export { rutas, rutasPublicas } from './rutas.js'
 export { useSesion } from './tienda/sesion.js'
 export { clavesDeIdentidad } from './api/claves.js'
-export { useBuscadorDePersonas, useEmpresas } from './composables/usePersonas.js'
+export { agruparPorRol, useBuscadorDePersonas, useEmpresas } from './composables/usePersonas.js'
 
 /** @type {EntradaDeNavegacion[]} */
 export const navegacion = [

@@ -20,16 +20,14 @@ class ActualizarIncidenteTest extends TestCase
     public function test_actualiza_varios_campos_y_registra_cada_cambio_en_el_historial(): void
     {
         $soporte = $this->crearUsuario('Soporte N1');
-        $incidente = $this->incidenteDe($this->crearUsuario());
+        $incidente = $this->incidenteDe($soporte, ['usuario_asignado_id' => $soporte->id]);
 
         $this->conToken($this->iniciarSesion($soporte))->patchJson($this->ruta($incidente), [
-            'titulo' => 'VPN caída para todo el equipo',
             'prioridad' => 'alta',
             'categoria' => 'red',
             'fecha_vencimiento' => '2031-02-01T09:00:00-05:00',
         ])
             ->assertOk()
-            ->assertJsonPath('data.titulo', 'VPN caída para todo el equipo')
             ->assertJsonPath('data.prioridad', 'alta')
             ->assertJsonPath('data.categoria', 'red')
             ->assertJsonPath('data.fecha_vencimiento', '2031-02-01T14:00:00Z');
@@ -37,19 +35,20 @@ class ActualizarIncidenteTest extends TestCase
         $entradas = HistorialIncidente::where('incidente_id', $incidente->id)->orderBy('id')->get();
 
         $this->assertSame(
-            [CampoHistorial::Titulo, CampoHistorial::Prioridad, CampoHistorial::FechaVencimiento, CampoHistorial::Categoria],
+            [CampoHistorial::Prioridad, CampoHistorial::FechaVencimiento, CampoHistorial::Categoria],
             $entradas->pluck('campo')->all(),
         );
         $this->assertTrue($entradas->every(fn ($entrada) => $entrada->evento === EventoHistorial::Modificacion));
         $this->assertTrue($entradas->every(fn ($entrada) => $entrada->usuario_id === $soporte->id));
-        $this->assertSame(['media', 'alta'], [$entradas[1]->valor_anterior, $entradas[1]->valor_nuevo]);
-        $this->assertSame('2031-02-01 14:00:00', $entradas[2]->valor_nuevo);
+        $this->assertSame(['media', 'alta'], [$entradas[0]->valor_anterior, $entradas[0]->valor_nuevo]);
+        $this->assertSame('2031-02-01 14:00:00', $entradas[1]->valor_nuevo);
     }
 
     public function test_cambiar_el_estado_registra_el_paso_y_actualiza_los_siguientes(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'en_progreso'])
             ->assertOk()
@@ -64,8 +63,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_una_transicion_no_permitida_responde_422_e_indica_los_estados_permitidos(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto'])
             ->assertUnprocessable()
@@ -79,8 +79,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_un_incidente_cerrado_no_cambia_de_estado(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario(), ['estado' => Estado::Cerrado, 'solucion' => 'Resuelto hace tiempo.']);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte, ['estado' => Estado::Cerrado, 'solucion' => 'Resuelto hace tiempo.']);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'abierto'])
             ->assertUnprocessable()
@@ -90,8 +91,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_resolver_exige_la_solucion(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario(), ['estado' => Estado::EnProgreso]);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte, ['estado' => Estado::EnProgreso]);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto'])
             ->assertUnprocessable()
@@ -104,8 +106,22 @@ class ActualizarIncidenteTest extends TestCase
             ->assertJsonPath('data.estado', 'resuelto')
             ->assertJsonPath('data.solucion', 'Se reinició el servicio.');
 
-        $entrada = HistorialIncidente::where('incidente_id', $incidente->id)->sole();
-        $this->assertSame(CampoHistorial::Estado, $entrada->campo, 'La solución no se registra en el historial.');
+        $entradas = HistorialIncidente::where('incidente_id', $incidente->id)->orderBy('id')->get();
+        $this->assertSame([CampoHistorial::Estado, CampoHistorial::Solucion], $entradas->pluck('campo')->all());
+        $this->assertSame([null, 'Se reinició el servicio.'], [$entradas[1]->valor_anterior, $entradas[1]->valor_nuevo]);
+    }
+
+    public function test_el_titulo_y_la_descripcion_quedan_fijos_al_crear_el_incidente(): void
+    {
+        $creador = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteDe($creador, ['titulo' => 'No imprime', 'descripcion' => 'La impresora no responde.', 'usuario_asignado_id' => $creador->id]);
+        $token = $this->iniciarSesion($creador);
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['titulo' => 'Otro título'])->assertForbidden();
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['descripcion' => 'Otro texto'])->assertForbidden();
+
+        $this->assertSame(['No imprime', 'La impresora no responde.'], [$incidente->fresh()->titulo, $incidente->fresh()->descripcion]);
+        $this->assertSame(0, HistorialIncidente::count());
     }
 
     /**
@@ -127,11 +143,12 @@ class ActualizarIncidenteTest extends TestCase
     #[DataProvider('peticionesConSolucionSinResolver')]
     public function test_la_solucion_solo_se_acepta_al_resolver(Estado $estadoActual, array $cuerpo): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario(), [
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte, [
             'estado' => $estadoActual,
             'solucion' => in_array($estadoActual, [Estado::Resuelto, Estado::Cerrado], true) ? 'Solución original.' : null,
         ]);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), $cuerpo)
             ->assertUnprocessable()
@@ -143,8 +160,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_al_resolver_otra_vez_la_nueva_solucion_reemplaza_a_la_anterior(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario(), ['estado' => Estado::EnProgreso, 'solucion' => 'Primera solución.']);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte, ['estado' => Estado::EnProgreso, 'solucion' => 'Primera solución.']);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto', 'solucion' => 'Solución definitiva.'])
             ->assertOk()
@@ -153,8 +171,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_una_transicion_invalida_se_informa_antes_que_el_problema_de_la_solucion(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto', 'solucion' => 'Se reinició.'])
             ->assertUnprocessable()
@@ -163,8 +182,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_al_reabrir_se_conserva_la_solucion_y_al_resolver_de_nuevo_no_hace_falta_otra(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario(), ['estado' => Estado::Resuelto, 'solucion' => 'Primera solución.']);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte, ['estado' => Estado::Resuelto, 'solucion' => 'Primera solución.']);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'en_progreso'])
             ->assertOk()
@@ -177,8 +197,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_pedir_el_estado_actual_no_cambia_nada_ni_deja_historial(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'abierto'])->assertOk();
 
@@ -187,22 +208,11 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_repetir_un_valor_igual_no_deja_historial(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario(), ['titulo' => 'Mismo título']);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteDe($soporte, ['categoria' => 'red', 'usuario_asignado_id' => $soporte->id]);
+        $token = $this->iniciarSesion($soporte);
 
-        $this->conToken($token)->patchJson($this->ruta($incidente), ['titulo' => 'Mismo título', 'prioridad' => 'media'])->assertOk();
-
-        $this->assertSame(0, HistorialIncidente::count());
-    }
-
-    public function test_cambiar_la_descripcion_no_se_registra_en_el_historial(): void
-    {
-        $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
-
-        $this->conToken($token)->patchJson($this->ruta($incidente), ['descripcion' => 'Descripción ampliada con más detalle.'])
-            ->assertOk()
-            ->assertJsonPath('data.descripcion', 'Descripción ampliada con más detalle.');
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['categoria' => 'red', 'prioridad' => 'media'])->assertOk();
 
         $this->assertSame(0, HistorialIncidente::count());
     }
@@ -211,7 +221,7 @@ class ActualizarIncidenteTest extends TestCase
     {
         $agente = $this->crearUsuario('Soporte N1');
         $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N2'));
+        $token = $this->iniciarSesion($this->crearUsuario('Administrador'));
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['usuario_asignado_id' => $agente->id])
             ->assertOk()
@@ -228,26 +238,61 @@ class ActualizarIncidenteTest extends TestCase
         $this->assertSame(CampoHistorial::UsuarioAsignado, $entradas[1]->campo);
     }
 
+    public function test_quien_lo_atiende_lo_pasa_a_otra_persona_pero_no_lo_deja_sin_asignar(): void
+    {
+        $soporte = $this->crearUsuario('Soporte N1');
+        $escalado = $this->crearUsuario('Soporte N2');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+        $token = $this->iniciarSesion($soporte);
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['usuario_asignado_id' => null])->assertForbidden();
+        $this->assertSame($soporte->id, $incidente->fresh()->usuario_asignado_id);
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['usuario_asignado_id' => $escalado->id])
+            ->assertOk()
+            ->assertJsonPath('data.asignado.id', $escalado->id);
+
+        // Ya no lo atiende: deja de poder trabajarlo.
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['prioridad' => 'alta'])->assertForbidden();
+    }
+
     public function test_no_se_asigna_a_un_usuario_inactivo(): void
     {
         $inactivo = $this->crearUsuario('Soporte N1', ['activo' => false]);
-        $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N2'));
+        $soporte = $this->crearUsuario('Soporte N2');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['usuario_asignado_id' => $inactivo->id])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('usuario_asignado_id');
     }
 
-    public function test_el_creador_edita_su_incidente_pero_no_el_estado_ni_el_asignado(): void
+    public function test_solo_se_asigna_a_quien_atiende_incidentes_ni_siquiera_el_administrador_a_un_solicitante(): void
+    {
+        $solicitante = $this->crearUsuario('Solicitante');
+        $administrador = $this->crearUsuario('Administrador');
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+
+        foreach ([$soporte, $administrador] as $quien) {
+            $this->conToken($this->iniciarSesion($quien))->patchJson($this->ruta($incidente), ['usuario_asignado_id' => $solicitante->id])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['usuario_asignado_id' => 'atiende incidentes']);
+        }
+
+        $this->conToken($this->iniciarSesion($soporte))->patchJson($this->ruta($incidente), ['usuario_asignado_id' => $administrador->id])->assertOk();
+    }
+
+    public function test_el_creador_clasifica_su_incidente_pero_no_el_estado_ni_el_asignado(): void
     {
         $creador = $this->crearUsuario();
-        $incidente = $this->incidenteDe($creador, ['titulo' => 'Título original']);
+        $incidente = $this->incidenteDe($creador);
         $token = $this->iniciarSesion($creador);
 
-        $this->conToken($token)->patchJson($this->ruta($incidente), ['titulo' => 'Título corregido'])
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['prioridad' => 'alta'])
             ->assertOk()
-            ->assertJsonPath('data.titulo', 'Título corregido');
+            ->assertJsonPath('data.prioridad', 'alta');
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'en_progreso'])->assertForbidden();
         $this->conToken($token)->patchJson($this->ruta($incidente), ['usuario_asignado_id' => $this->crearUsuario('Soporte N1')->id])->assertForbidden();
@@ -256,13 +301,13 @@ class ActualizarIncidenteTest extends TestCase
     public function test_un_solo_campo_sin_permiso_rechaza_toda_la_peticion(): void
     {
         $creador = $this->crearUsuario();
-        $incidente = $this->incidenteDe($creador, ['titulo' => 'Título original']);
+        $incidente = $this->incidenteDe($creador);
         $token = $this->iniciarSesion($creador);
 
-        $this->conToken($token)->patchJson($this->ruta($incidente), ['titulo' => 'Título nuevo', 'estado' => 'en_progreso'])
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['prioridad' => 'alta', 'estado' => 'en_progreso'])
             ->assertForbidden();
 
-        $this->assertSame('Título original', $incidente->fresh()->titulo);
+        $this->assertSame(0, HistorialIncidente::count());
     }
 
     public function test_sobre_un_incidente_ajeno_responde_404_aunque_el_cuerpo_sea_invalido(): void
@@ -275,8 +320,9 @@ class ActualizarIncidenteTest extends TestCase
 
     public function test_el_cuerpo_invalido_responde_422_cuando_si_tiene_permiso(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario());
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte);
+        $token = $this->iniciarSesion($soporte);
 
         $this->conToken($token)->patchJson($this->ruta($incidente), ['prioridad' => 'inexistente', 'estado' => 'volando'])
             ->assertUnprocessable()
@@ -286,10 +332,11 @@ class ActualizarIncidenteTest extends TestCase
     public function test_el_creador_y_el_id_no_se_pueden_modificar(): void
     {
         $creador = $this->crearUsuario();
-        $incidente = $this->incidenteDe($creador);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteDe($creador, ['usuario_asignado_id' => $soporte->id]);
+        $token = $this->iniciarSesion($soporte);
 
-        $this->conToken($token)->patchJson($this->ruta($incidente), ['usuario_creador_id' => $this->crearUsuario()->id, 'id' => 9999, 'titulo' => 'Otro título'])
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['usuario_creador_id' => $this->crearUsuario()->id, 'id' => 9999, 'prioridad' => 'alta'])
             ->assertOk()
             ->assertJsonPath('data.id', $incidente->id)
             ->assertJsonPath('data.creador.id', $creador->id);

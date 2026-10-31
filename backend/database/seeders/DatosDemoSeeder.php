@@ -19,13 +19,21 @@ use Illuminate\Support\Collection;
 
 // Datos de demostración: empresas cliente, usuarios con nombres reales y una mesa de soporte con
 // incidentes en todos los estados, con su historial y la auditoría de las altas. Las cuentas llevan
-// contraseñas aleatorias. Los solicitantes se reparten entre las empresas; el personal de soporte no tiene.
+// contraseñas aleatorias, salvo una de prueba por perfil (CUENTAS_DE_PRUEBA), con DEMO_PASSWORD. Los solicitantes se reparten entre las empresas; el personal de soporte no tiene.
 
 class DatosDemoSeeder extends Seeder
 {
     private const INCIDENTES = 600;
 
     private const IP_ADMINISTRADOR = '192.168.10.5';
+
+    // Una cuenta conocida por perfil (la primera de cada rol), para entrar con cada uno. Personas inventadas.
+    private const CUENTAS_DE_PRUEBA = [
+        'Soporte N1' => ['Cristina Guillen', 'cristina.guillen@empresa-ejemplo.com'],
+        'Soporte N2' => ['Diego Betancourt', 'diego.betancourt@empresa-ejemplo.com'],
+        'Soporte N3' => ['Valentina Ojeda', 'valentina.ojeda@empresa-ejemplo.com'],
+        'Solicitante' => ['Úrsula Apodaca', 'ursula.apodaca@empresa-ejemplo.com'],
+    ];
 
     // Nombres inventados para la demostración.
     private const EMPRESAS = ['Constructora Andina', 'Transportes Sabana', 'Clínica del Norte', 'Banco Aliado', 'Colegio Los Pinos'];
@@ -131,7 +139,8 @@ class DatosDemoSeeder extends Seeder
     private function usuarios(string $rol, int $cantidad, User $administrador, ?Collection $empresas = null): Collection
     {
         $usuarios = User::factory($cantidad)
-            ->sequence(fn ($secuencia) => ['cliente_id' => $empresas?->get($secuencia->index % $empresas->count())?->id])
+            ->sequence(fn ($secuencia) => ['cliente_id' => $empresas?->get($secuencia->index % $empresas->count())?->id]
+                + ($secuencia->index === 0 ? $this->cuentaDePrueba($rol) : []))
             ->create(['rol_id' => Rol::where('nombre', $rol)->firstOrFail()->id])
             ->load('cliente');
 
@@ -145,6 +154,20 @@ class DatosDemoSeeder extends Seeder
         ])->all());
 
         return $usuarios;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function cuentaDePrueba(string $rol): array
+    {
+        $password = config('seguridad.demostracion.password');
+        if (! isset(self::CUENTAS_DE_PRUEBA[$rol]) || ! is_string($password) || $password === '') {
+            return [];
+        }
+        [$nombre, $email] = self::CUENTAS_DE_PRUEBA[$rol];
+
+        return ['name' => $nombre, 'email' => $email, 'password' => $password];
     }
 
     /**

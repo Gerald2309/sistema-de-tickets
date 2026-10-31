@@ -14,8 +14,23 @@ export { codigoDe, idDeCodigo } from './filtros.js'
 /** @typedef {import('./tienda/pestanas.js').Pestana} Pestana */
 
 /** @type {import('@/modulos/identidad/index.js').EntradaDeNavegacion[]} */
+// Quien ve solo lo suyo entra a sus solicitudes; el panel y «Mi día» son la operación de soporte.
 export const navegacion = [
+  {
+    titulo: 'Mis solicitudes',
+    icono: iconos.solicitudes,
+    destino: { name: 'mis-solicitudes' },
+    permisos: ['ver_propios'],
+    grupo: 'trabajo',
+  },
   { titulo: 'Panel', icono: iconos.panel, destino: { name: 'panel' }, permisos: ['ver_dashboard'], grupo: 'trabajo' },
+  {
+    titulo: 'Mi día',
+    icono: iconos.miDia,
+    destino: { name: 'mi-dia' },
+    permisos: ['cambiar_estado'],
+    grupo: 'trabajo',
+  },
   {
     titulo: 'Incidentes',
     icono: iconos.lista,

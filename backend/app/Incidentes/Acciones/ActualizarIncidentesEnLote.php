@@ -32,7 +32,7 @@ class ActualizarIncidentesEnLote
         $alcance = IncidentePolicy::alcanceDe($autor);
 
         foreach ($incidentes as $incidente) {
-            if (! $alcance->puedeModificar(array_keys($cambios), $incidente->usuario_creador_id)) {
+            if (! $alcance->puedeModificar($cambios, $incidente->participantes())) {
                 throw new AuthorizationException;
             }
         }

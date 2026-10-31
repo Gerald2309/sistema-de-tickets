@@ -72,7 +72,7 @@ async function enviar() {
           </Transition>
 
           <v-form ref="formulario" validate-on="blur" @submit.prevent="enviar">
-            <div class="entra" style="--i: 4">
+            <div class="entra ingreso__campo" style="--i: 4">
               <v-text-field
                 v-model="correo"
                 label="Correo electrónico"
@@ -83,7 +83,7 @@ async function enviar() {
                 autofocus
               />
             </div>
-            <div class="entra" style="--i: 5">
+            <div class="entra ingreso__campo" style="--i: 5">
               <v-text-field
                 v-model="contrasena"
                 label="Contraseña"
@@ -127,6 +127,11 @@ async function enviar() {
 </template>
 
 <style scoped>
+/* El mensaje de error de un campo no debe tocar la etiqueta flotante del siguiente. */
+.ingreso__campo {
+  margin-bottom: 10px;
+}
+
 .ingreso {
   background: var(--superficie);
 }

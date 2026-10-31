@@ -56,8 +56,8 @@ class CambiosVigiladosTest extends TestCase
     public function test_un_campo_que_no_esta_en_ambos_lados_o_no_es_vigilado_se_ignora(): void
     {
         $entradas = CambiosVigilados::modificaciones(
-            ['titulo' => 'a', 'descripcion' => 'texto'],
-            ['titulo' => 'a', 'descripcion' => 'otro texto', 'estado' => 'cerrado'],
+            ['titulo' => 'a', 'creado_por' => '1'],
+            ['titulo' => 'a', 'creado_por' => '2', 'estado' => 'cerrado'],
         );
 
         $this->assertSame([], $entradas);

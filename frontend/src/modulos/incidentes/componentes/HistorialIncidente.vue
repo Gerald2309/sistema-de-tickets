@@ -1,18 +1,25 @@
 <script setup>
 import { computed } from 'vue'
 import EsqueletoDeCarga from '@/compartido/componentes/EsqueletoDeCarga.vue'
+import { iconos } from '@/compartido/iconos.js'
 import { fechaHora } from '@/compartido/presentacion/fechas.js'
 import { useBuscadorDePersonas } from '@/modulos/identidad/index.js'
 import { describirEntrada, personasDelHistorial } from '../historial.js'
 
-/** Línea de tiempo del incidente, lo más reciente arriba (RF-F30). Una entrada nueva entra deslizándose. */
+/**
+ * Línea de tiempo del incidente, lo más reciente arriba (RF-F30). Llega por tramos: «Ver más» trae los cambios
+ * anteriores, así un incidente muy trabajado no alarga la página sin fin. Una entrada nueva entra deslizándose.
+ */
 const props = defineProps({
   entradas: {
     type: /** @type {import('vue').PropType<import('../tipos.js').EntradaHistorial[] | undefined>} */ (Array),
     default: undefined,
   },
   cargando: { type: Boolean, default: false },
+  hayMas: { type: Boolean, default: false },
+  cargandoMas: { type: Boolean, default: false },
 })
+const emit = defineEmits(['ver-mas'])
 
 const asignadas = computed(() => personasDelHistorial(props.entradas ?? []))
 const personas = useBuscadorDePersonas({ incluirInactivas: true, elegidos: asignadas })
@@ -40,14 +47,35 @@ const lineas = computed(() =>
         <li v-for="linea in lineas" :key="linea.id" class="linea__entrada" :style="{ '--color': linea.color }">
           <b class="linea__texto">{{ linea.texto }}</b>
           <span v-if="linea.detalle" class="linea__detalle"> · {{ linea.detalle }}</span>
+          <details v-if="linea.comparacion" class="comparacion">
+            <summary class="comparacion__resumen">Ver antes y después</summary>
+            <dl class="comparacion__textos">
+              <dt>Antes</dt>
+              <dd>{{ linea.comparacion.antes ?? '—' }}</dd>
+              <dt>Después</dt>
+              <dd>{{ linea.comparacion.despues ?? '—' }}</dd>
+            </dl>
+          </details>
           <div class="nota">{{ linea.autor }} · {{ linea.cuando }}</div>
         </li>
       </TransitionGroup>
     </div>
+    <footer v-if="hayMas" class="historial__pie">
+      <v-btn variant="text" size="small" :loading="cargandoMas" :append-icon="iconos.desplegar" @click="emit('ver-mas')"
+        >Ver cambios anteriores</v-btn
+      >
+    </footer>
   </section>
 </template>
 
 <style scoped>
+.historial__pie {
+  display: flex;
+  justify-content: center;
+  padding: 4px 16px 10px;
+  border-top: 1px solid var(--borde);
+}
+
 .historial__cargando {
   display: flex;
   flex-direction: column;
@@ -100,6 +128,40 @@ const lineas = computed(() =>
 
 .linea__detalle {
   color: var(--suave);
+}
+
+.comparacion {
+  margin: 4px 0;
+}
+
+.comparacion__resumen {
+  width: fit-content;
+  color: var(--acento);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.comparacion__textos {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--sutil);
+  border-radius: var(--radio);
+}
+
+.comparacion__textos dt {
+  color: var(--suave);
+  font-weight: 500;
+}
+
+.comparacion__textos dd {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comparacion__textos dd:last-child {
+  margin-bottom: 0;
 }
 
 .historial-enter-active {
