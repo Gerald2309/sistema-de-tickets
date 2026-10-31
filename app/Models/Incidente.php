@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Dominio\Categoria;
 use App\Dominio\Estado;
 use App\Dominio\Prioridad;
 use Database\Factories\IncidenteFactory;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'descripcion',
     'prioridad',
     'estado',
+    'categoria',
+    'solucion',
     'usuario_creador_id',
     'usuario_asignado_id',
     'fecha_vencimiento',
@@ -49,6 +52,7 @@ class Incidente extends Model
         return [
             'prioridad' => Prioridad::class,
             'estado' => Estado::class,
+            'categoria' => Categoria::class,
             'fecha_vencimiento' => 'datetime',
         ];
     }

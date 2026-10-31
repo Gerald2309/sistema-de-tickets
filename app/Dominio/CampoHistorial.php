@@ -10,4 +10,5 @@ enum CampoHistorial: string
     case Prioridad = 'prioridad';
     case UsuarioAsignado = 'usuario_asignado';
     case FechaVencimiento = 'fecha_vencimiento';
+    case Categoria = 'categoria';
 }

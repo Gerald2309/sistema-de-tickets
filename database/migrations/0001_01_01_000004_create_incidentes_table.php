@@ -1,5 +1,6 @@
 <?php
 
+use App\Dominio\Categoria;
 use App\Dominio\Estado;
 use App\Dominio\Prioridad;
 use Illuminate\Database\Migrations\Migration;
@@ -16,6 +17,8 @@ return new class extends Migration
             $table->text('descripcion');
             $table->enum('prioridad', Prioridad::cases())->default('media');
             $table->enum('estado', Estado::cases())->default('abierto');
+            $table->enum('categoria', Categoria::cases())->default('otros');
+            $table->text('solucion')->nullable();
             $table->foreignId('usuario_creador_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('usuario_asignado_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->dateTime('fecha_vencimiento');
@@ -25,6 +28,7 @@ return new class extends Migration
             // Todo índice de filtro u orden termina en deleted_at: los conteos se resuelven sin leer la fila.
             $table->index(['estado', 'deleted_at']);
             $table->index(['prioridad', 'deleted_at']);
+            $table->index(['categoria', 'deleted_at']);
             $table->index(['fecha_vencimiento', 'deleted_at']);
             $table->index(['created_at', 'deleted_at']);
             $table->index(['estado', 'prioridad', 'deleted_at']); // dashboard (consulta combinada)
