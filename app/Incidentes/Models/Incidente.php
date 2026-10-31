@@ -32,6 +32,11 @@ class Incidente extends Model
     /** @use HasFactory<IncidenteFactory> */
     use HasFactory, SoftDeletes;
 
+    // Las relaciones que toda respuesta muestra se cargan de antemano (sin N+1).
+    public const RELACIONES_VISIBLES = ['creador:id,name', 'asignado:id,name'];
+
+    protected $with = self::RELACIONES_VISIBLES;
+
     public function creador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_creador_id');

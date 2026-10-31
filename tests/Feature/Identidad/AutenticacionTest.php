@@ -34,7 +34,7 @@ class AutenticacionTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['token', 'tipo_token', 'expira_en'])
             ->assertJsonPath('tipo_token', 'Bearer')
-            ->assertJsonPath('expira_en', now()->addMinutes(480)->toIso8601String());
+            ->assertJsonPath('expira_en', now()->addMinutes(480)->toIso8601ZuluString());
     }
 
     public function test_el_correo_se_normaliza_antes_de_comparar(): void

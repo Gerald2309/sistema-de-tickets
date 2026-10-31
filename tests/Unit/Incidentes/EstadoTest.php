@@ -56,6 +56,13 @@ class EstadoTest extends TestCase
         $desde->pasarA($hacia);
     }
 
+    public function test_solo_resolver_exige_la_solucion(): void
+    {
+        foreach (Estado::cases() as $estado) {
+            $this->assertSame($estado === Estado::Resuelto, $estado->exigeSolucion());
+        }
+    }
+
     public function test_cerrado_es_un_estado_final(): void
     {
         $this->assertSame([], Estado::Cerrado->siguientes());
