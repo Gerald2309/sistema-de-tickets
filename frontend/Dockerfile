@@ -1,7 +1,7 @@
 # Entrada única de la aplicación (D-F09): Node compila el frontend y Nginx lo sirve, reenviando la API y
 # el WebSocket al resto de contenedores. Imagen final sin Node ni código fuente.
 
-FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS compilacion
+FROM node:25-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS compilacion
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
