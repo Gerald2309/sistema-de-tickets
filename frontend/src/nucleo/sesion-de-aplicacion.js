@@ -35,18 +35,24 @@ export function conectarAplicacion({ router, queryClient }) {
       if (!anterior || token) {
         return
       }
-      queryClient.clear()
       alCerrarSesion.forEach((limpieza) => limpieza())
       const actual = router.currentRoute.value
-      if (actual.name !== 'ingresar') {
-        const expirada = sesion.motivoDeSalida === 'expirada'
-        const destino = {
-          name: 'ingresar',
-          query: expirada && actual.fullPath !== '/' ? { destino: actual.fullPath } : {},
-        }
-        // Cerrar sesión sale con la cortina; una sesión vencida vuelve directo, con su mensaje.
-        expirada ? router.replace(destino) : cubrirCon('Hasta pronto', () => router.replace(destino))
+      if (actual.name === 'ingresar') {
+        queryClient.clear()
+        return
       }
+      const expirada = sesion.motivoDeSalida === 'expirada'
+      const destino = {
+        name: 'ingresar',
+        query: expirada && actual.fullPath !== '/' ? { destino: actual.fullPath } : {},
+      }
+      // La caché se borra cuando la pantalla ya se desmontó: antes, sus consultas se volverían a pedir sin token.
+      const salir = async () => {
+        await router.replace(destino)
+        queryClient.clear()
+      }
+      // Cerrar sesión sale con la cortina; una sesión vencida vuelve directo, con su mensaje.
+      expirada ? salir() : cubrirCon('Hasta pronto', salir)
     },
   )
 }

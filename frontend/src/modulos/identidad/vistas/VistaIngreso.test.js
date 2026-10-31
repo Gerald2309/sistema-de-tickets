@@ -25,7 +25,8 @@ async function completarYEnviar(
   await esperarPintado(10)
 }
 
-describe('inicio de sesión', () => {
+// Montan la aplicación completa: la primera carga de las vistas bajo demanda tarda unos segundos.
+describe('inicio de sesión', { timeout: 20_000 }, () => {
   let montada
   afterEach(() => montada?.envoltorio.unmount())
 

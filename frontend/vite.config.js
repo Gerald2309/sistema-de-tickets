@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import vuetify from 'vite-plugin-vuetify'
+import { presupuestoDelPaquete } from './herramientas/presupuesto-del-paquete.js'
 
 // En desarrollo, el servidor de Vite reenvía la API, el WebSocket y la configuración a la aplicación de Docker
 // (contenedor `web`, http://localhost:8000), así que trabaja contra la misma API que producción.
@@ -12,6 +13,7 @@ export default defineConfig({
     vue(),
     // Importa solo los componentes de Vuetify que se usan (presupuesto del paquete, RNF-F02).
     vuetify({ autoImport: true }),
+    presupuestoDelPaquete({ limiteKb: 200, vistaInicial: 'VistaIngreso.vue' }),
   ],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
