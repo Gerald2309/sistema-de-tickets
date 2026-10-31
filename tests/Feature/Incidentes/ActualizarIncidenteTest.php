@@ -7,6 +7,7 @@ use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\EventoHistorial;
 use App\Incidentes\Models\HistorialIncidente;
 use App\Incidentes\Models\Incidente;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ActualizarIncidenteTest extends TestCase
@@ -105,6 +106,59 @@ class ActualizarIncidenteTest extends TestCase
 
         $entrada = HistorialIncidente::where('incidente_id', $incidente->id)->sole();
         $this->assertSame(CampoHistorial::Estado, $entrada->campo, 'La solución no se registra en el historial.');
+    }
+
+    /**
+     * @return array<string, array{Estado, array<string, string>}>
+     */
+    public static function peticionesConSolucionSinResolver(): array
+    {
+        return [
+            'solo la solución' => [Estado::EnProgreso, ['solucion' => 'Se reinició.']],
+            'con otro estado de destino' => [Estado::Abierto, ['estado' => 'en_progreso', 'solucion' => 'Se reinició.']],
+            'resuelto que pide resolver otra vez (no es una transición)' => [Estado::Resuelto, ['estado' => 'resuelto', 'solucion' => 'Otra solución.']],
+            'cerrado' => [Estado::Cerrado, ['solucion' => 'Otra solución.']],
+        ];
+    }
+
+    /**
+     * @param  array<string, string>  $cuerpo
+     */
+    #[DataProvider('peticionesConSolucionSinResolver')]
+    public function test_la_solucion_solo_se_acepta_al_resolver(Estado $estadoActual, array $cuerpo): void
+    {
+        $incidente = $this->incidenteDe($this->crearUsuario(), [
+            'estado' => $estadoActual,
+            'solucion' => in_array($estadoActual, [Estado::Resuelto, Estado::Cerrado], true) ? 'Solución original.' : null,
+        ]);
+        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), $cuerpo)
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.solucion', ['La solución solo se registra al resolver el incidente.']);
+
+        $this->assertSame($incidente->solucion, $incidente->fresh()->solucion, 'La solución no cambia.');
+        $this->assertSame($estadoActual, $incidente->fresh()->estado);
+    }
+
+    public function test_al_resolver_otra_vez_la_nueva_solucion_reemplaza_a_la_anterior(): void
+    {
+        $incidente = $this->incidenteDe($this->crearUsuario(), ['estado' => Estado::EnProgreso, 'solucion' => 'Primera solución.']);
+        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto', 'solucion' => 'Solución definitiva.'])
+            ->assertOk()
+            ->assertJsonPath('solucion', 'Solución definitiva.');
+    }
+
+    public function test_una_transicion_invalida_se_informa_antes_que_el_problema_de_la_solucion(): void
+    {
+        $incidente = $this->incidenteDe($this->crearUsuario());
+        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto', 'solucion' => 'Se reinició.'])
+            ->assertUnprocessable()
+            ->assertJsonPath('type', 'urn:incidentes:problema:transicion-invalida');
     }
 
     public function test_al_reabrir_se_conserva_la_solucion_y_al_resolver_de_nuevo_no_hace_falta_otra(): void
