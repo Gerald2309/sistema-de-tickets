@@ -12,7 +12,7 @@ describe('personas para asignar agrupadas por rol', () => {
       persona(4, 'Erik', 'Soporte N1'),
     ])
 
-    expect(opciones.map((opcion) => ('type' in opcion ? `# ${opcion.title}` : opcion.nombre))).toEqual([
+    expect(opciones.map((opcion) => ('type' in opcion ? `# ${opcion.nombre}` : opcion.nombre))).toEqual([
       '# Soporte N1',
       'Cristina',
       'Erik',

@@ -297,4 +297,35 @@ describe('incidentes', { timeout: 20_000 }, () => {
     expect(claves[0]).toMatch(/^[0-9a-f-]{36}$/)
     expect(claves[1]).toBe(claves[0])
   })
+
+  it('asignar ofrece a las personas agrupadas por nivel, con el nombre de cada grupo', async () => {
+    servidor.use(
+      manejador.get(api('personas'), () =>
+        HttpResponse.json({
+          data: [
+            { id: 11, name: 'Cristina Guillen', activo: true, rol: 'Soporte N1' },
+            { id: 12, name: 'Diego Betancourt', activo: true, rol: 'Soporte N2' },
+          ],
+        }),
+      ),
+    )
+    montada = await montarAplicacion('/incidentes/5')
+    await vi.waitFor(() => expect(montada.envoltorio.find('h1').text()).toBe('Incidente 5'), { timeout: 8000 })
+
+    await montada.envoltorio
+      .find('[aria-labelledby="titulo-asignacion"]')
+      .findAll('button')
+      .find((boton) => /Asignar/.test(boton.text()))
+      ?.trigger('click')
+    // El buscador abre su lista al pulsarlo.
+    await vi.waitFor(() => expect(document.querySelector('.reasignar .v-field')).not.toBeNull())
+    const campo = /** @type {HTMLElement} */ (document.querySelector('.reasignar .v-field'))
+    campo.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    campo.click()
+
+    await vi.waitFor(() => expect(document.body.textContent).toContain('Cristina Guillen'))
+    expect(document.body.textContent).toContain('Soporte N1')
+    expect(document.body.textContent).toContain('Soporte N2')
+    expect(document.body.textContent).not.toContain('[object Object]')
+  })
 })

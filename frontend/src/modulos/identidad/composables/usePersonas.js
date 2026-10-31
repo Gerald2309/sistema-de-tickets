@@ -66,9 +66,10 @@ const ROL_AL_FINAL = 'Administrador'
 
 /**
  * Opciones de un selector agrupadas por rol (Soporte N1, N2, N3 y al final el administrador), cada grupo con
- * su subtítulo. Sin rol (otra búsqueda), van sin agrupar.
+ * su subtítulo. Sin rol (otra búsqueda), van sin agrupar. El subtítulo lleva su texto en `nombre`, como las
+ * personas: los selectores leen esa propiedad (`item-title="nombre"`) también para los subtítulos.
  * @param {import('../tipos.js').Persona[]} personas
- * @returns {Array<import('../tipos.js').Persona | { type: 'subheader', title: string }>}
+ * @returns {Array<import('../tipos.js').Persona | { type: 'subheader', nombre: string }>}
  */
 export function agruparPorRol(personas) {
   /** @type {Map<string, import('../tipos.js').Persona[]>} */
@@ -81,7 +82,7 @@ export function agruparPorRol(personas) {
     (a, b) => Number(a === ROL_AL_FINAL) - Number(b === ROL_AL_FINAL) || a.localeCompare(b, 'es'),
   )
   return roles.flatMap((rol) => [
-    ...(rol ? [{ type: /** @type {const} */ ('subheader'), title: rol }] : []),
+    ...(rol ? [{ type: /** @type {const} */ ('subheader'), nombre: rol }] : []),
     ...(grupos.get(rol) ?? []),
   ])
 }
