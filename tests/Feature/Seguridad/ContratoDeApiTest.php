@@ -65,7 +65,9 @@ class ContratoDeApiTest extends TestCase
         $solicitante = $this->iniciarSesion($this->crearUsuario('Solicitante'));
         $administrador = $this->iniciarSesion($this->crearUsuario('Administrador'));
 
-        $this->conToken($solicitante)->getJson('/api/v1/prueba/solo-administracion')->assertForbidden();
+        // Los mensajes tratan de usted, como la interfaz.
+        $this->conToken($solicitante)->getJson('/api/v1/prueba/solo-administracion')->assertForbidden()
+            ->assertJsonPath('detail', 'No tiene permiso para realizar esta acción.');
         $this->conToken($administrador)->getJson('/api/v1/prueba/solo-administracion')->assertOk();
     }
 
