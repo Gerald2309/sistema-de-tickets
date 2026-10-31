@@ -4,17 +4,17 @@
  * Se aplican a incidentes que la persona ya ve, así que no repiten la regla de visibilidad.
  *
  * Un incidente lo trabaja solo quien lo tiene asignado: primero se toma y después se modifica. El
- * solicitante corrige la clasificación del suyo mientras nadie lo ha tomado. El título y la descripción quedan
- * fijos al crearlo: son las palabras de quien lo reportó.
+ * solicitante corrige la clasificación del suyo mientras nadie lo ha tomado. El título y la descripción son las
+ * palabras de quien lo reportó: solo esa persona los corrige, y solo mientras nadie lo ha tomado.
  */
 
 /** @typedef {import('@/modulos/identidad/index.js').Permiso} Permiso */
 /** @typedef {{ tiene: (permiso: Permiso) => boolean, perfil: { id: number } | null }} Sesion */
 /** @typedef {Pick<import('./tipos.js').Incidente, 'creador' | 'asignado'>} ConParticipantes */
-/** @typedef {{ clasificacion: boolean, estado: boolean, asignacion: boolean }} PartesEditables */
+/** @typedef {{ relato: boolean, clasificacion: boolean, estado: boolean, asignacion: boolean }} PartesEditables */
 
 /** @type {Readonly<PartesEditables>} */
-export const NADA_EDITABLE = Object.freeze({ clasificacion: false, estado: false, asignacion: false })
+export const NADA_EDITABLE = Object.freeze({ relato: false, clasificacion: false, estado: false, asignacion: false })
 
 /**
  * @param {Sesion} sesion
@@ -98,6 +98,7 @@ export function puedeEscribirNotaInterna(sesion, incidente) {
  */
 export function partesEditables(sesion, incidente) {
   return {
+    relato: sesion.tiene('editar_propios') && loCreo(sesion, incidente) && incidente.asignado === null,
     clasificacion: puedeClasificar(sesion, incidente),
     estado: sesion.tiene('cambiar_estado') && loAtiende(sesion, incidente),
     asignacion: sesion.tiene('reasignar') || loAtiende(sesion, incidente),

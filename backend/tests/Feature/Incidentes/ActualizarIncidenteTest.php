@@ -111,17 +111,27 @@ class ActualizarIncidenteTest extends TestCase
         $this->assertSame([null, 'Se reinició el servicio.'], [$entradas[1]->valor_anterior, $entradas[1]->valor_nuevo]);
     }
 
-    public function test_el_titulo_y_la_descripcion_quedan_fijos_al_crear_el_incidente(): void
+    public function test_quien_lo_reporto_corrige_titulo_y_descripcion_mientras_nadie_lo_ha_tomado_y_queda_en_el_historial(): void
     {
-        $creador = $this->crearUsuario('Soporte N1');
-        $incidente = $this->incidenteDe($creador, ['titulo' => 'No imprime', 'descripcion' => 'La impresora no responde.', 'usuario_asignado_id' => $creador->id]);
-        $token = $this->iniciarSesion($creador);
+        $solicitante = $this->crearUsuario();
+        $incidente = $this->incidenteDe($solicitante, ['titulo' => 'No imprime', 'descripcion' => 'La impresora no responde.']);
+        $token = $this->iniciarSesion($solicitante);
 
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['titulo' => 'No imprime en el piso 2', 'descripcion' => 'Sale una hoja en blanco.'])
+            ->assertOk()
+            ->assertJsonPath('data.titulo', 'No imprime en el piso 2')
+            ->assertJsonPath('data.descripcion', 'Sale una hoja en blanco.');
+        $this->assertEqualsCanonicalizing(
+            [CampoHistorial::Titulo, CampoHistorial::Descripcion],
+            HistorialIncidente::pluck('campo')->all(),
+        );
+
+        // Una vez tomado, el relato queda fijo: también para quien lo reportó y para quien lo atiende.
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente->update(['usuario_asignado_id' => $soporte->id]);
         $this->conToken($token)->patchJson($this->ruta($incidente), ['titulo' => 'Otro título'])->assertForbidden();
-        $this->conToken($token)->patchJson($this->ruta($incidente), ['descripcion' => 'Otro texto'])->assertForbidden();
-
-        $this->assertSame(['No imprime', 'La impresora no responde.'], [$incidente->fresh()->titulo, $incidente->fresh()->descripcion]);
-        $this->assertSame(0, HistorialIncidente::count());
+        $this->conToken($this->iniciarSesion($soporte))->patchJson($this->ruta($incidente), ['descripcion' => 'Otro texto'])->assertForbidden();
+        $this->assertSame('No imprime en el piso 2', $incidente->fresh()->titulo);
     }
 
     /**

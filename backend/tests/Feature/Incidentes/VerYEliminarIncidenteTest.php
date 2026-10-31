@@ -23,7 +23,8 @@ class VerYEliminarIncidenteTest extends TestCase
         return [
             'solicitante ve lo propio' => ['Solicitante', 'propio', 'ver', 200],
             'solicitante clasifica lo propio sin tomar' => ['Solicitante', 'propio', 'prioridad', 200],
-            'solicitante no reescribe el título de lo propio' => ['Solicitante', 'propio', 'titulo', 403],
+            'solicitante corrige el título de lo propio sin tomar' => ['Solicitante', 'propio', 'titulo', 200],
+            'solicitante no corrige el título de lo propio ya tomado' => ['Solicitante', 'propio tomado', 'titulo', 403],
             'solicitante no clasifica lo propio ya tomado' => ['Solicitante', 'propio tomado', 'prioridad', 403],
             'solicitante no cambia el estado de lo propio' => ['Solicitante', 'propio', 'estado', 403],
             'solicitante no borra lo propio' => ['Solicitante', 'propio', 'borrar', 403],

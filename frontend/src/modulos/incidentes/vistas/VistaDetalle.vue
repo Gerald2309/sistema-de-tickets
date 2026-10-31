@@ -10,6 +10,7 @@ import CasosSimilares from '../componentes/CasosSimilares.vue'
 import CodigoTicket from '../componentes/CodigoTicket.vue'
 import TarjetaConfirmarSolucion from '../componentes/TarjetaConfirmarSolucion.vue'
 import ConversacionIncidente from '../componentes/ConversacionIncidente.vue'
+import DialogoRelato from '../componentes/DialogoRelato.vue'
 import DialogoResolver from '../componentes/DialogoResolver.vue'
 import HistorialIncidente from '../componentes/HistorialIncidente.vue'
 import InsigniaEstado from '../componentes/InsigniaEstado.vue'
@@ -34,6 +35,18 @@ const conSolucion = computed(
 
 /** @param {number | null} asignadoId */
 const asignar = (asignadoId) => detalle.ajustar({ asignadoId })
+
+// Quien lo reportó corrige el título y la descripción mientras nadie lo ha tomado.
+const corrigiendo = ref(false)
+const guardandoRelato = ref(false)
+/** @param {{ titulo?: string, descripcion?: string }} cambios */
+async function corregirRelato(cambios) {
+  guardandoRelato.value = true
+  if (await detalle.ajustar(cambios)) {
+    corrigiendo.value = false
+  }
+  guardandoRelato.value = false
+}
 
 /** @param {string} estado */
 async function elegirEstado(estado) {
@@ -146,9 +159,26 @@ async function resolver(solucion) {
           <section class="tarjeta entra" style="--i: 3" aria-labelledby="titulo-descripcion">
             <header class="tarjeta__cabecera">
               <h2 id="titulo-descripcion" class="tarjeta__titulo">Descripción</h2>
+              <v-btn
+                v-if="partes.relato"
+                variant="text"
+                size="small"
+                color="primary"
+                :prepend-icon="iconos.editar"
+                @click="corrigiendo = true"
+                >Corregir</v-btn
+              >
             </header>
             <p class="tarjeta__cuerpo detalle__texto">{{ incidente.descripcion }}</p>
           </section>
+          <DialogoRelato
+            v-if="partes.relato"
+            v-model="corrigiendo"
+            :titulo="incidente.titulo"
+            :descripcion="incidente.descripcion"
+            :pendiente="guardandoRelato"
+            @confirmar="corregirRelato"
+          />
           <section
             v-if="conSolucion"
             class="tarjeta detalle__solucion entra"

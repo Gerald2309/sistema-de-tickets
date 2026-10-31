@@ -8,6 +8,8 @@ import {
   ESTADOS,
   PRIORIDADES,
   nombreDeCategoria,
+  nombreDelPaso,
+  pasoDeLaSolicitud,
   presentarEstado,
 } from './presentacion.js'
 
@@ -43,5 +45,21 @@ describe('presentación del catálogo', () => {
   it('un valor desconocido se muestra tal cual en lugar de romper la pantalla', () => {
     expect(presentarEstado('suspendido').nombre).toBe('suspendido')
     expect(nombreDeCategoria('impresoras')).toBe('impresoras')
+  })
+})
+
+describe('camino de una solicitud', () => {
+  it('cuenta el paso según el estado; recibida y ya tomada, va en atención', () => {
+    const casos = [
+      [{ estado: 'abierto', asignado: null }, 0, 'Esperando a soporte'],
+      [{ estado: 'abierto', asignado: { id: 7, nombre: 'Camila Ríos' } }, 1, 'En atención'],
+      [{ estado: 'en_progreso', asignado: { id: 7, nombre: 'Camila Ríos' } }, 1, 'En atención'],
+      [{ estado: 'resuelto', asignado: null }, 2, 'Resuelta'],
+      [{ estado: 'cerrado', asignado: null }, 3, 'Cerrada'],
+    ]
+    for (const [incidente, paso, nombre] of casos) {
+      expect(pasoDeLaSolicitud(/** @type {any} */ (incidente))).toBe(paso)
+      expect(nombreDelPaso(/** @type {any} */ (incidente))).toBe(nombre)
+    }
   })
 })

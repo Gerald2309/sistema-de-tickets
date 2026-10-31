@@ -1,11 +1,11 @@
 <script setup>
 import { tiempoRelativo } from '@/compartido/presentacion/fechas.js'
 import CodigoTicket from './CodigoTicket.vue'
-import InsigniaEstado from './InsigniaEstado.vue'
+import MiniRuta from './MiniRuta.vue'
 
 /**
- * Solicitudes en filas de una línea: código y título, respuestas sin leer, estado, quién la atiende y cuándo se
- * movió. Densa a propósito: la acción destacada está arriba, aquí se busca y se abre.
+ * Solicitudes en filas: código y título, respuestas sin leer, en qué paso del camino va, quién la atiende y
+ * cuándo se movió. La acción destacada está arriba; aquí se ve de un vistazo cuánto le falta a cada una.
  */
 defineProps({
   elementos: { type: /** @type {import('vue').PropType<import('../tipos.js').Incidente[]>} */ (Array), required: true },
@@ -26,7 +26,7 @@ const nuevos = (cantidad) => (cantidad === 1 ? '1 mensaje nuevo' : `${cantidad} 
         <span v-if="incidente.mensajesSinLeer" class="fila-solicitud__nuevos"
           ><span class="punto fila-solicitud__punto" aria-hidden="true" />{{ nuevos(incidente.mensajesSinLeer) }}</span
         >
-        <InsigniaEstado :estado="incidente.estado" class="fila-solicitud__estado" />
+        <MiniRuta :incidente="incidente" class="fila-solicitud__ruta" />
         <span class="nota fila-solicitud__quien">{{ incidente.asignado?.nombre ?? 'Esperando a soporte' }}</span>
         <span class="nota fila-solicitud__cuando">{{ tiempoRelativo(incidente.actualizadoEn).texto }}</span>
       </RouterLink>
@@ -48,7 +48,7 @@ const nuevos = (cantidad) => (cantidad === 1 ? '1 mensaje nuevo' : `${cantidad} 
 
 .fila-solicitud {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto 120px 150px 90px;
+  grid-template-columns: auto minmax(0, 1fr) auto 180px 150px 90px;
   gap: 12px;
   align-items: center;
   padding: 10px 16px;
@@ -88,10 +88,10 @@ const nuevos = (cantidad) => (cantidad === 1 ? '1 mensaje nuevo' : `${cantidad} 
   text-align: right;
 }
 
-/* En pantallas angostas quedan código, título, respuestas nuevas y estado; el detalle dice el resto. */
+/* En pantallas angostas quedan código, título, respuestas nuevas y el camino; el detalle dice el resto. */
 @media (width <= 720px) {
   .fila-solicitud {
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto 120px;
   }
 
   .fila-solicitud__quien,

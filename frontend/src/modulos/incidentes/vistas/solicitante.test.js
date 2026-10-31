@@ -217,4 +217,54 @@ describe('quien reporta incidentes', { timeout: 20_000 }, () => {
       }),
     )
   })
+
+  it('mientras nadie lo ha tomado, corrige el título y la descripción de lo que reportó', async () => {
+    servidor.use(
+      manejador.patch(api('incidentes/:id'), async ({ request, params }) => {
+        const cuerpo = await request.json()
+        escrituras.push({ metodo: 'PATCH', ruta: `incidentes/${params.id}`, cuerpo })
+        return HttpResponse.json({
+          data: incidente(Number(params.id), { estado: 'abierto', asignado: null, ...cuerpo }),
+        })
+      }),
+    )
+    montada = await montarAplicacion('/incidentes/1')
+    const { envoltorio } = montada
+    await vi.waitFor(() => expect(envoltorio.find('h1').text()).toBe('Solicitud 1'), { timeout: 8000 })
+
+    await envoltorio
+      .findAll('button')
+      .find((boton) => boton.text() === 'Corregir')
+      ?.trigger('click')
+    await vi.waitFor(() => expect(document.querySelector('.dialogo-relato')).not.toBeNull())
+    const titulo = /** @type {HTMLInputElement} */ (document.querySelector('.dialogo-relato input'))
+    titulo.value = 'No imprime en el piso 2'
+    titulo.dispatchEvent(new Event('input'))
+    await esperarPintado()
+    const formulario = /** @type {HTMLFormElement} */ (document.querySelector('.dialogo-relato form'))
+    formulario.requestSubmit()
+
+    await vi.waitFor(() =>
+      expect(escrituras).toContainEqual({
+        metodo: 'PATCH',
+        ruta: 'incidentes/1',
+        cuerpo: { titulo: 'No imprime en el piso 2' },
+      }),
+    )
+  })
+
+  it('debajo del carrusel, un resumen por estado y cada solicitud con su camino', async () => {
+    montada = await montarAplicacion('/')
+    const { envoltorio } = montada
+    await vi.waitFor(() => expect(envoltorio.find('[aria-labelledby="titulo-resumen"]').exists()).toBe(true), {
+      timeout: 8000,
+    })
+
+    const cifras = envoltorio.findAll('.resumen__cifra').map((cifra) => cifra.text())
+    expect(cifras).toEqual(['En curso2', 'Le respondieron1', 'Por confirmar1'])
+    expect(envoltorio.find('.resumen__leyenda').text()).toContain('Recibidas · 1')
+
+    const caminos = envoltorio.findAll('.fila-solicitud .mini-ruta').map((ruta) => ruta.attributes('aria-label'))
+    expect(caminos).toEqual(['Paso 2 de 4: En atención', 'Paso 1 de 4: Esperando a soporte'])
+  })
 })

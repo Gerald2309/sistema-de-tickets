@@ -20,8 +20,16 @@ describe('permisos por incidente (como AlcanceIncidentes del servidor)', () => {
     expect(partesEditables(sesion(['editar_propios']), ajenoLibre).clasificacion).toBe(false)
   })
 
+  it('el título y la descripción los corrige solo quien lo reportó, mientras nadie lo ha tomado', () => {
+    expect(partesEditables(sesion(['editar_propios']), propioLibre).relato).toBe(true)
+    expect(partesEditables(sesion(['editar_propios']), propioTomado).relato).toBe(false)
+    expect(partesEditables(sesion(['editar_propios']), ajenoLibre).relato).toBe(false)
+    expect(partesEditables(sesion(soporte), ajenoQueAtiendo).relato).toBe(false)
+  })
+
   it('soporte trabaja solo lo que atiende', () => {
     expect(partesEditables(sesion(soporte), ajenoQueAtiendo)).toEqual({
+      relato: false,
       clasificacion: true,
       estado: true,
       asignacion: true,

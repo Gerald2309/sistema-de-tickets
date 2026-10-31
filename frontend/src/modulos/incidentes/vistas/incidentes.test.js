@@ -190,7 +190,7 @@ describe('incidentes', { timeout: 20_000 }, () => {
     await vi.waitFor(() => expect(document.body.textContent).toContain('Cambios guardados'))
   })
 
-  it('nadie edita el título ni la descripción: el detalle ofrece asignar, no editar', async () => {
+  it('soporte no corrige el relato: el detalle ofrece asignar, no editar', async () => {
     montada = await montarAplicacion('/incidentes/5')
     await vi.waitFor(() => expect(montada.envoltorio.find('h1').text()).toBe('Incidente 5'), { timeout: 8000 })
 

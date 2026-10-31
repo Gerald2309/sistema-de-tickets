@@ -7,6 +7,7 @@ import { iconos } from '@/compartido/iconos.js'
 import { useSesion } from '@/modulos/identidad/index.js'
 import CarruselPorConfirmar from '../componentes/CarruselPorConfirmar.vue'
 import ListaDeSolicitudes from '../componentes/ListaDeSolicitudes.vue'
+import ResumenDeSolicitudes from '../componentes/ResumenDeSolicitudes.vue'
 import { useConfirmacionDeSolucion } from '../composables/useConfirmacionDeSolucion.js'
 import { useMisSolicitudes } from '../composables/useMisSolicitudes.js'
 
@@ -71,7 +72,14 @@ const lista = computed(() =>
         @confirmar="confirmar"
       />
 
-      <section class="tarjeta entra" style="--i: 4" aria-label="Sus solicitudes">
+      <ResumenDeSolicitudes
+        :totales="solicitudes.totales.value"
+        :con-respuesta="solicitudes.conRespuesta.value"
+        class="entra"
+        style="--i: 4"
+      />
+
+      <section class="tarjeta entra" style="--i: 5" aria-label="Sus solicitudes">
         <header class="tarjeta__cabecera">
           <ControlSegmentado v-model="pestana" :opciones="pestanas" etiqueta="Qué solicitudes ver" />
         </header>

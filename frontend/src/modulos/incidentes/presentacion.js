@@ -74,3 +74,28 @@ export function presentarPrioridad(prioridad) {
 export function nombreDeCategoria(categoria) {
   return CATEGORIAS[categoria] ?? categoria
 }
+
+/** El camino de una solicitud, como lo cuenta quien la reportó («Su solicitud» y su lista). */
+export const PASOS_DE_LA_SOLICITUD = Object.freeze(['Recibida', 'En atención', 'Resuelta', 'Cerrada'])
+
+const ORDEN_DE_ESTADOS = ['abierto', 'en_progreso', 'resuelto', 'cerrado']
+
+/**
+ * En qué paso del camino va una solicitud: 0 recibida, 1 en atención (alguien la tomó o ya se trabaja),
+ * 2 resuelta y 3 cerrada.
+ * @param {Pick<import('./tipos.js').Incidente, 'estado' | 'asignado'>} incidente
+ * @returns {number}
+ */
+export function pasoDeLaSolicitud({ estado, asignado }) {
+  const indice = Math.max(ORDEN_DE_ESTADOS.indexOf(estado), 0)
+  return indice === 0 && asignado ? 1 : indice
+}
+
+/**
+ * @param {Pick<import('./tipos.js').Incidente, 'estado' | 'asignado'>} incidente
+ * @returns {string} el nombre del paso; recibida y sin nadie aún, «Esperando a soporte»
+ */
+export function nombreDelPaso(incidente) {
+  const paso = pasoDeLaSolicitud(incidente)
+  return paso === 0 ? 'Esperando a soporte' : PASOS_DE_LA_SOLICITUD[paso]
+}

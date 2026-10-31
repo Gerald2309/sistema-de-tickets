@@ -11,10 +11,11 @@ use App\Identidad\Dominio\ConjuntoPermisos;
 // Toda acción sobre un incidente exige poder verlo. Quien no tiene `ver_todos` solo ve los que creó.
 // Un incidente lo trabaja solo quien lo tiene asignado: primero se toma y después se modifica. El
 // solicitante corrige la clasificación del suyo mientras nadie lo ha tomado. El título y la descripción
-// son las palabras de quien lo reportó: quedan fijos al crearlo; lo que falte se pide en la conversación.
+// son las palabras de quien lo reportó: solo esa persona los corrige, y solo mientras nadie lo ha tomado; después
+// quedan fijos y lo que falte se pide en la conversación.
 final class AlcanceIncidentes
 {
-    private const CAMPOS_FIJOS = ['titulo', 'descripcion'];
+    private const CAMPOS_DEL_RELATO = ['titulo', 'descripcion'];
 
     private const CAMPOS_DE_CLASIFICACION = ['prioridad', 'categoria', 'fecha_vencimiento'];
 
@@ -80,6 +81,16 @@ final class AlcanceIncidentes
 
         return ($this->permisos->tiene(ClavePermiso::EditarTodos) && $this->loAtiende($participantes))
             || ($this->permisos->tiene(ClavePermiso::EditarPropios) && $this->loCreo($participantes) && $participantes->sinAsignar());
+    }
+
+    // El título y la descripción: quien lo reportó, mientras nadie lo ha tomado. Después, lo que atiende soporte
+    // es ese relato y no cambia por debajo.
+    public function puedeCorregirRelato(Participantes $participantes): bool
+    {
+        return $this->puedeVer($participantes)
+            && $this->permisos->tiene(ClavePermiso::EditarPropios)
+            && $this->loCreo($participantes)
+            && $participantes->sinAsignar();
     }
 
     public function puedeCambiarEstado(Participantes $participantes): bool
@@ -180,6 +191,7 @@ final class AlcanceIncidentes
     public function puedeActualizar(Participantes $participantes): bool
     {
         return $this->puedeClasificar($participantes)
+            || $this->puedeCorregirRelato($participantes)
             || $this->puedeCambiarEstado($participantes)
             || $this->puedeReasignar($participantes);
     }
@@ -196,7 +208,7 @@ final class AlcanceIncidentes
         $campos = array_keys($cambios);
 
         $grupos = [
-            [self::CAMPOS_FIJOS, false],
+            [self::CAMPOS_DEL_RELATO, $this->puedeCorregirRelato($participantes)],
             [self::CAMPOS_DE_CLASIFICACION, $this->puedeClasificar($participantes)],
             [self::CAMPOS_DE_ESTADO, $this->puedeCambiarEstado($participantes)],
             [[self::CAMPO_DE_ASIGNACION], $this->puedeReasignar($participantes)],

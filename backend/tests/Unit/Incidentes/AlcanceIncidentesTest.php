@@ -139,10 +139,11 @@ class AlcanceIncidentesTest extends TestCase
         $this->assertFalse($this->soporte()->puedeBorrar(self::ajenoQueAtiendo()));
     }
 
-    public function test_titulo_y_descripcion_quedan_fijos_al_crear_el_incidente(): void
+    public function test_solo_quien_lo_reporto_corrige_titulo_y_descripcion_y_solo_mientras_nadie_lo_ha_tomado(): void
     {
         foreach (['titulo' => 'Otro título', 'descripcion' => 'Otro texto'] as $campo => $valor) {
-            $this->assertFalse($this->solicitante()->puedeModificar([$campo => $valor], self::mioLibre()));
+            $this->assertTrue($this->solicitante()->puedeModificar([$campo => $valor], self::mioLibre()));
+            $this->assertFalse($this->solicitante()->puedeModificar([$campo => $valor], new Participantes(self::YO, self::OTRA_PERSONA)));
             $this->assertFalse($this->soporte()->puedeModificar([$campo => $valor], self::ajenoQueAtiendo()));
             $this->assertFalse($this->administrador()->puedeModificar([$campo => $valor], new Participantes(self::YO, self::YO)));
         }

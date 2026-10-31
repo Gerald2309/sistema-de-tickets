@@ -49,6 +49,11 @@ export function useMisSolicitudes(verCerradas) {
         .filter((incidente) => incidente.estado !== 'resuelto')
         .sort((a, b) => Number(b.mensajesSinLeer > 0) - Number(a.mensajesSinLeer > 0) || porActividad(a, b)),
     ),
+    // Cuántas hay en cada estado (el total de la API, no solo las que se trajeron) y cuántas tienen respuesta.
+    totales: computed(() =>
+      Object.fromEntries(ESTADOS_VIGENTES.map((estado, indice) => [estado, vigentes[indice].data.value?.total ?? 0])),
+    ),
+    conRespuesta: computed(() => todas.value.filter((incidente) => incidente.mensajesSinLeer > 0).length),
     cerradas: computed(() => cerradas.data.value?.elementos ?? []),
     cargandoCerradas: computed(() => cerradas.isPending.value),
     cargando: computed(() => vigentes.some((consulta) => consulta.isPending.value)),

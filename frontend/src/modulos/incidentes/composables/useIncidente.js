@@ -165,9 +165,9 @@ export function useDetalleIncidente(idActual) {
       .catch(() => false)
   }
 
-  // Clasificar y reasignar desde las propiedades, sin pasar por el formulario.
+  // Corregir el relato, clasificar y reasignar desde el detalle, sin pasar por el formulario.
   const ajuste = useMutation({
-    /** @param {{ prioridad?: string, categoria?: string, fechaVencimiento?: string, asignadoId?: number | null }} cambios */
+    /** @param {{ titulo?: string, descripcion?: string, prioridad?: string, categoria?: string, fechaVencimiento?: string, asignadoId?: number | null }} cambios */
     mutationFn: (cambios) => actualizarIncidente(id.value, cambios),
     onSuccess: async (actualizado) => {
       notificaciones.exito('Cambios guardados', actualizado.codigo)
