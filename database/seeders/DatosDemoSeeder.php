@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
 // contraseñas aleatorias.
 class DatosDemoSeeder extends Seeder
 {
-    private const INCIDENTES = 40;
+    private const INCIDENTES = 600;
 
     private const IP_ADMINISTRADOR = '192.168.10.5';
 
@@ -29,7 +29,7 @@ class DatosDemoSeeder extends Seeder
     {
         $administrador = User::where('email', config('seguridad.administrador.email'))->firstOrFail();
 
-        $solicitantes = $this->usuarios('Solicitante', 6, $administrador);
+        $solicitantes = $this->usuarios('Solicitante', 12, $administrador);
         $soporte = $this->usuarios('Soporte N1', 2, $administrador)
             ->concat($this->usuarios('Soporte N2', 2, $administrador))
             ->concat($this->usuarios('Soporte N3', 1, $administrador));

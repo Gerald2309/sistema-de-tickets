@@ -18,12 +18,21 @@ use Illuminate\Database\Eloquent\Builder;
 class ListarIncidentes
 {
     /**
-     * Una sola consulta con todos los filtros combinados. Solo devuelve lo que el usuario puede ver,
-     * sin los incidentes borrados. El orden se desempata por id, en el mismo sentido.
-     *
      * @return LengthAwarePaginator<int, Incidente>
      */
     public function ejecutar(User $actor, FiltrosDeIncidentes $filtros): LengthAwarePaginator
+    {
+        return $this->consulta($actor, $filtros)->paginate($filtros->porPagina)->withQueryString();
+    }
+
+    /**
+     * Una sola consulta con todos los filtros combinados. Solo devuelve lo que el usuario puede ver,
+     * sin los incidentes borrados. El orden se desempata por id, en el mismo sentido. La usan el listado
+     * y la exportación: así ven exactamente lo mismo.
+     *
+     * @return Builder<Incidente>
+     */
+    public function consulta(User $actor, FiltrosDeIncidentes $filtros): Builder
     {
         $columnaDeFecha = $filtros->campoFecha->columna();
         $sentido = $filtros->direccion->value;
@@ -46,9 +55,7 @@ class ListarIncidentes
             ->when($filtros->fechaDesde, fn (Builder $consulta) => $consulta->where($columnaDeFecha, '>=', $filtros->fechaDesde))
             ->when($filtros->fechaHasta, fn (Builder $consulta) => $consulta->where($columnaDeFecha, '<=', $filtros->fechaHasta))
             ->orderBy($filtros->ordenarPor->columna(), $sentido)
-            ->when($filtros->ordenarPor !== CampoOrden::Id, fn (Builder $consulta) => $consulta->orderBy('id', $sentido))
-            ->paginate($filtros->porPagina)
-            ->withQueryString();
+            ->when($filtros->ordenarPor !== CampoOrden::Id, fn (Builder $consulta) => $consulta->orderBy('id', $sentido));
     }
 
     /**

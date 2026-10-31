@@ -16,6 +16,11 @@ return [
         'maximo_textos' => 200,
     ],
 
+    // Máximo de incidentes por descarga (CSV o Excel). Con más, hay que acotar los filtros.
+    'exportacion' => [
+        'maximo' => (int) env('EXPORTACION_MAXIMA', 100_000),
+    ],
+
     // Cantidad de incidentes que genera VolumenSeeder para medir el rendimiento (máximo 1.000.000; la meta del proyecto es 200.000).
     'volumen' => [
         'incidentes' => (int) env('VOLUMEN_INCIDENTES', 200_000),
