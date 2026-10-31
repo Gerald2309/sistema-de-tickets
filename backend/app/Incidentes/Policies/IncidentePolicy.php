@@ -4,7 +4,9 @@ namespace App\Incidentes\Policies;
 
 use App\Identidad\Models\User;
 use App\Incidentes\Dominio\AlcanceIncidentes;
+use App\Incidentes\Dominio\Participantes;
 use App\Incidentes\Models\Incidente;
+use App\Incidentes\Models\MensajeIncidente;
 use Illuminate\Auth\Access\Response;
 
 // Traduce la regla de AlcanceIncidentes a respuestas: lo que el usuario no puede ver responde 404
@@ -36,6 +38,17 @@ class IncidentePolicy
         return $this->permitirSi(self::alcanceDe($usuario)->puedeVerDashboard());
     }
 
+    public function planearSuDia(User $usuario): Response
+    {
+        return $this->permitirSi(self::alcanceDe($usuario)->puedePlanearSuDia());
+    }
+
+    // La marca de «bloqueado» es personal, pero solo sobre un incidente que la persona ve.
+    public function marcarBloqueo(User $usuario, Incidente $incidente): Response
+    {
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance) => $alcance->puedePlanearSuDia());
+    }
+
     public function verAvisos(User $usuario): Response
     {
         return $this->permitirSi(self::alcanceDe($usuario)->puedeVerAvisos());
@@ -51,39 +64,64 @@ class IncidentePolicy
         return $this->sobre($usuario, $incidente, fn () => true);
     }
 
+    public function tomar(User $usuario, Incidente $incidente): Response
+    {
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, Participantes $participantes) => $alcance->puedeTomar($participantes));
+    }
+
     public function actualizar(User $usuario, Incidente $incidente): Response
     {
-        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, int $creador) => $alcance->puedeActualizar($creador));
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, Participantes $participantes) => $alcance->puedeActualizar($participantes));
+    }
+
+    public function confirmarSolucion(User $usuario, Incidente $incidente): Response
+    {
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, Participantes $participantes) => $alcance->puedeConfirmarSolucion($participantes));
     }
 
     public function eliminar(User $usuario, Incidente $incidente): Response
     {
-        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, int $creador) => $alcance->puedeBorrar($creador));
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, Participantes $participantes) => $alcance->puedeBorrar($participantes));
     }
 
     public function verHistorial(User $usuario, Incidente $incidente): Response
     {
-        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, int $creador) => $alcance->puedeVerHistorial($creador));
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, Participantes $participantes) => $alcance->puedeVerHistorial($participantes));
     }
 
     public function verSimilares(User $usuario, Incidente $incidente): Response
     {
-        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, int $creador) => $alcance->puedeVerSimilares($creador));
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, Participantes $participantes) => $alcance->puedeVerSimilares($participantes));
+    }
+
+    public function escribirMensaje(User $usuario, Incidente $incidente): Response
+    {
+        return $this->sobre($usuario, $incidente, fn (AlcanceIncidentes $alcance, Participantes $participantes) => $alcance->puedeConversar($participantes));
+    }
+
+    // Una imagen de una nota interna no existe para quien no puede leer la nota.
+    public function verAdjunto(User $usuario, Incidente $incidente, MensajeIncidente $mensaje): Response
+    {
+        $alcance = self::alcanceDe($usuario);
+
+        return $alcance->puedeVer($incidente->participantes()) && (! $mensaje->interno || $alcance->puedeLeerNotasInternas())
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
     /**
-     * @param  callable(AlcanceIncidentes, int): bool  $accion
+     * @param  callable(AlcanceIncidentes, Participantes): bool  $accion
      */
     private function sobre(User $usuario, Incidente $incidente, callable $accion): Response
     {
         $alcance = self::alcanceDe($usuario);
-        $creador = $incidente->usuario_creador_id;
+        $participantes = $incidente->participantes();
 
-        if (! $alcance->puedeVer($creador)) {
+        if (! $alcance->puedeVer($participantes)) {
             return Response::denyAsNotFound();
         }
 
-        return $this->permitirSi($accion($alcance, $creador));
+        return $this->permitirSi($accion($alcance, $participantes));
     }
 
     private function permitirSi(bool $permitido): Response

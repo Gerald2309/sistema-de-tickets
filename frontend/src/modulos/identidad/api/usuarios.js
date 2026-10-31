@@ -95,3 +95,25 @@ export async function asignarRol(id, rolId) {
   const { data } = await http.put(`usuarios/${id}/rol`, { rol_id: rolId })
   return aUsuario(data.data)
 }
+
+/**
+ * Cuántos incidentes sin resolver tiene asignados, para decidir qué hacer con ellos antes de desactivarla.
+ * @param {number} id
+ * @param {AbortSignal} [senal]
+ * @returns {Promise<number>}
+ */
+export async function contarIncidentesAbiertos(id, senal) {
+  const { data } = await http.get(`usuarios/${id}/incidentes-abiertos`, { signal: senal })
+  return data.data.total
+}
+
+/**
+ * Pasa sus incidentes sin resolver a otra persona o, con `destinoId` null, los devuelve a la cola sin asignar.
+ * @param {number} id
+ * @param {number | null} destinoId
+ * @returns {Promise<number>} cuántos se traspasaron
+ */
+export async function traspasarIncidentesAbiertos(id, destinoId) {
+  const { data } = await http.post(`usuarios/${id}/incidentes-abiertos/traspaso`, { usuario_asignado_id: destinoId })
+  return data.data.traspasados
+}

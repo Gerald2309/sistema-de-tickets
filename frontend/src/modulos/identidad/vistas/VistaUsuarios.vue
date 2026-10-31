@@ -9,8 +9,8 @@ import EstadoVacio from '@/compartido/componentes/EstadoVacio.vue'
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
 import MenuFiltro from '@/compartido/componentes/MenuFiltro.vue'
 import PieDeTabla from '@/compartido/componentes/PieDeTabla.vue'
-import { useConfirmacion } from '@/compartido/composables/useConfirmacion.js'
 import { iconos } from '@/compartido/iconos.js'
+import DialogoDesactivar from '../componentes/DialogoDesactivar.vue'
 import DialogoRestablecer from '../componentes/DialogoRestablecer.vue'
 import PanelUsuario from '../componentes/PanelUsuario.vue'
 import { useEmpresas } from '../composables/usePersonas.js'
@@ -21,7 +21,6 @@ import { useEdicionDeUsuarios, useListadoUsuarios } from '../composables/useUsua
 const { filtros, lista, conteos, roles, cambiar } = useListadoUsuarios()
 const { empresas, nombreDe: nombreDeEmpresa } = useEmpresas()
 const { alternarActivo } = useEdicionDeUsuarios()
-const confirmacion = useConfirmacion()
 
 const vistas = computed(() => [
   { valor: 'todos', etiqueta: 'Todos', conteo: conteos.todos.data.value },
@@ -67,21 +66,32 @@ function restablecer(usuario) {
   restablecerAbierto.value = true
 }
 
+// Desactivar pregunta antes qué pasa con sus incidentes sin resolver; reactivar es directo.
+const desactivando = ref(/** @type {Usuario | null} */ (null))
+const enviandoDesactivacion = ref(false)
+const dialogoDesactivar = computed({
+  get: () => desactivando.value !== null,
+  set: (abierto) => !abierto && (desactivando.value = null),
+})
+
 /** @param {Usuario} usuario */
 async function cambiarActivo(usuario) {
   if (usuario.activo) {
-    const confirmado = await confirmacion.pedir({
-      titulo: `¿Desactivar a ${usuario.nombre}?`,
-      texto:
-        'No podrá iniciar sesión y se cerrarán todas sus sesiones. Sus incidentes se conservan y puede reactivarla después.',
-      accion: 'Desactivar',
-      peligrosa: true,
-    })
-    if (!confirmado) {
-      return
-    }
+    desactivando.value = usuario
+    return
   }
   await alternarActivo(usuario)
+}
+
+/** @param {number | null} destinoId a quién pasan sus incidentes sin resolver; null: a la cola */
+async function confirmarDesactivacion(destinoId) {
+  if (!desactivando.value) {
+    return
+  }
+  enviandoDesactivacion.value = true
+  await alternarActivo(desactivando.value, destinoId)
+  enviandoDesactivacion.value = false
+  desactivando.value = null
 }
 
 /** @param {string} clave */
@@ -240,6 +250,12 @@ const limpiar = () => cambiar({ q: undefined, rol: undefined, cliente: undefined
     </div>
 
     <PanelUsuario v-model="panelAbierto" :usuario="elegido" />
+    <DialogoDesactivar
+      v-model="dialogoDesactivar"
+      :usuario="desactivando"
+      :pendiente="enviandoDesactivacion"
+      @confirmar="confirmarDesactivacion"
+    />
     <DialogoRestablecer v-model="restablecerAbierto" :usuario="elegido" />
   </div>
 </template>

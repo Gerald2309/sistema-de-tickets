@@ -21,12 +21,15 @@ export function aIncidente(dto) {
     id: dto.id,
     codigo: dto.codigo,
     titulo: dto.titulo,
-    descripcion: dto.descripcion,
+    // El listado no trae los textos largos: solo el detalle.
+    descripcion: dto.descripcion ?? '',
     categoria: dto.categoria,
     prioridad: dto.prioridad,
     estado: dto.estado,
     estadosSiguientes: dto.estados_siguientes ?? [],
     solucion: dto.solucion ?? null,
+    calificacion: dto.calificacion ?? null,
+    mensajesSinLeer: dto.mensajes_sin_leer ?? 0,
     vencido: dto.vencido === true,
     fechaVencimiento: dto.fecha_vencimiento,
     creador: referenciaObligatoria(dto.creador),
@@ -77,6 +80,26 @@ export function aEntradaHistorial(dto) {
     valorAnterior: dto.valor_anterior ?? null,
     valorNuevo: dto.valor_nuevo ?? null,
     autor: referenciaObligatoria(dto.autor),
+    creadoEn: dto.created_at,
+  }
+}
+
+/**
+ * @param {any} dto `MensajeResource`
+ * @returns {import('../tipos.js').Mensaje}
+ */
+export function aMensaje(dto) {
+  return {
+    id: dto.id,
+    cuerpo: dto.cuerpo ?? null,
+    interno: Boolean(dto.interno),
+    autor: referenciaObligatoria(dto.autor),
+    adjuntos: (dto.adjuntos ?? []).map((/** @type {any} */ adjunto) => ({
+      id: adjunto.id,
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      bytes: adjunto.bytes,
+    })),
     creadoEn: dto.created_at,
   }
 }

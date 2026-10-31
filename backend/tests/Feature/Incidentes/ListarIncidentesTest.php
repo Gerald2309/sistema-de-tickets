@@ -87,16 +87,27 @@ class ListarIncidentesTest extends TestCase
         $this->assertEqualsCanonicalizing($todos, $this->ids($this->listar($this->iniciarSesion($this->crearUsuario('Administrador')))));
     }
 
+    public function test_el_listado_no_lleva_los_textos_largos_y_el_detalle_si(): void
+    {
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteDe($soporte, ['descripcion' => str_repeat('Texto largo. ', 500), 'solucion' => 'Se reinició.']);
+        $token = $this->iniciarSesion($soporte);
+
+        $fila = $this->listar($token)->assertOk()->json('data.0');
+        $this->assertArrayNotHasKey('descripcion', $fila);
+        $this->assertArrayNotHasKey('solucion', $fila);
+        $this->assertSame($incidente->titulo, $fila['titulo']);
+
+        $this->conToken($token)->getJson("/api/v1/incidentes/{$incidente->id}")
+            ->assertJsonPath('data.descripcion', str_repeat('Texto largo. ', 500))
+            ->assertJsonPath('data.solucion', 'Se reinició.');
+    }
+
     public function test_sin_permiso_para_ver_responde_403(): void
     {
         $token = $this->iniciarSesion($this->usuarioConPermisos(ClavePermiso::CrearIncidente));
 
         $this->listar($token)->assertForbidden();
-    }
-
-    public function test_sin_token_responde_401(): void
-    {
-        $this->getJson('/api/v1/incidentes')->assertUnauthorized();
     }
 
     public function test_el_listado_coincide_con_lo_que_la_policy_deja_ver(): void
@@ -143,7 +154,7 @@ class ListarIncidentesTest extends TestCase
         $this->assertStringContainsString('per_page=5', $respuesta->json('links.next'), 'Los enlaces conservan los filtros.');
     }
 
-    public function test_cada_elemento_trae_los_mismos_datos_que_el_detalle(): void
+    public function test_cada_elemento_trae_los_mismos_datos_que_el_detalle_salvo_los_textos_largos(): void
     {
         $creador = $this->crearUsuario();
         $incidente = $this->incidenteDe($creador);
@@ -151,7 +162,7 @@ class ListarIncidentesTest extends TestCase
         $listado = $this->listar($this->iniciarSesion($creador))->json('data.0');
         $detalle = $this->conToken($this->iniciarSesion($creador))->getJson("/api/v1/incidentes/{$incidente->id}")->json('data');
 
-        $this->assertSame($detalle, $listado);
+        $this->assertSame(array_diff_key($detalle, array_flip(['descripcion', 'solucion'])), $listado);
     }
 
     public function test_ordena_por_id_descendente_por_defecto(): void

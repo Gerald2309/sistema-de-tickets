@@ -74,7 +74,7 @@ class TiempoRealTest extends TestCase
     public function test_un_lote_produce_un_solo_aviso_con_todos_los_ids(): void
     {
         $creador = $this->crearUsuario();
-        $ids = collect(range(1, 3))->map(fn () => $this->incidenteDe($creador)->id)->all();
+        $ids = collect(range(1, 3))->map(fn () => $this->incidenteDe($creador, ['usuario_asignado_id' => $this->soporte->id])->id)->all();
         Event::fake([IncidentesCambiados::class]);
 
         $this->conToken($this->token)->patchJson('/api/v1/incidentes/lote', ['ids' => $ids, 'cambios' => ['prioridad' => 'alta']])->assertOk();
@@ -95,7 +95,7 @@ class TiempoRealTest extends TestCase
 
     public function test_si_nada_cambia_o_la_peticion_falla_no_se_avisa(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario(), ['estado' => Estado::Abierto]);
+        $incidente = $this->incidenteAtendidoPor($this->soporte, ['estado' => Estado::Abierto]);
         Event::fake([IncidentesCambiados::class]);
 
         $this->conToken($this->token)->patchJson("/api/v1/incidentes/{$incidente->id}", ['estado' => 'abierto'])->assertOk();

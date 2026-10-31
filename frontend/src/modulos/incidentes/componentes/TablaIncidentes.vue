@@ -27,13 +27,12 @@ const props = defineProps({
   orden: { type: String, default: 'id' },
   dir: { type: String, default: 'desc' },
   hayFiltros: { type: Boolean, default: false },
-  puedeEditar: {
-    type: /** @type {import('vue').PropType<(incidente: import('../tipos.js').Incidente) => boolean>} */ (Function),
-    default: () => false,
-  },
 })
 const emit = defineEmits(['alternar', 'alternar-todos', 'ordenar', 'precargar', 'limpiar'])
 const { xs } = useDisplay()
+
+/** @param {number} cantidad */
+const sinLeer = (cantidad) => (cantidad === 1 ? '1 mensaje sin leer' : `${cantidad} mensajes sin leer`)
 
 /** Columnas en orden; las que tienen `campo` se ordenan en el servidor (RF-F23). */
 const COLUMNAS = /** @type {const} */ ([
@@ -90,7 +89,11 @@ watch(
             :pendiente="pendiente(incidente.estado)"
           />
         </span>
-        <b class="tarjeta-incidente__titulo">{{ incidente.titulo }}</b>
+        <b class="tarjeta-incidente__titulo"
+          ><span v-if="incidente.mensajesSinLeer" class="sin-leer" :title="sinLeer(incidente.mensajesSinLeer)"
+            ><span class="d-sr-only">{{ sinLeer(incidente.mensajesSinLeer) }}: </span></span
+          >{{ incidente.titulo }}</b
+        >
         <span class="tarjeta-incidente__datos">
           <InsigniaEstado :estado="incidente.estado" />
           <InsigniaPrioridad :prioridad="incidente.prioridad" />
@@ -158,7 +161,9 @@ watch(
         <td class="columna-codigo"><CodigoTicket :codigo="incidente.codigo" /></td>
         <td class="columna-titulo">
           <RouterLink :to="{ name: 'incidente', params: { id: incidente.id } }" class="enlace-fila">
-            {{ incidente.titulo }}
+            <span v-if="incidente.mensajesSinLeer" class="sin-leer" :title="sinLeer(incidente.mensajesSinLeer)"
+              ><span class="d-sr-only">{{ sinLeer(incidente.mensajesSinLeer) }}: </span></span
+            >{{ incidente.titulo }}
           </RouterLink>
           <span class="columna-titulo__datos">
             {{ nombreDeCategoria(incidente.categoria)
@@ -195,12 +200,6 @@ watch(
                 title="Ver detalle"
                 :to="{ name: 'incidente', params: { id: incidente.id } }"
               />
-              <v-list-item
-                v-if="puedeEditar(incidente)"
-                :prepend-icon="iconos.editar"
-                title="Editar"
-                :to="{ name: 'editar-incidente', params: { id: incidente.id } }"
-              />
             </v-list>
           </v-menu>
         </td>
@@ -210,6 +209,17 @@ watch(
 </template>
 
 <style scoped>
+/* Punto de mensajes sin leer, antes del título: se nota sin agregar otra columna. */
+.sin-leer {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: var(--acento);
+  border-radius: 50%;
+}
+
 .columna-seleccion {
   width: 44px;
 }

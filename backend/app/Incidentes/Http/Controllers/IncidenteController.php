@@ -12,6 +12,7 @@ use App\Incidentes\Http\Requests\CrearIncidenteRequest;
 use App\Incidentes\Http\Requests\ListarIncidentesRequest;
 use App\Incidentes\Http\Resources\IncidenteResource;
 use App\Incidentes\Models\Incidente;
+use App\Incidentes\Policies\IncidentePolicy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -26,14 +27,20 @@ class IncidenteController extends Controller
 
     public function store(CrearIncidenteRequest $request, CrearIncidente $crearIncidente): JsonResponse
     {
-        $incidente = $crearIncidente->ejecutar($request->user(), $request->datos());
+        $incidente = $crearIncidente->ejecutar($request->user(), $request->datos(), $request->claveDeIdempotencia());
+        $respuesta = (new IncidenteResource($incidente))->response();
 
-        return (new IncidenteResource($incidente))->response()->setStatusCode(Response::HTTP_CREATED);
+        // Un reintento con la misma clave recibe el incidente que ya existía, marcado como repetición.
+        return $incidente->wasRecentlyCreated
+            ? $respuesta->setStatusCode(Response::HTTP_CREATED)
+            : $respuesta->header('Idempotent-Replayed', 'true');
     }
 
-    public function show(Incidente $incidente): IncidenteResource
+    public function show(Request $request, Incidente $incidente): IncidenteResource
     {
-        return new IncidenteResource($incidente);
+        $lector = $request->user();
+
+        return new IncidenteResource($incidente->loadCount(Incidente::conteoDeMensajesSinLeer($lector->id, IncidentePolicy::alcanceDe($lector))));
     }
 
     public function update(ActualizarIncidenteRequest $request, Incidente $incidente, ActualizarIncidente $actualizarIncidente): IncidenteResource

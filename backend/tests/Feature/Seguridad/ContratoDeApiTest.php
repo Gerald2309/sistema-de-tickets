@@ -5,6 +5,7 @@ namespace Tests\Feature\Seguridad;
 use App\Http\Middleware\CabecerasDeApi;
 use Illuminate\Routing\Route as RutaDeLaApi;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -139,6 +140,30 @@ class ContratoDeApiTest extends TestCase
         $this->assertStringNotContainsString('secreto', $respuesta->getContent());
         $this->assertArrayNotHasKey('trace', $respuesta->json());
         $this->assertArrayNotHasKey('exception', $respuesta->json());
+        // Lo único que se entrega es el identificador con el que se encuentra el error en el log.
+        $this->assertSame($respuesta->headers->get('X-Request-Id'), $respuesta->json('peticion'));
+    }
+
+    public function test_sobre_https_exige_https_en_adelante_y_sobre_http_no_lo_anuncia(): void
+    {
+        $this->getJson('https://localhost/api/v1/me')->assertUnauthorized()->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        $this->getJson('http://localhost/api/v1/me')->assertUnauthorized()->assertHeaderMissing('Strict-Transport-Security');
+    }
+
+    public function test_cada_peticion_lleva_un_identificador_de_correlacion(): void
+    {
+        $token = $this->iniciarSesion($this->crearUsuario());
+
+        $nueva = $this->conToken($token)->getJson('/api/v1/me')->assertOk()->headers->get('X-Request-Id');
+        $this->assertTrue(Str::isUuid($nueva));
+
+        // El que envía el proxy se conserva; uno con caracteres que podrían ensuciar el log se reemplaza.
+        $this->conToken($token)->withHeader('X-Request-Id', 'abc123-proxy.9')->getJson('/api/v1/me')->assertHeader('X-Request-Id', 'abc123-proxy.9');
+        $reemplazado = $this->conToken($token)->withHeader('X-Request-Id', "x\ninyectado=1")->getJson('/api/v1/me')->headers->get('X-Request-Id');
+        $this->assertTrue(Str::isUuid($reemplazado));
+
+        // También los rechazos, que no llegan al controlador.
+        $this->assertNotNull($this->sinCredencial()->getJson('/api/v1/me')->assertUnauthorized()->headers->get('X-Request-Id'));
     }
 
     public function test_las_respuestas_de_la_api_no_se_guardan_en_cache(): void

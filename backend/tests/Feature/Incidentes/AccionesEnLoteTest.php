@@ -36,10 +36,14 @@ class AccionesEnLoteTest extends TestCase
     }
 
     /**
+     * Incidentes del mismo solicitante que atiende el soporte de la prueba, salvo que se indique otra cosa.
+     *
      * @return list<Incidente>
      */
     private function crearIncidentes(int $cantidad, array $atributos = []): array
     {
+        $atributos += ['usuario_asignado_id' => $this->soporte->id];
+
         return array_map(fn () => $this->incidenteDe($this->creador, $atributos), range(1, $cantidad));
     }
 
@@ -101,7 +105,7 @@ class AccionesEnLoteTest extends TestCase
     public function test_si_uno_no_puede_cambiar_no_se_modifica_ninguno_y_el_error_dice_cual(): void
     {
         [$a, $b] = $this->crearIncidentes(2);
-        $cerrado = $this->incidenteDe($this->creador, ['estado' => Estado::Cerrado, 'solucion' => 'Listo.']);
+        [$cerrado] = $this->crearIncidentes(1, ['estado' => Estado::Cerrado, 'solucion' => 'Listo.']);
 
         $respuesta = $this->conToken($this->token)->patchJson('/api/v1/incidentes/lote', [
             'ids' => [$a->id, $b->id, $cerrado->id],
@@ -138,11 +142,25 @@ class AccionesEnLoteTest extends TestCase
 
     public function test_cada_campo_exige_su_permiso(): void
     {
-        $incidentes = $this->crearIncidentes(2);
-        $soloEstado = $this->iniciarSesion($this->usuarioConPermisos(ClavePermiso::VerTodos, ClavePermiso::CambiarEstado));
+        $agente = $this->usuarioConPermisos(ClavePermiso::VerTodos, ClavePermiso::CambiarEstado);
+        $incidentes = $this->crearIncidentes(2, ['usuario_asignado_id' => $agente->id]);
+        $soloEstado = $this->iniciarSesion($agente);
 
         $this->conToken($soloEstado)->patchJson('/api/v1/incidentes/lote', ['ids' => $this->ids($incidentes), 'cambios' => ['prioridad' => 'alta']])->assertForbidden();
         $this->conToken($soloEstado)->patchJson('/api/v1/incidentes/lote', ['ids' => $this->ids($incidentes), 'cambios' => ['estado' => 'en_progreso']])->assertOk();
+    }
+
+    public function test_si_uno_lo_atiende_otra_persona_no_se_modifica_ninguno(): void
+    {
+        [$propio] = $this->crearIncidentes(1);
+        [$deOtro] = $this->crearIncidentes(1, ['usuario_asignado_id' => $this->crearUsuario('Soporte N1')->id]);
+        $agente = $this->iniciarSesion($this->usuarioConPermisos(ClavePermiso::VerTodos, ClavePermiso::CambiarEstado));
+
+        $this->conToken($agente)->patchJson('/api/v1/incidentes/lote', ['ids' => [$propio->id, $deOtro->id], 'cambios' => ['estado' => 'en_progreso']])
+            ->assertForbidden();
+
+        $this->assertSame(Estado::Abierto, $propio->fresh()->estado);
+        $this->assertSame(Estado::Abierto, $deOtro->fresh()->estado);
     }
 
     public function test_sin_permiso_de_modificar_nada_la_ruta_responde_403(): void

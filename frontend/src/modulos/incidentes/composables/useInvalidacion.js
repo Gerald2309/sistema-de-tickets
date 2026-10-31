@@ -16,6 +16,7 @@ export async function invalidarIncidentes(queryClient, ids = []) {
     queryClient.invalidateQueries({ queryKey: claves.conteos() }),
     queryClient.invalidateQueries({ queryKey: claves.panel }),
     queryClient.invalidateQueries({ queryKey: claves.avisos }),
+    queryClient.invalidateQueries({ queryKey: claves.miDia }),
   ])
 }
 

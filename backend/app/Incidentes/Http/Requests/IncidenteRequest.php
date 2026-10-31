@@ -2,11 +2,13 @@
 
 namespace App\Incidentes\Http\Requests;
 
+use App\Identidad\Models\User;
 use App\Incidentes\Dominio\AlcanceIncidentes;
 use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Policies\IncidentePolicy;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -31,10 +33,17 @@ abstract class IncidenteRequest extends FormRequest
             'categoria' => ['sometimes', Rule::enum(Categoria::class)],
             'fecha_vencimiento' => [$presencia, 'date_format:'.self::FORMATOS_FECHA],
             'usuario_asignado_id' => [
+                'bail',
                 'sometimes',
                 'nullable',
                 'integer',
                 Rule::exists('users', 'id')->where('activo', true),
+                // Un solicitante no atiende incidentes: asignárselo lo dejaría sin nadie que lo trabaje.
+                function (string $atributo, mixed $valor, Closure $fallar): void {
+                    if (! User::query()->atiendenIncidentes()->whereKey($valor)->exists()) {
+                        $fallar('Solo se puede asignar a alguien que atiende incidentes.');
+                    }
+                },
             ],
         ];
     }

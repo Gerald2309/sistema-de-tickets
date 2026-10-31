@@ -29,6 +29,21 @@ async function crearPorApi(titulo) {
   return datos.data
 }
 
+/**
+ * Un incidente se trabaja después de tomarlo.
+ * @param {number} id
+ */
+async function tomarPorApi(id) {
+  const { estado, datos } = await api(`incidentes/${id}/tomar`, { metodo: 'POST', token: token() })
+  expect(estado, JSON.stringify(datos)).toBe(200)
+}
+
+// PNG de 1 × 1 píxel, para adjuntar una imagen real.
+const PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+)
+
 test.describe.configure({ mode: 'serial' })
 
 test.afterAll(async () => {
@@ -84,9 +99,14 @@ test('buscar y filtrar dejan los filtros en la dirección', async ({ abrirComo }
   await expect(page.getByText('Estado: Resuelto')).toBeVisible()
 })
 
-test('llevar un incidente a resuelto pide la solución y la muestra', async ({ abrirComo }) => {
+test('tomar un incidente y llevarlo a resuelto pide la solución y la muestra', async ({ abrirComo }) => {
   const { id } = await crearPorApi(`Sin acceso a la VPN ${EJECUCION}`)
   const page = await abrirComo(token(), `/incidentes/${id}`)
+
+  // Sin tomarlo no se trabaja.
+  await expect(page.getByRole('button', { name: 'Cambiar estado' })).toBeHidden()
+  await page.getByRole('button', { name: 'Tomar' }).click()
+  await expect(page.getByRole('button', { name: 'Tomar' })).toBeHidden()
 
   await page.getByRole('button', { name: 'Cambiar estado' }).click()
   await page
@@ -103,14 +123,19 @@ test('llevar un incidente a resuelto pide la solución y la muestra', async ({ a
   await dialogo.getByRole('button', { name: 'Resolver' }).click()
 
   await expect(page.getByRole('heading', { name: 'Solución' })).toBeVisible()
-  await expect(page.getByText('Se renovó el certificado del cliente VPN.')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Historial' })).toBeVisible()
-  await expect(page.getByText('Abierto → En progreso')).toBeVisible()
+  await expect(
+    page.getByRole('region', { name: 'Solución' }).getByText('Se renovó el certificado del cliente VPN.'),
+  ).toBeVisible()
+  const historial = page.getByRole('region', { name: 'Historial' })
+  await expect(historial.getByText('Abierto → En progreso')).toBeVisible()
+  await expect(historial.getByText('Cambió solución')).toBeVisible()
 })
 
 test('acciones en lote: cambiar la prioridad de varios a la vez', async ({ abrirComo }) => {
   const a = await crearPorApi(`Lote A ${EJECUCION}`)
   const b = await crearPorApi(`Lote B ${EJECUCION}`)
+  await tomarPorApi(a.id)
+  await tomarPorApi(b.id)
   const page = await abrirComo(token(), `/incidentes?q=${encodeURIComponent(`Lote ${EJECUCION}`)}`)
 
   await page.getByLabel(`Seleccionar ${a.codigo}`).check()
@@ -123,6 +148,28 @@ test('acciones en lote: cambiar la prioridad de varios a la vez', async ({ abrir
   await expect(page.getByText('2 incidentes actualizados.')).toBeVisible()
   const { datos } = await api(`incidentes/${a.id}`, { token: token() })
   expect(datos.data.prioridad).toBe('critica')
+})
+
+test('quien atiende el incidente conversa con el solicitante y adjunta una imagen', async ({ abrirComo }) => {
+  const { id } = await crearPorApi(`Pantalla azul ${EJECUCION}`)
+  await tomarPorApi(id)
+  const page = await abrirComo(token(), `/incidentes/${id}`)
+  const conversacion = page.getByRole('region', { name: 'Conversación' })
+
+  await conversacion.getByLabel('Escriba un mensaje').fill('¿Puede enviar una captura del error?')
+  await conversacion
+    .locator('input[type="file"]')
+    .setInputFiles({ name: 'error.png', mimeType: 'image/png', buffer: PNG })
+  await expect(conversacion.getByRole('list', { name: 'Imágenes por enviar' })).toContainText('error.png')
+  await conversacion.getByRole('button', { name: 'Enviar' }).click()
+
+  const mensajes = conversacion.getByRole('list', { name: 'Mensajes' })
+  await expect(mensajes).toContainText('¿Puede enviar una captura del error?')
+  // La imagen llega con el token y se muestra desde blob:, que la política de contenido debe permitir.
+  const miniatura = mensajes.getByRole('img', { name: 'error.png' })
+  await expect(miniatura).toBeVisible()
+  await expect.poll(() => miniatura.evaluate((imagen) => /** @type {HTMLImageElement} */ (imagen).naturalWidth)).toBe(1)
+  await expect(conversacion.getByLabel('Escriba un mensaje')).toHaveValue('')
 })
 
 test('eliminar en lote pide confirmación y borra solo los elegidos', async ({ abrirComo }) => {

@@ -46,6 +46,7 @@ services:
     volumes:
       - ./backend:/var/www/html
       - vendor:/var/www/html/vendor
+      - ./backend/docker/php/subidas.ini:/usr/local/etc/php/conf.d/subidas.ini:ro
     depends_on:
       db:
         condition: service_healthy

@@ -7,8 +7,10 @@ use App\Identidad\Models\User;
 use App\Incidentes\Dominio\AlcanceIncidentes;
 use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Participantes;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Dominio\Vencimiento;
+use Closure;
 use Database\Factories\IncidenteFactory;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * @property-read User $creador todo incidente tiene creador (usuario_creador_id no admite nulos)
@@ -32,9 +35,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'estado',
     'categoria',
     'solucion',
+    'calificacion',
     'usuario_creador_id',
     'usuario_asignado_id',
     'cliente_id',
+    'clave_de_idempotencia',
     'fecha_vencimiento',
 ])]
 #[UseFactory(IncidenteFactory::class)]
@@ -76,6 +81,48 @@ class Incidente extends Model
     }
 
     /**
+     * Cuenta, en `mensajes_sin_leer`, los mensajes que esa persona puede leer, escritos por otra y posteriores
+     * a su última lectura. Para `withCount` (listado) y `loadCount` (detalle).
+     *
+     * @return array<string, Closure(Builder<MensajeIncidente>): void>
+     */
+    public static function conteoDeMensajesSinLeer(int $lectorId, AlcanceIncidentes $alcance): array
+    {
+        $sinLeer = function (Builder $mensajes) use ($lectorId, $alcance): void {
+            /** @var Builder<MensajeIncidente> $mensajes */
+            $mensajes->visiblesPara($alcance)
+                ->where('usuario_id', '!=', $lectorId)
+                ->whereNotExists(fn (QueryBuilder $leidos) => $leidos->from('lecturas_conversacion')
+                    ->whereColumn('lecturas_conversacion.incidente_id', 'mensajes_incidente.incidente_id')
+                    ->where('lecturas_conversacion.usuario_id', $lectorId)
+                    ->whereColumn('lecturas_conversacion.ultimo_mensaje_leido_id', '>=', 'mensajes_incidente.id'));
+        };
+
+        return ['mensajes as mensajes_sin_leer' => $sinLeer];
+    }
+
+    /**
+     * Columnas que «Mi día» muestra de un incidente, con el motivo de la marca de «bloqueado» que le puso esa
+     * persona (en `bloqueo`, null si no tiene). Sin las relaciones que cargan las demás respuestas.
+     *
+     * @param  Builder<Incidente>  $consulta
+     */
+    public function scopeParaElPlanDe(Builder $consulta, int $usuarioId): void
+    {
+        $consulta->withoutEagerLoads()
+            ->select(['incidentes.id', 'titulo', 'prioridad', 'estado', 'fecha_vencimiento', 'usuario_creador_id', 'usuario_asignado_id'])
+            ->selectSub(fn (QueryBuilder $bloqueos) => $bloqueos->from('bloqueos_personales')
+                ->select('motivo')
+                ->whereColumn('bloqueos_personales.incidente_id', 'incidentes.id')
+                ->where('bloqueos_personales.usuario_id', $usuarioId), 'bloqueo');
+    }
+
+    public function participantes(): Participantes
+    {
+        return new Participantes($this->usuario_creador_id, $this->usuario_asignado_id);
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function creador(): BelongsTo
@@ -108,6 +155,14 @@ class Incidente extends Model
     }
 
     /**
+     * @return HasMany<MensajeIncidente, $this>
+     */
+    public function mensajes(): HasMany
+    {
+        return $this->hasMany(MensajeIncidente::class, 'incidente_id');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -117,6 +172,7 @@ class Incidente extends Model
             'estado' => Estado::class,
             'categoria' => Categoria::class,
             'fecha_vencimiento' => 'datetime',
+            'calificacion' => 'integer',
         ];
     }
 }

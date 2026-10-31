@@ -6,6 +6,8 @@ use App\Identidad\Dominio\ClavePermiso;
 use App\Incidentes\Dominio\CodigoIncidente;
 use App\Incidentes\Dominio\EventoHistorial;
 use App\Incidentes\Models\HistorialIncidente;
+use App\Incidentes\Models\Incidente;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -64,6 +66,47 @@ class CrearIncidenteTest extends TestCase
         $this->assertDatabaseHas('incidentes', ['id' => $respuesta->json('data.id'), 'fecha_vencimiento' => '2030-01-15 15:00:00']);
     }
 
+    public function test_reintentar_con_la_misma_clave_de_idempotencia_no_crea_un_duplicado(): void
+    {
+        $token = $this->iniciarSesion($this->crearUsuario());
+        $clave = (string) Str::uuid();
+
+        $primero = $this->conToken($token)->withHeader('Idempotency-Key', $clave)->postJson('/api/v1/incidentes', $this->datosValidos())
+            ->assertCreated()
+            ->assertHeaderMissing('Idempotent-Replayed');
+        $this->conToken($token)->withHeader('Idempotency-Key', $clave)->postJson('/api/v1/incidentes', $this->datosValidos())
+            ->assertOk()
+            ->assertHeader('Idempotent-Replayed', 'true')
+            ->assertJsonPath('data.id', $primero->json('data.id'));
+
+        $this->assertSame(1, Incidente::count());
+        $this->assertSame(1, HistorialIncidente::count());
+    }
+
+    public function test_la_clave_de_idempotencia_es_de_cada_persona_y_sin_ella_cada_envio_crea_uno(): void
+    {
+        $clave = (string) Str::uuid();
+        foreach ([$this->crearUsuario(), $this->crearUsuario()] as $persona) {
+            $this->conToken($this->iniciarSesion($persona))->postJson('/api/v1/incidentes', $this->datosValidos(), ['Idempotency-Key' => $clave])->assertCreated();
+        }
+        $token = $this->iniciarSesion($this->crearUsuario());
+        $this->conToken($token)->postJson('/api/v1/incidentes', $this->datosValidos())->assertCreated();
+        $this->conToken($token)->postJson('/api/v1/incidentes', $this->datosValidos())->assertCreated();
+
+        $this->assertSame(4, Incidente::count());
+    }
+
+    public function test_una_clave_de_idempotencia_que_no_es_uuid_se_rechaza(): void
+    {
+        $this->conToken($this->iniciarSesion($this->crearUsuario()))
+            ->withHeader('Idempotency-Key', 'repetir-esto')
+            ->postJson('/api/v1/incidentes', $this->datosValidos())
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['Idempotency-Key'], 'errors');
+
+        $this->assertSame(0, Incidente::count());
+    }
+
     public function test_acepta_el_vencimiento_en_utc_con_la_letra_z(): void
     {
         $token = $this->iniciarSesion($this->crearUsuario());
@@ -118,7 +161,7 @@ class CrearIncidenteTest extends TestCase
     #[DataProvider('datosInvalidos')]
     public function test_rechaza_datos_invalidos_con_el_error_en_su_campo(string $campo, mixed $valor): void
     {
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $token = $this->iniciarSesion($this->crearUsuario('Administrador'));
 
         $this->conToken($token)->postJson('/api/v1/incidentes', [$campo => $valor] + $this->datosValidos())
             ->assertUnprocessable()
@@ -131,7 +174,7 @@ class CrearIncidenteTest extends TestCase
     public function test_un_asignado_inactivo_no_se_acepta(): void
     {
         $inactivo = $this->crearUsuario('Soporte N1', ['activo' => false]);
-        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+        $token = $this->iniciarSesion($this->crearUsuario('Administrador'));
 
         $this->conToken($token)->postJson('/api/v1/incidentes', ['usuario_asignado_id' => $inactivo->id] + $this->datosValidos())
             ->assertUnprocessable()
@@ -148,6 +191,10 @@ class CrearIncidenteTest extends TestCase
 
         $soporte = $this->iniciarSesion($this->crearUsuario('Soporte N2'));
         $this->conToken($soporte)->postJson('/api/v1/incidentes', ['usuario_asignado_id' => $agente->id] + $this->datosValidos())
+            ->assertForbidden();
+
+        $administrador = $this->iniciarSesion($this->crearUsuario('Administrador'));
+        $this->conToken($administrador)->postJson('/api/v1/incidentes', ['usuario_asignado_id' => $agente->id] + $this->datosValidos())
             ->assertCreated()
             ->assertJsonPath('data.asignado.id', $agente->id);
 
@@ -167,10 +214,5 @@ class CrearIncidenteTest extends TestCase
         $token = $this->iniciarSesion($this->usuarioConPermisos(ClavePermiso::VerPropios));
 
         $this->conToken($token)->postJson('/api/v1/incidentes', $this->datosValidos())->assertForbidden();
-    }
-
-    public function test_sin_token_responde_401(): void
-    {
-        $this->postJson('/api/v1/incidentes', $this->datosValidos())->assertUnauthorized();
     }
 }

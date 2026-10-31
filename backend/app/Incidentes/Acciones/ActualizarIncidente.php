@@ -89,7 +89,9 @@ class ActualizarIncidente
     {
         return [
             CampoHistorial::Titulo->value => $incidente->titulo,
+            CampoHistorial::Descripcion->value => $incidente->descripcion,
             CampoHistorial::Estado->value => $incidente->estado->value,
+            CampoHistorial::Solucion->value => $incidente->solucion,
             CampoHistorial::Prioridad->value => $incidente->prioridad->value,
             CampoHistorial::Categoria->value => $incidente->categoria->value,
             CampoHistorial::UsuarioAsignado->value => $incidente->usuario_asignado_id === null

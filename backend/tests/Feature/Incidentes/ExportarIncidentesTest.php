@@ -5,7 +5,10 @@ namespace Tests\Feature\Incidentes;
 use App\Identidad\Dominio\ClavePermiso;
 use App\Identidad\Models\Cliente;
 use App\Identidad\Models\User;
+use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Prioridad;
+use DateTimeInterface;
 use OpenSpout\Reader\XLSX\Reader;
 use Tests\TestCase;
 
@@ -128,9 +131,16 @@ class ExportarIncidentesTest extends TestCase
         $this->assertSame("'@SUM(A1:A9)", $filas[0][2]);
     }
 
-    public function test_descarga_un_excel_que_se_puede_leer_de_vuelta(): void
+    public function test_descarga_un_excel_legible_que_se_puede_leer_de_vuelta(): void
     {
-        $incidente = $this->incidenteDe($this->crearUsuario('Solicitante', ['name' => 'Marta Ruiz']), ['titulo' => 'Impresora sin tóner']);
+        $incidente = $this->incidenteDe($this->crearUsuario('Solicitante', ['name' => 'Marta Ruiz']), [
+            'titulo' => 'Impresora sin tóner',
+            'prioridad' => Prioridad::Critica,
+            'estado' => Estado::EnProgreso,
+            'categoria' => Categoria::Telefonia,
+            'usuario_asignado_id' => null,
+            'fecha_vencimiento' => '2031-02-01 14:00:00',
+        ]);
 
         $respuesta = $this->conToken($this->token)->get('/api/v1/incidentes/exportar?formato=xlsx')->assertOk();
         $this->assertStringContainsString('spreadsheetml.sheet', $respuesta->headers->get('Content-Type'));
@@ -155,6 +165,11 @@ class ExportarIncidentesTest extends TestCase
         $this->assertSame(sprintf('INC-%06d', $incidente->id), $filas[1][0]);
         $this->assertSame('Impresora sin tóner', $filas[1][1]);
         $this->assertSame('Marta Ruiz', $filas[1][7]);
+        $this->assertSame(['Crítica', 'En progreso', 'Telefonía'], array_slice($filas[1], 3, 3));
+        $this->assertSame('Sin asignar', $filas[1][8]);
+        // Fecha de verdad (se puede ordenar y filtrar), en la hora de Colombia.
+        $this->assertInstanceOf(DateTimeInterface::class, $filas[1][10]);
+        $this->assertSame('2031-02-01 09:00', $filas[1][10]->format('Y-m-d H:i'));
     }
 
     public function test_con_mas_incidentes_que_el_maximo_se_rechaza_sin_descargar_nada(): void

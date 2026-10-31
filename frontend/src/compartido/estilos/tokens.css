@@ -54,6 +54,14 @@
   --prioridad-media: #cda727;
   --prioridad-baja: #98a2b3;
 
+  /* Notas de «Mi día»: papelitos en tonos suaves de la marca, con su borde para la agenda. */
+  --papel-cian: #e4f5fb;
+  --papel-cian-borde: #7fcbe4;
+  --papel-naranja: #fff0dd;
+  --papel-naranja-borde: #ffbd7a;
+  --papel-verde: #eef7dd;
+  --papel-verde-borde: #b6d872;
+
   /* Forma */
   --radio: 4px;
   --radio-chip: 3px;

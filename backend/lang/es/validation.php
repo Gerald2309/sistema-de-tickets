@@ -10,9 +10,18 @@ return [
     'after_or_equal' => 'El campo :attribute debe ser una fecha igual o posterior a :date.',
     'enum' => 'El valor del campo :attribute no es válido.',
     'exists' => 'El valor del campo :attribute no existe o no está activo.',
+    'array' => 'El campo :attribute debe ser una lista.',
+    'boolean' => 'El campo :attribute debe ser verdadero o falso.',
+    'required_without' => 'Escriba un :attribute o adjunte al menos una imagen.',
+    'file' => 'El campo :attribute debe ser un archivo.',
+    'image' => 'El archivo :attribute debe ser una imagen.',
+    'mimes' => 'El archivo :attribute debe ser de tipo: :values.',
+    'uploaded' => 'No se pudo recibir el archivo :attribute.',
     'date_format' => 'El campo :attribute debe tener el formato AAAA-MM-DDThh:mm:ss con zona horaria (ISO 8601), por ejemplo 2026-10-30T15:00:00-05:00.',
     'max' => [
         'string' => 'El campo :attribute no puede superar los :max caracteres.',
+        'file' => 'El archivo :attribute no puede superar los :max kilobytes.',
+        'array' => 'El campo :attribute no puede tener más de :max elementos.',
     ],
     'between' => [
         'numeric' => 'El campo :attribute debe estar entre :min y :max.',
@@ -42,5 +51,9 @@ return [
         'direccion' => 'dirección',
         'page' => 'página',
         'per_page' => 'resultados por página',
+        'cuerpo' => 'mensaje',
+        'interno' => 'nota interna',
+        'imagenes' => 'imágenes',
+        'imagenes.*' => 'imagen',
     ],
 ];

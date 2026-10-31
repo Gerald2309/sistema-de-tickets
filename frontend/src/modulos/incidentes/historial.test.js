@@ -54,6 +54,17 @@ describe('historial legible', () => {
     expect(descrita.detalle.startsWith('— → ')).toBe(true)
   })
 
+  it('los textos largos no van en la línea: se comparan aparte, completos', () => {
+    const descrita = describirEntrada(
+      entrada({ campo: 'descripcion', valorAnterior: 'No imprime.', valorNuevo: 'No imprime desde el lunes.' }),
+      nombres,
+    )
+
+    expect(descrita.texto).toBe('Cambió descripción')
+    expect(descrita.detalle).toBe('')
+    expect(descrita.comparacion).toEqual({ antes: 'No imprime.', despues: 'No imprime desde el lunes.' })
+  })
+
   it('reúne las personas del historial una sola vez para pedir sus nombres', () => {
     const entradas = [
       entrada({ campo: 'usuario_asignado', valorAnterior: null, valorNuevo: '4' }),

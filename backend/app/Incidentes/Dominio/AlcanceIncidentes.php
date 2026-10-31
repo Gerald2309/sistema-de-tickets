@@ -9,13 +9,18 @@ use App\Identidad\Dominio\ConjuntoPermisos;
 // la Policy y los permisos por campo de las peticiones la consultan.
 //
 // Toda acción sobre un incidente exige poder verlo. Quien no tiene `ver_todos` solo ve los que creó.
+// Un incidente lo trabaja solo quien lo tiene asignado: primero se toma y después se modifica. El
+// solicitante corrige la clasificación del suyo mientras nadie lo ha tomado. El título y la descripción
+// son las palabras de quien lo reportó: quedan fijos al crearlo; lo que falte se pide en la conversación.
 final class AlcanceIncidentes
 {
-    private const CAMPOS_DE_EDICION = ['titulo', 'descripcion', 'prioridad', 'categoria', 'fecha_vencimiento'];
+    private const CAMPOS_FIJOS = ['titulo', 'descripcion'];
+
+    private const CAMPOS_DE_CLASIFICACION = ['prioridad', 'categoria', 'fecha_vencimiento'];
 
     private const CAMPOS_DE_ESTADO = ['estado', 'solucion'];
 
-    private const CAMPOS_DE_ASIGNACION = ['usuario_asignado_id'];
+    private const CAMPO_DE_ASIGNACION = 'usuario_asignado_id';
 
     public function __construct(
         private readonly ConjuntoPermisos $permisos,
@@ -25,6 +30,12 @@ final class AlcanceIncidentes
     public function puedeCrear(): bool
     {
         return $this->permisos->tiene(ClavePermiso::CrearIncidente);
+    }
+
+    // Elegir a quién se asigna un incidente nuevo es repartir trabajo: solo quien reasigna cualquiera.
+    public function puedeAsignarAlCrear(): bool
+    {
+        return $this->permisos->tiene(ClavePermiso::Reasignar);
     }
 
     public function puedeListar(): bool
@@ -48,37 +59,64 @@ final class AlcanceIncidentes
         return $this->usuarioId;
     }
 
-    public function puedeVer(int $creadorId): bool
+    public function puedeVer(Participantes $participantes): bool
     {
-        return $this->veTodo() || ($this->permisos->tiene(ClavePermiso::VerPropios) && $this->esPropio($creadorId));
+        return $this->veTodo() || ($this->permisos->tiene(ClavePermiso::VerPropios) && $this->loCreo($participantes));
     }
 
-    public function puedeEditar(int $creadorId): bool
+    // Quien atiende incidentes toma uno libre para trabajarlo. Si sigue libre lo decide la acción, con el
+    // incidente bloqueado: dos personas pueden intentarlo a la vez.
+    public function puedeTomar(Participantes $participantes): bool
     {
-        return $this->puedeVer($creadorId) && (
-            $this->permisos->tiene(ClavePermiso::EditarTodos)
-            || ($this->permisos->tiene(ClavePermiso::EditarPropios) && $this->esPropio($creadorId))
-        );
+        return $this->puedeVer($participantes) && $this->permisos->tiene(ClavePermiso::CambiarEstado);
     }
 
-    public function puedeCambiarEstado(int $creadorId): bool
+    // Prioridad, categoría y vencimiento: quien lo atiende, o el solicitante mientras nadie lo ha tomado.
+    public function puedeClasificar(Participantes $participantes): bool
     {
-        return $this->puedeVer($creadorId) && $this->permisos->tiene(ClavePermiso::CambiarEstado);
+        if (! $this->puedeVer($participantes)) {
+            return false;
+        }
+
+        return ($this->permisos->tiene(ClavePermiso::EditarTodos) && $this->loAtiende($participantes))
+            || ($this->permisos->tiene(ClavePermiso::EditarPropios) && $this->loCreo($participantes) && $participantes->sinAsignar());
     }
 
-    public function puedeReasignar(int $creadorId): bool
+    public function puedeCambiarEstado(Participantes $participantes): bool
     {
-        return $this->puedeVer($creadorId) && $this->permisos->tiene(ClavePermiso::Reasignar);
+        return $this->puedeVer($participantes)
+            && $this->permisos->tiene(ClavePermiso::CambiarEstado)
+            && $this->loAtiende($participantes);
     }
 
-    public function puedeBorrar(int $creadorId): bool
+    // Quien lo atiende puede pasarlo a otra persona (por ejemplo, escalarlo); quien tiene `reasignar`
+    // mueve cualquiera.
+    public function puedeReasignar(Participantes $participantes): bool
     {
-        return $this->puedeVer($creadorId) && $this->permisos->tiene(ClavePermiso::Borrar);
+        return $this->puedeVer($participantes)
+            && ($this->permisos->tiene(ClavePermiso::Reasignar) || $this->loAtiende($participantes));
     }
 
-    public function puedeVerHistorial(int $creadorId): bool
+    // Dejarlo sin nadie que lo atienda es devolverlo a la cola: solo quien reparte el trabajo.
+    public function puedeDejarSinAsignar(Participantes $participantes): bool
     {
-        return $this->puedeVer($creadorId) && $this->permisos->tiene(ClavePermiso::VerHistorial);
+        return $this->puedeVer($participantes) && $this->permisos->tiene(ClavePermiso::Reasignar);
+    }
+
+    // Si la solución sirvió lo dice quien reportó el incidente: cierra el caso o lo devuelve a soporte.
+    public function puedeConfirmarSolucion(Participantes $participantes): bool
+    {
+        return $this->puedeVer($participantes) && $this->loCreo($participantes);
+    }
+
+    public function puedeBorrar(Participantes $participantes): bool
+    {
+        return $this->puedeVer($participantes) && $this->permisos->tiene(ClavePermiso::Borrar);
+    }
+
+    public function puedeVerHistorial(Participantes $participantes): bool
+    {
+        return $this->puedeVer($participantes) && $this->permisos->tiene(ClavePermiso::VerHistorial);
     }
 
     // En lote hay que poder hacer algo sobre lo que se ve; cada incidente se comprueba después, uno a uno.
@@ -103,6 +141,12 @@ final class AlcanceIncidentes
         return $this->permisos->tiene(ClavePermiso::VerDashboard);
     }
 
+    // «Mi día» es para quien atiende incidentes: organiza su propio trabajo.
+    public function puedePlanearSuDia(): bool
+    {
+        return $this->permisos->tiene(ClavePermiso::CambiarEstado);
+    }
+
     // El aviso resume incidentes de todas las personas: solo para quien ve todo.
     public function puedeVerAvisos(): bool
     {
@@ -110,31 +154,52 @@ final class AlcanceIncidentes
     }
 
     // Los casos parecidos muestran la solución de incidentes de otras personas: solo para quien ve todo.
-    public function puedeVerSimilares(int $creadorId): bool
+    public function puedeVerSimilares(Participantes $participantes): bool
     {
-        return $this->veTodo() && $this->puedeVer($creadorId);
+        return $this->veTodo() && $this->puedeVer($participantes);
+    }
+
+    // La conversación es entre quien reportó el incidente y quien lo atiende; el resto de soporte la lee.
+    public function puedeConversar(Participantes $participantes): bool
+    {
+        return $this->puedeVer($participantes) && ($this->loCreo($participantes) || $this->loAtiende($participantes));
+    }
+
+    // Las notas internas son de soporte: las escribe quien atiende y nunca las lee el solicitante.
+    public function puedeEscribirNotaInterna(Participantes $participantes): bool
+    {
+        return $this->veTodo() && $this->loAtiende($participantes);
+    }
+
+    public function puedeLeerNotasInternas(): bool
+    {
+        return $this->veTodo();
     }
 
     // Para intentar una modificación basta con poder hacer alguna de sus partes.
-    public function puedeActualizar(int $creadorId): bool
+    public function puedeActualizar(Participantes $participantes): bool
     {
-        return $this->puedeEditar($creadorId)
-            || $this->puedeCambiarEstado($creadorId)
-            || $this->puedeReasignar($creadorId);
+        return $this->puedeClasificar($participantes)
+            || $this->puedeCambiarEstado($participantes)
+            || $this->puedeReasignar($participantes);
     }
 
     /**
-     * Permiso por campo: cada campo presente exige la capacidad que le corresponde.
-     * Los campos desconocidos no se evalúan: la validación los descarta.
+     * Permiso por campo: cada campo presente exige la capacidad que le corresponde, y quitar la
+     * asignación exige además poder dejarlo sin asignar. Los campos desconocidos no se evalúan: la
+     * validación los descarta.
      *
-     * @param  list<string>  $campos
+     * @param  array<string, mixed>  $cambios  campo => valor pedido
      */
-    public function puedeModificar(array $campos, int $creadorId): bool
+    public function puedeModificar(array $cambios, Participantes $participantes): bool
     {
+        $campos = array_keys($cambios);
+
         $grupos = [
-            [self::CAMPOS_DE_EDICION, $this->puedeEditar($creadorId)],
-            [self::CAMPOS_DE_ESTADO, $this->puedeCambiarEstado($creadorId)],
-            [self::CAMPOS_DE_ASIGNACION, $this->puedeReasignar($creadorId)],
+            [self::CAMPOS_FIJOS, false],
+            [self::CAMPOS_DE_CLASIFICACION, $this->puedeClasificar($participantes)],
+            [self::CAMPOS_DE_ESTADO, $this->puedeCambiarEstado($participantes)],
+            [[self::CAMPO_DE_ASIGNACION], $this->puedeReasignar($participantes)],
         ];
 
         foreach ($grupos as [$camposDelGrupo, $permitido]) {
@@ -143,11 +208,18 @@ final class AlcanceIncidentes
             }
         }
 
-        return true;
+        $quitaLaAsignacion = array_key_exists(self::CAMPO_DE_ASIGNACION, $cambios) && $cambios[self::CAMPO_DE_ASIGNACION] === null;
+
+        return ! $quitaLaAsignacion || $this->puedeDejarSinAsignar($participantes);
     }
 
-    private function esPropio(int $creadorId): bool
+    private function loCreo(Participantes $participantes): bool
     {
-        return $creadorId === $this->usuarioId;
+        return $participantes->creadorId === $this->usuarioId;
+    }
+
+    private function loAtiende(Participantes $participantes): bool
+    {
+        return $participantes->asignadoId === $this->usuarioId;
     }
 }

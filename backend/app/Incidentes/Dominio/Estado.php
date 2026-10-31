@@ -27,6 +27,12 @@ enum Estado: string
         };
     }
 
+    // Un estado final cierra el incidente: ya no se trabaja.
+    public function esFinal(): bool
+    {
+        return $this->siguientes() === [];
+    }
+
     // Para resolver un incidente hay que dejar escrita la solución aplicada.
     public function exigeSolucion(): bool
     {

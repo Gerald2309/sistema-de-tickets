@@ -13,6 +13,14 @@ return [
     ],
 
     /*
+    | Cuentas de prueba de la demostración, una por perfil: comparten esta contraseña para que
+    | quien evalúe pueda entrar con cada rol. Sin ella, también se crean con contraseña aleatoria.
+    */
+    'demostracion' => [
+        'password' => env('DEMO_PASSWORD'),
+    ],
+
+    /*
     | Peticiones por minuto. El login se limita por correo (fuerza bruta contra una cuenta)
     | y por IP (rociado de correos desde un mismo origen).
     */

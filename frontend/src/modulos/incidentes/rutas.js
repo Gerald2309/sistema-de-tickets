@@ -1,10 +1,9 @@
-import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
 import { idDeCodigo } from './filtros.js'
 import { usePestanas } from './tienda/pestanas.js'
 
 /**
  * Rutas del módulo de incidentes. Cada una declara su permiso (nucleo/enrutador/acceso.js); `meta.pestana`
- * marca las que viven dentro de una pestaña de ticket.
+ * marca la que vive dentro de una pestaña de ticket.
  */
 
 const VER = ['ver_propios', 'ver_todos']
@@ -16,6 +15,19 @@ export const rutas = [
     name: 'panel',
     component: () => import('./vistas/VistaPanel.vue'),
     meta: { permiso: 'ver_dashboard', titulo: 'Panel' },
+  },
+  // El espacio personal de quien atiende incidentes para organizar su trabajo.
+  {
+    path: 'mi-dia',
+    name: 'mi-dia',
+    component: () => import('./vistas/VistaMiDia.vue'),
+    meta: { permiso: 'cambiar_estado', titulo: 'Mi día' },
+  },
+  {
+    path: 'mis-solicitudes',
+    name: 'mis-solicitudes',
+    component: () => import('./vistas/VistaMisSolicitudes.vue'),
+    meta: { permiso: 'ver_propios', titulo: 'Mis solicitudes' },
   },
   {
     path: 'incidentes',
@@ -34,18 +46,7 @@ export const rutas = [
     name: 'incidente',
     component: () => import('./vistas/VistaDetalle.vue'),
     props: (ruta) => ({ id: Number(ruta.params.id) }),
-    meta: { permiso: VER, titulo: 'Incidente', pestana: 'detalle' },
-  },
-  {
-    path: 'incidentes/:id(\\d+)/editar',
-    name: 'editar-incidente',
-    component: () => import('./vistas/VistaFormulario.vue'),
-    props: (ruta) => ({ id: Number(ruta.params.id) }),
-    meta: {
-      permiso: ['editar_propios', 'editar_todos', 'cambiar_estado', 'reasignar'],
-      titulo: 'Editar incidente',
-      pestana: 'edicion',
-    },
+    meta: { permiso: VER, titulo: 'Incidente', pestana: true },
   },
   // Un código escrito a mano (INC-000605) lleva a su incidente.
   {
@@ -65,17 +66,10 @@ export const rutas = [
  */
 export function guardaDePestanas(destino) {
   const pestanas = usePestanas()
-  const pantalla = /** @type {'detalle' | 'edicion' | undefined} */ (destino.meta.pestana)
-  if (!pantalla) {
+  if (destino.meta.pestana) {
+    pestanas.abrir(Number(destino.params.id))
+  } else {
     pestanas.desactivar()
-    return true
   }
-  if (pestanas.abrir(Number(destino.params.id), pantalla)) {
-    return true
-  }
-  useNotificaciones().info(
-    'No se abrió el incidente',
-    'Las 8 pestañas tienen cambios sin guardar: guarde o cierre alguna.',
-  )
-  return false
+  return true
 }

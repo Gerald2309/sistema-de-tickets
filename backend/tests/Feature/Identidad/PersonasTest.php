@@ -42,6 +42,18 @@ class PersonasTest extends TestCase
         ]]);
     }
 
+    public function test_para_asignar_solo_devuelve_quienes_atienden_incidentes_con_su_rol(): void
+    {
+        $this->crearUsuario('Solicitante', ['name' => 'Zoe Navarro']);
+        $soporte = $this->crearUsuario('Soporte N2', ['name' => 'Zoe Pardo']);
+        $administrador = $this->crearUsuario('Administrador', ['name' => 'Zoe Ríos']);
+
+        $this->personas('q=Zoe&para_asignar=1')->assertOk()->assertExactJson(['data' => [
+            ['id' => $soporte->id, 'name' => 'Zoe Pardo', 'activo' => true, 'rol' => 'Soporte N2'],
+            ['id' => $administrador->id, 'name' => 'Zoe Ríos', 'activo' => true, 'rol' => 'Administrador'],
+        ]]);
+    }
+
     public function test_busca_por_nombre_sin_distinguir_acentos_y_ordena_por_nombre(): void
     {
         $this->crearUsuario('Solicitante', ['name' => 'Óscar Ramírez']);

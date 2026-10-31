@@ -1,20 +1,22 @@
 <script setup>
 import { computed, ref } from 'vue'
 import EsqueletoDeCarga from '@/compartido/componentes/EsqueletoDeCarga.vue'
-import ListaPropiedades from '@/compartido/componentes/ListaPropiedades.vue'
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
-import AvatarPersona from '@/compartido/componentes/AvatarPersona.vue'
 import { iconos } from '@/compartido/iconos.js'
-import { fechaHora, tiempoRelativo } from '@/compartido/presentacion/fechas.js'
+import { tiempoRelativo } from '@/compartido/presentacion/fechas.js'
 import { useSesion } from '@/modulos/identidad/index.js'
+import AsignacionIncidente from '../componentes/AsignacionIncidente.vue'
 import CasosSimilares from '../componentes/CasosSimilares.vue'
 import CodigoTicket from '../componentes/CodigoTicket.vue'
+import TarjetaConfirmarSolucion from '../componentes/TarjetaConfirmarSolucion.vue'
+import ConversacionIncidente from '../componentes/ConversacionIncidente.vue'
 import DialogoResolver from '../componentes/DialogoResolver.vue'
 import HistorialIncidente from '../componentes/HistorialIncidente.vue'
 import InsigniaEstado from '../componentes/InsigniaEstado.vue'
 import InsigniaPrioridad from '../componentes/InsigniaPrioridad.vue'
+import ProgresoSolicitud from '../componentes/ProgresoSolicitud.vue'
+import PropiedadesIncidente from '../componentes/PropiedadesIncidente.vue'
 import TarjetaRelacionados from '../componentes/TarjetaRelacionados.vue'
-import IndicadorDeVencimiento from '../componentes/IndicadorDeVencimiento.vue'
 import { useDetalleIncidente } from '../composables/useIncidente.js'
 import { rutaDelListado } from '../filtros.js'
 import { nombreDeCategoria, presentarEstado } from '../presentacion.js'
@@ -26,11 +28,12 @@ const detalle = useDetalleIncidente(() => props.id)
 const { incidente, partes } = detalle
 
 const resolviendo = ref(false)
-const puedeEditar = computed(() => Object.values(partes.value).some(Boolean))
-const pendiente = computed(() => incidente.value?.estado === 'abierto' || incidente.value?.estado === 'en_progreso')
 const conSolucion = computed(
   () => (incidente.value?.estado === 'resuelto' || incidente.value?.estado === 'cerrado') && incidente.value.solucion,
 )
+
+/** @param {number | null} asignadoId */
+const asignar = (asignadoId) => detalle.ajustar({ asignadoId })
 
 /** @param {string} estado */
 async function elegirEstado(estado) {
@@ -47,22 +50,6 @@ async function resolver(solucion) {
     resolviendo.value = false
   }
 }
-
-const propiedades = computed(() => {
-  const actual = incidente.value
-  if (!actual) {
-    return []
-  }
-  return [
-    { etiqueta: 'Prioridad' },
-    { etiqueta: 'Categoría', valor: nombreDeCategoria(actual.categoria) },
-    { etiqueta: 'Solicitante', valor: actual.creador.nombre },
-    { etiqueta: 'Empresa', valor: actual.cliente?.nombre ?? 'Sin empresa', tenue: !actual.cliente },
-    { etiqueta: 'Asignado a' },
-    { etiqueta: 'Vence' },
-    { etiqueta: 'Actualizado', valor: fechaHora(actual.actualizadoEn) },
-  ]
-})
 </script>
 
 <template>
@@ -105,6 +92,15 @@ const propiedades = computed(() => {
           </div>
         </div>
         <div class="detalle__acciones entra" style="--i: 2">
+          <v-btn
+            v-if="detalle.puedeTomar.value"
+            color="primary"
+            variant="flat"
+            :prepend-icon="iconos.tomar"
+            :loading="detalle.tomando.value"
+            @click="detalle.tomar"
+            >Tomar</v-btn
+          >
           <v-menu v-if="partes.estado">
             <template #activator="{ props: activador }">
               <v-btn
@@ -132,13 +128,6 @@ const propiedades = computed(() => {
               </v-list-item>
             </v-list>
           </v-menu>
-          <v-btn
-            v-if="puedeEditar"
-            variant="outlined"
-            :prepend-icon="iconos.editar"
-            :to="{ name: 'editar-incidente', params: { id: incidente.id } }"
-            >Editar</v-btn
-          >
           <v-btn
             v-if="detalle.puedeEliminar.value"
             variant="outlined"
@@ -173,6 +162,14 @@ const propiedades = computed(() => {
             </header>
             <p class="tarjeta__cuerpo detalle__texto">{{ incidente.solucion }}</p>
           </section>
+          <TarjetaConfirmarSolucion
+            v-if="detalle.puedeConfirmar.value"
+            :pendiente="detalle.confirmando.value"
+            class="entra"
+            style="--i: 3"
+            @confirmar="detalle.confirmar"
+          />
+          <ConversacionIncidente :key="incidente.id" :incidente="incidente" class="entra" style="--i: 4" />
           <CasosSimilares
             v-if="detalle.veTodo.value"
             :casos="detalle.similares.data.value"
@@ -182,41 +179,38 @@ const propiedades = computed(() => {
           />
           <HistorialIncidente
             v-if="sesion.tiene('ver_historial')"
-            :entradas="detalle.historial.data.value"
+            :entradas="detalle.entradasDelHistorial.value"
             :cargando="detalle.historial.isPending.value"
+            :hay-mas="detalle.historial.hasNextPage.value"
+            :cargando-mas="detalle.historial.isFetchingNextPage.value"
             class="entra"
             style="--i: 5"
+            @ver-mas="detalle.historial.fetchNextPage()"
           />
         </div>
 
         <aside class="detalle__lateral">
-          <section class="tarjeta entra" style="--i: 4" aria-labelledby="titulo-propiedades">
-            <header class="tarjeta__cabecera">
-              <h2 id="titulo-propiedades" class="tarjeta__titulo">Propiedades</h2>
-            </header>
-            <div class="tarjeta__cuerpo">
-              <ListaPropiedades :elementos="propiedades">
-                <template #valor-0><InsigniaPrioridad :prioridad="incidente.prioridad" /></template>
-                <template #valor-4>
-                  <AvatarPersona v-if="incidente.asignado" :nombre="incidente.asignado.nombre" />
-                  <RouterLink
-                    v-else-if="partes.asignacion"
-                    :to="{ name: 'editar-incidente', params: { id: incidente.id } }"
-                    class="enlace-sutil"
-                    >Asignar</RouterLink
-                  >
-                  <span v-else class="nota">Sin asignar</span>
-                </template>
-                <template #valor-5>
-                  <IndicadorDeVencimiento
-                    :fecha="incidente.fechaVencimiento"
-                    :vencido="incidente.vencido"
-                    :pendiente="pendiente"
-                  />
-                </template>
-              </ListaPropiedades>
-            </div>
-          </section>
+          <!-- Quien solo ve lo suyo sigue el avance de su solicitud; soporte ve y reparte la asignación. -->
+          <ProgresoSolicitud v-if="!detalle.veTodo.value" :incidente="incidente" class="entra" style="--i: 3" />
+          <AsignacionIncidente
+            v-else
+            :asignado="incidente.asignado"
+            :editable="partes.asignacion"
+            :quitable="detalle.puedeDejarSinAsignar.value"
+            :pendiente="detalle.ajustando.value"
+            class="entra"
+            style="--i: 3"
+            @asignar="asignar"
+          />
+          <PropiedadesIncidente
+            :incidente="incidente"
+            :partes="partes"
+            :pendiente="detalle.ajustando.value"
+            :vista-del-solicitante="!detalle.veTodo.value"
+            class="entra"
+            style="--i: 4"
+            @ajustar="detalle.ajustar"
+          />
 
           <TarjetaRelacionados
             v-if="detalle.veTodo.value"
