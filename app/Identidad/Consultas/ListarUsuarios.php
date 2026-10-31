@@ -17,6 +17,8 @@ class ListarUsuarios
      */
     public function ejecutar(array $filtros, int $porPagina): LengthAwarePaginator
     {
+        $activo = $filtros['activo'] ?? null;
+
         return User::query()
             ->with('rol')
             ->when($filtros['q'] ?? null, function ($consulta, string $texto) {
@@ -25,7 +27,7 @@ class ListarUsuarios
                 $consulta->where(fn ($donde) => $donde->where('name', 'like', $patron)->orWhere('email', 'like', $patron));
             })
             ->when($filtros['rol_id'] ?? null, fn ($consulta, int $rolId) => $consulta->where('rol_id', $rolId))
-            ->when(isset($filtros['activo']), fn ($consulta) => $consulta->where('activo', $filtros['activo']))
+            ->when($activo !== null, fn ($consulta) => $consulta->where('activo', $activo))
             ->orderBy('name')
             ->orderBy('id')
             ->paginate($porPagina);

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -14,6 +15,14 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        // Detrás de un proxy que termina el TLS: sus direcciones (separadas por comas, o `*`) salen de TRUSTED_PROXIES.
+        // Sin ella no se confía en ninguna cabecera X-Forwarded-*. Se lee de la configuración, no del entorno:
+        // con la configuración en caché, env() fuera de config/ devuelve null.
+        $proxies = trim((string) config('seguridad.proxies_confiables'));
+        if ($proxies !== '') {
+            TrustProxies::at(in_array($proxies, ['*', '**'], true) ? $proxies : array_map('trim', explode(',', $proxies)));
+        }
+
         // Una consulta por relación cargada de antemano: fuera de producción, el N+1 lanza una excepción.
         Model::preventLazyLoading(! $this->app->isProduction());
 

@@ -24,7 +24,7 @@ class UsuarioResource extends JsonResource
             'email' => $usuario->email,
             'activo' => $usuario->activo,
             'rol' => ['id' => $usuario->rol->id, 'nombre' => $usuario->rol->nombre],
-            'created_at' => $usuario->created_at->copy()->utc()->toIso8601ZuluString(),
+            'created_at' => $usuario->created_at?->copy()->utc()->toIso8601ZuluString(),
         ];
     }
 }

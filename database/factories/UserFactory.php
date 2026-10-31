@@ -47,7 +47,7 @@ class UserFactory extends Factory
      */
     private static function correo(string $nombre, string $apellido): string
     {
-        $base = preg_replace('/[^a-z.]/', '', Str::lower(Str::ascii("$nombre.$apellido")));
+        $base = (string) preg_replace('/[^a-z.]/', '', Str::lower(Str::ascii("$nombre.$apellido")));
         $repeticiones = self::$correosUsados[$base] = (self::$correosUsados[$base] ?? 0) + 1;
 
         return ($repeticiones > 1 ? $base.$repeticiones : $base).'@'.self::DOMINIO;

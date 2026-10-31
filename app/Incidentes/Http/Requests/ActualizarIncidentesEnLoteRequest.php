@@ -17,7 +17,7 @@ class ActualizarIncidentesEnLoteRequest extends IncidenteRequest
     }
 
     /**
-     * @return array<string, list<mixed>>
+     * @return array<string, array<mixed>>
      */
     public function rules(): array
     {
@@ -35,7 +35,7 @@ class ActualizarIncidentesEnLoteRequest extends IncidenteRequest
      */
     public function ids(): array
     {
-        return array_map('intval', $this->validated('ids'));
+        return array_values(array_map('intval', $this->validated('ids')));
     }
 
     /**

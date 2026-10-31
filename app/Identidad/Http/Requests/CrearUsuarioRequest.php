@@ -35,6 +35,11 @@ class CrearUsuarioRequest extends FormRequest
      */
     public function datos(): array
     {
-        return $this->safe()->only(['name', 'email', 'password', 'rol_id']);
+        return [
+            'name' => $this->string('name')->toString(),
+            'email' => $this->string('email')->toString(),
+            'password' => $this->string('password')->toString(),
+            'rol_id' => $this->integer('rol_id'),
+        ];
     }
 }

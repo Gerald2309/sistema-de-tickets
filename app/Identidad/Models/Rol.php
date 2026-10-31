@@ -19,11 +19,17 @@ class Rol extends Model
 
     protected $table = 'roles';
 
+    /**
+     * @return HasMany<User, $this>
+     */
     public function usuarios(): HasMany
     {
         return $this->hasMany(User::class, 'rol_id');
     }
 
+    /**
+     * @return BelongsToMany<Permiso, $this>
+     */
     public function permisos(): BelongsToMany
     {
         return $this->belongsToMany(Permiso::class, 'permiso_rol', 'rol_id', 'permiso_id');

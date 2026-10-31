@@ -28,7 +28,7 @@ class IniciarSesion
         // no deja un token vivo para una cuenta inactiva.
         [$token, $usuarioId] = DB::transaction(function () use ($email, $password, $ahora) {
             $usuario = User::where('email', $email)->lockForUpdate()->first();
-            $coincide = Hash::check($password, $usuario?->password ?? self::HASH_FICTICIO);
+            $coincide = Hash::check($password, $usuario->password ?? self::HASH_FICTICIO);
 
             if ($usuario === null || ! $coincide || ! $usuario->activo) {
                 return [null, $usuario?->id];

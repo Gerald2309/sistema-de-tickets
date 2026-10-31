@@ -30,6 +30,6 @@ class AsignarPermisosRequest extends FormRequest
      */
     public function claves(): array
     {
-        return array_map(ClavePermiso::from(...), $this->validated('permisos'));
+        return array_values(array_map(ClavePermiso::from(...), $this->validated('permisos')));
     }
 }

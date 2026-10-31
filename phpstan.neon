@@ -1,0 +1,16 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - bootstrap
+        - database
+        - routes
+    level: 8
+    # Los modelos declaran sus casts en un método casts() con un docblock genérico: se lee el cuerpo.
+    parseModelCastsMethod: true
+    ignoreErrors:
+        # Las rutas autenticadas pasan por auth:sanctum: en ellas $request->user() nunca es null.
+        - '#expects App\\Identidad\\Models\\User, App\\Identidad\\Models\\User\|null given#'
+        - '#Cannot access property \$id on App\\Identidad\\Models\\User\|null#'
