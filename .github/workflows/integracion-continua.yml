@@ -1,0 +1,117 @@
+# Integración continua (RNF-F33 y paso 10 del backend): en cada cambio, la calidad del backend y del frontend
+# por separado y, si ambas pasan, los recorridos de punta a punta contra el stack completo en Docker.
+# El backend se comprueba dentro del mismo contenedor que usa la aplicación: misma versión de PHP, mismas
+# extensiones y la base de pruebas que crea MySQL al iniciar (incidentes_test). La configuración es la de
+# demostración de .env.example; no hace falta ningún secreto.
+name: Integración continua
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Pint, Larastan, auditoría y pruebas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Levantar Laravel y MySQL
+        run: docker compose up -d --build --wait app
+
+      - name: Estilo (Pint)
+        run: docker compose exec -T app vendor/bin/pint --test
+
+      - name: Análisis estático (Larastan, nivel 8)
+        run: docker compose exec -T app vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: Dependencias sin avisos de seguridad
+        run: docker compose exec -T app composer audit
+
+      - name: Pruebas (PHPUnit sobre incidentes_test)
+        run: docker compose exec -T app php artisan test
+
+      - name: Registro de los contenedores si algo falló
+        if: failure()
+        run: docker compose logs --no-color app db
+
+  frontend:
+    name: Frontend (lint, tipos, pruebas, cobertura y presupuesto)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias (archivo de bloqueo)
+        run: npm ci
+
+      - name: Dependencias sin avisos altos ni críticos (RNF-F16)
+        run: npm audit --audit-level=high
+
+      - name: Lint, formato y estilos (RNF-F18)
+        run: npm run lint && npm run formato && npm run estilos
+
+      - name: Tipos (vue-tsc sobre JSDoc)
+        run: npm run tipos
+
+      - name: Pruebas unitarias y de integración, con cobertura mínima del 80 % (RNF-F30)
+        run: npm run prueba:cobertura
+
+      - name: Compilación con presupuesto del paquete (RNF-F02)
+        run: npm run build
+
+  recorridos:
+    name: Recorridos de punta a punta (Chromium, Firefox y WebKit)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Levantar la aplicación completa
+        run: docker compose up -d --build --wait
+
+      - name: Instalar Playwright y sus navegadores
+        working-directory: frontend
+        run: npm ci && npx playwright install --with-deps chromium firefox webkit
+
+      - name: Recorridos (incluye la revisión de accesibilidad con axe)
+        working-directory: frontend
+        run: npm run prueba:recorridos
+
+      - name: Informe de los recorridos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-recorridos
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7
+
+      - name: Registro de los contenedores si algo falló
+        if: failure()
+        run: docker compose logs --no-color
