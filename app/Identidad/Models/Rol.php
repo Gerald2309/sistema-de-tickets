@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['nombre'])]
 #[UseFactory(RolFactory::class)]
@@ -17,6 +18,11 @@ class Rol extends Model
     use HasFactory;
 
     protected $table = 'roles';
+
+    public function usuarios(): HasMany
+    {
+        return $this->hasMany(User::class, 'rol_id');
+    }
 
     public function permisos(): BelongsToMany
     {
