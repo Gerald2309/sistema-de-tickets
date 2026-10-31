@@ -1,5 +1,6 @@
 <?php
 
+use App\Auditoria\Http\Controllers\AuditoriaController;
 use App\Identidad\Http\Controllers\AuthController;
 use App\Identidad\Http\Controllers\PerfilController;
 use App\Identidad\Http\Controllers\PermisoController;
@@ -48,6 +49,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('roles/{rol}', [RolController::class, 'destroy'])->can('administrar_roles');
         Route::put('roles/{rol}/permisos', [RolController::class, 'asignarPermisos'])->can('administrar_roles');
         Route::get('permisos', PermisoController::class)->can('consultar_roles');
+
+        Route::get('auditoria', AuditoriaController::class)->can('ver_auditoria');
 
         // El historial de un incidente borrado sigue consultable (RF-08, RF-18).
         Route::get('incidentes/{incidente}/historial', HistorialController::class)
