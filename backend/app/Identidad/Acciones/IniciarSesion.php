@@ -3,6 +3,7 @@
 namespace App\Identidad\Acciones;
 
 use App\Auditoria\Acciones\RegistrarAuditoria;
+use App\Auditoria\Acciones\VigilarIniciosFallidos;
 use App\Auditoria\Dominio\AccionAuditoria;
 use App\Identidad\Models\User;
 use Illuminate\Support\Carbon;
@@ -17,7 +18,10 @@ class IniciarSesion
     // el correo no existe, para que el tiempo de respuesta no revele qué cuentas existen.
     private const HASH_FICTICIO = '$argon2id$v=19$m=65536,t=4,p=1$bC84Mmp5UGxhOWFlYkc1SQ$bXghOkbPgtx6RBuHH63EH9Gjj9NWvOvuDWJjSNIDe3k';
 
-    public function __construct(private readonly RegistrarAuditoria $registrarAuditoria) {}
+    public function __construct(
+        private readonly RegistrarAuditoria $registrarAuditoria,
+        private readonly VigilarIniciosFallidos $vigilarIniciosFallidos,
+    ) {}
 
     /**
      * @throws ValidationException con el mismo mensaje para cualquier fallo, sin revelar la causa.
@@ -43,6 +47,7 @@ class IniciarSesion
         if ($token === null) {
             // Fuera de la transacción: el registro debe conservarse. No se guarda lo que se escribió.
             $this->registrarAuditoria->ejecutar(AccionAuditoria::LoginFallido, null, $usuarioId, null, $ip);
+            $this->vigilarIniciosFallidos->ejecutar($usuarioId, $ip, $ahora);
 
             throw ValidationException::withMessages(['email' => [trans('auth.failed')]]);
         }

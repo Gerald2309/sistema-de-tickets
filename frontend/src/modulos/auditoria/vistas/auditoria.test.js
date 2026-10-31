@@ -78,10 +78,35 @@ describe('auditoría', { timeout: 20_000 }, () => {
   it('el filtro de la dirección llega a la API y las fechas cubren el día local', async () => {
     montada = await montarAplicacion('/administracion/auditoria?accion=login_fallido&desde=2026-10-01')
 
-    await vi.waitFor(() => expect(consultas.at(-1)).toMatchObject({ accion: 'login_fallido' }), { timeout: 8000 })
+    // La pantalla también pide las alertas recientes: se busca la petición del filtro.
+    const delFiltro = () => consultas.find((consulta) => consulta.accion === 'login_fallido')
+    await vi.waitFor(() => expect(delFiltro()).toBeDefined(), { timeout: 8000 })
     // Desde el comienzo del día local, con su desfase.
-    expect(consultas.at(-1)?.desde).toMatch(/^2026-10-01T00:00:00[+-]\d{2}:\d{2}$/)
+    expect(delFiltro()?.desde).toMatch(/^2026-10-01T00:00:00[+-]\d{2}:\d{2}$/)
     await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('Inicio de sesión fallido'))
     expect(montada.envoltorio.text()).not.toContain('Rol asignado')
+  })
+
+  it('avisa las alertas de seguridad recientes y lleva a verlas', async () => {
+    servidor.use(
+      manejador.get(api('auditoria'), ({ request }) => {
+        const parametros = Object.fromEntries(new URL(request.url).searchParams)
+        consultas.push(parametros)
+        const total = parametros.accion === 'alerta_de_seguridad' ? 2 : 0
+        return HttpResponse.json({ data: [], meta: { current_page: 1, last_page: 1, per_page: 25, total } })
+      }),
+    )
+    montada = await montarAplicacion('/administracion/auditoria')
+
+    await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('2 alertas de seguridad desde ayer'), {
+      timeout: 8000,
+    })
+    await montada.envoltorio
+      .findAll('button')
+      .find((boton) => boton.text() === 'Ver alertas')
+      ?.trigger('click')
+
+    await vi.waitFor(() => expect(montada.router.currentRoute.value.query.accion).toBe('alerta_de_seguridad'))
+    await vi.waitFor(() => expect(montada.envoltorio.text()).not.toContain('alertas de seguridad desde ayer'))
   })
 })

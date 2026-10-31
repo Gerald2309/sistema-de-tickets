@@ -73,6 +73,7 @@ import {
   mdiShieldLockOutline,
   mdiShieldOffOutline,
   mdiShieldPlusOutline,
+  mdiShieldAlertOutline,
   mdiShieldRemoveOutline,
   mdiStar,
   mdiStarOutline,
@@ -165,6 +166,7 @@ export const iconos = Object.freeze({
   ocultar: mdiEyeOffOutline,
   // Auditoría
   loginFallido: mdiLoginVariant,
+  alertaDeSeguridad: mdiShieldAlertOutline,
   contrasenaCambiada: mdiKeyOutline,
   contrasenaRestablecida: mdiKeyChange,
   usuarioCreado: mdiAccountPlusOutline,

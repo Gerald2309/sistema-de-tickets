@@ -21,4 +21,6 @@ enum AccionAuditoria: string
     case PermisoRetirado = 'permiso_retirado';
     case ClienteCreado = 'cliente_creado';
     case ClienteModificado = 'cliente_modificado';
+    // Umbral de inicios fallidos superado: posible ataque de fuerza bruta o de rociado de contraseñas.
+    case AlertaDeSeguridad = 'alerta_de_seguridad';
 }

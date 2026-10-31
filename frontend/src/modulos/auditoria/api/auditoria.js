@@ -43,9 +43,10 @@ export function aRegistro(dto) {
  * `GET auditoria` (API 25): solo lectura, lo más reciente primero. Las fechas cubren el día local completo.
  * @param {FiltrosDeAuditoria} filtros
  * @param {AbortSignal} [senal]
+ * @param {number} [porPagina]
  * @returns {Promise<import('@/compartido/api/paginacion.js').Pagina<RegistroDeAuditoria>>}
  */
-export async function listarAuditoria(filtros, senal) {
+export async function listarAuditoria(filtros, senal, porPagina = 25) {
   const { data } = await http.get('auditoria', {
     params: {
       accion: filtros.accion,
@@ -54,7 +55,7 @@ export async function listarAuditoria(filtros, senal) {
       desde: filtros.desde ? limiteDelDia(filtros.desde, 'inicio') : undefined,
       hasta: filtros.hasta ? limiteDelDia(filtros.hasta, 'fin') : undefined,
       page: filtros.pagina,
-      per_page: 25,
+      per_page: porPagina,
     },
     signal: senal,
   })

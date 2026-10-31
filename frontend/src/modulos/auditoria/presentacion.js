@@ -21,6 +21,7 @@ export const ACCIONES = Object.freeze({
   permiso_retirado: { nombre: 'Permiso retirado', icono: iconos.permisoRetirado },
   cliente_creado: { nombre: 'Empresa creada', icono: iconos.empresaCreada },
   cliente_modificado: { nombre: 'Empresa modificada', icono: iconos.empresaModificada },
+  alerta_de_seguridad: { nombre: 'Alerta de seguridad', icono: iconos.alertaDeSeguridad, alerta: true },
 })
 
 /**

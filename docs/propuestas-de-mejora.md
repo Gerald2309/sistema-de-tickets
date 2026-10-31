@@ -57,9 +57,15 @@ El enunciado invita a proponer mejoras sobre el stack mínimo sin alterar lo sol
 
 ## 8. Seguridad adicional
 
-- **Segundo factor** (TOTP) para quienes administran usuarios y roles.
-- **CSP sin `style-src 'unsafe-inline'`:** servir el HTML con un `nonce` por petición. Hoy se permite estilo en línea porque Vuetify inyecta el tema; los scripts ya son estrictos.
-- **Alertas sobre la auditoría:** la auditoría ya registra los inicios fallidos; se propone alertar cuando se repitan desde una misma IP.
+- **Hoy:**
+  - las amenazas y sus controles están en `docs/modelo-de-amenazas.md`, ordenados según OWASP;
+  - los inicios fallidos por encima del umbral (por cuenta y por IP) dejan una alerta de seguridad en la auditoría y una advertencia en el log;
+  - las imágenes de Docker están fijadas por su digest, y Dependabot propone las actualizaciones de dependencias e imágenes.
+- **Propuesta:**
+  - **segundo factor** (TOTP) para quienes administran usuarios y roles (OWASP A07, ISO 27001 control 8.5). Cambia el flujo de inicio de sesión: un paso más con su propio límite de intentos, códigos de recuperación y la forma de restablecerlo;
+  - **enviar las alertas fuera de la aplicación** (correo o un canal de chat) desde la advertencia del log, con el agregador de la propuesta 7;
+  - **CSP sin `style-src 'unsafe-inline'`:** servir el HTML con un `nonce` por petición. Hoy se permite estilo en línea porque Vuetify inyecta el tema; los scripts ya son estrictos.
+- **Costo:** medio para el segundo factor; bajo para lo demás.
 
 ## 9. Despliegue
 
@@ -73,9 +79,9 @@ El enunciado invita a proponer mejoras sobre el stack mínimo sin alterar lo sol
 ## 10. Calidad de las pruebas
 
 - **Hoy:**
-  - 479 pruebas en el backend, más una suite de rendimiento aparte que mide tiempos y revisa con `EXPLAIN` que el listado use índices sobre 200 000 incidentes;
-  - 128 unitarias y de integración en el frontend, con más del 80 % de cobertura;
-  - 21 recorridos de punta a punta en Chromium, Firefox y WebKit, con revisión de accesibilidad automática.
+  - unas 500 pruebas en el backend, más una suite de rendimiento aparte que mide tiempos y revisa con `EXPLAIN` que el listado use índices sobre 200 000 incidentes;
+  - unas 140 unitarias y de integración en el frontend, con cerca del 80 % de cobertura;
+  - 22 recorridos de punta a punta en Chromium, Firefox y WebKit, con revisión de accesibilidad automática.
 - **Propuesta:**
   - pruebas de mutación (Infection en PHP, Stryker en JavaScript), que miden si las pruebas detectan errores y no solo qué líneas recorren;
   - comparación visual de capturas contra el diseño aprobado.

@@ -11,10 +11,13 @@ import PieDeTabla from '@/compartido/componentes/PieDeTabla.vue'
 import { iconos } from '@/compartido/iconos.js'
 import { fechaHora } from '@/compartido/presentacion/fechas.js'
 import { useBuscadorDePersonas } from '@/modulos/identidad/index.js'
-import { useAuditoria } from '../composables/useAuditoria.js'
+import { ALERTA, useAlertasRecientes, useAuditoria } from '../composables/useAuditoria.js'
 import { ACCIONES, presentarAccion } from '../presentacion.js'
 
 const { filtros, lista, cambiar } = useAuditoria()
+// Las alertas de seguridad recientes se avisan arriba, con un atajo para verlas.
+const alertas = useAlertasRecientes()
+const alertasPorVer = computed(() => (filtros.value.accion === ALERTA ? 0 : (alertas.data.value ?? 0)))
 const elegidas = computed(() => [filtros.value.usuario, filtros.value.afectado].filter((id) => id !== undefined))
 const personas = useBuscadorDePersonas({ incluirInactivas: true, elegidos: elegidas })
 
@@ -50,6 +53,15 @@ const limpiar = () =>
         </p>
       </div>
     </header>
+
+    <MensajeEnPagina
+      v-if="alertasPorVer > 0"
+      tipo="advertencia"
+      :titulo="`${alertasPorVer} alerta${alertasPorVer > 1 ? 's' : ''} de seguridad desde ayer`"
+    >
+      Muchos inicios de sesión fallidos sobre una cuenta o desde una misma IP: puede ser alguien probando contraseñas.
+      <v-btn variant="text" size="small" color="primary" @click="cambiar({ accion: ALERTA })">Ver alertas</v-btn>
+    </MensajeEnPagina>
 
     <div class="barra-filtros entra" style="--i: 3">
       <MenuFiltro
