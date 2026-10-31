@@ -8,7 +8,7 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
 
-FROM nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+FROM nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de
 # La plantilla se completa al arrancar con las variables de entorno del contenedor (solo REVERB_APP_KEY).
 COPY docker/default.conf.template /etc/nginx/templates/default.conf.template
 COPY docker/cabeceras.conf /etc/nginx/snippets/cabeceras.conf
