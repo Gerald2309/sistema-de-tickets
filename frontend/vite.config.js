@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import vuetify from 'vite-plugin-vuetify'
 
-// En desarrollo, el servidor de Vite reenvía la API y el WebSocket a la aplicación de Docker
+// En desarrollo, el servidor de Vite reenvía la API, el WebSocket y la configuración a la aplicación de Docker
 // (contenedor `web`, http://localhost:8000), así que trabaja contra la misma API que producción.
 const destinoDesarrollo = process.env.DESTINO_DESARROLLO ?? 'http://localhost:8000'
 
@@ -21,6 +21,7 @@ export default defineConfig({
     proxy: {
       '/api': { target: destinoDesarrollo, changeOrigin: true },
       '/app': { target: destinoDesarrollo, ws: true, changeOrigin: true },
+      '/configuracion.json': { target: destinoDesarrollo, changeOrigin: true },
     },
   },
   build: {
