@@ -148,6 +148,22 @@ test('eliminar en lote pide confirmación y borra solo los elegidos', async ({ a
   creados.splice(creados.indexOf(b.id), 1)
 })
 
+test('en vivo: un incidente nuevo entra al listado abierto sin recargar y destella', async ({ abrirComo }) => {
+  // Una fila de referencia: el destello es para lo que entra a una vista que ya tenía filas.
+  const primero = await crearPorApi(`En vivo uno ${EJECUCION}`)
+  const page = await abrirComo(token(), `/incidentes?q=${encodeURIComponent(`En vivo ${EJECUCION}`)}`)
+  await expect(page.locator('tbody tr')).toHaveCount(1)
+  await expect(page.locator('tbody tr').first()).toContainText(primero.codigo)
+  await expect(page.getByText('en vivo', { exact: true })).toBeVisible({ timeout: 10_000 })
+
+  const nuevo = await crearPorApi(`En vivo dos ${EJECUCION}`)
+
+  // RF-F45: en menos de 2 s, más un margen para la ejecución de la prueba.
+  const fila = page.locator('tbody tr', { hasText: nuevo.codigo })
+  await expect(fila).toBeVisible({ timeout: 3000 })
+  await expect(fila).toHaveClass(/fila--nueva/)
+})
+
 test('descargar el listado en CSV con los filtros activos', async ({ abrirComo }) => {
   await crearPorApi(`Descarga ${EJECUCION}`)
   const page = await abrirComo(token(), `/incidentes?q=${encodeURIComponent(`Descarga ${EJECUCION}`)}`)

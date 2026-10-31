@@ -1,5 +1,3 @@
-import Echo from 'laravel-echo'
-import Pusher from 'pusher-js'
 import { watch } from 'vue'
 import { http } from '@/compartido/api/cliente.js'
 import { tiempoReal } from '@/compartido/tiempo-real.js'
@@ -27,8 +25,10 @@ export async function conectarTiempoReal({ queryClient, alTerminarLaSesion }) {
   }
   const clave = leida
   const sesion = useSesion()
-  /** @type {Echo<'reverb'> | null} */
+  /** @type {import('laravel-echo').default<'reverb'> | null} */
   let echo = null
+  // Cada conexión o desconexión invalida la anterior que siga cargando las bibliotecas.
+  let intento = 0
   let estuvoConectado = false
   const avisos = crearAgrupador(AGRUPAR_MS, (ids) => invalidarIncidentes(queryClient, ids))
 
@@ -36,6 +36,7 @@ export async function conectarTiempoReal({ queryClient, alTerminarLaSesion }) {
   const alAvisar = (aviso) => avisos.agregar(Array.isArray(aviso?.ids) ? aviso.ids : [])
 
   function desconectar() {
+    intento += 1
     avisos.cancelar()
     echo?.disconnect()
     echo = null
@@ -48,8 +49,15 @@ export async function conectarTiempoReal({ queryClient, alTerminarLaSesion }) {
    * suyos. Si cambian sus permisos, se vuelve a conectar.
    * @param {{ id: number, veTodo: boolean }} persona
    */
-  function conectar({ id, veTodo }) {
+  async function conectar({ id, veTodo }) {
     desconectar()
+    const propio = intento
+    const bibliotecas = await cargarBibliotecas()
+    // Si mientras tanto cambió la persona o se cerró la sesión, esta conexión ya no corresponde.
+    if (!bibliotecas || propio !== intento) {
+      return
+    }
+    const { Echo, Pusher } = bibliotecas
     echo = new Echo({
       broadcaster: 'reverb',
       Pusher,
@@ -95,6 +103,20 @@ export async function conectarTiempoReal({ queryClient, alTerminarLaSesion }) {
     { immediate: true },
   )
   alTerminarLaSesion(desconectar)
+}
+
+/**
+ * Echo y Pusher se cargan solo con una sesión abierta: el inicio de sesión no los necesita (RNF-F02). Si no se
+ * pueden descargar, la aplicación sigue con el refresco periódico.
+ * @returns {Promise<{ Echo: typeof import('laravel-echo').default, Pusher: typeof import('pusher-js').default } | null>}
+ */
+async function cargarBibliotecas() {
+  try {
+    const [echo, pusher] = await Promise.all([import('laravel-echo'), import('pusher-js')])
+    return { Echo: echo.default, Pusher: pusher.default }
+  } catch {
+    return null
+  }
 }
 
 /**

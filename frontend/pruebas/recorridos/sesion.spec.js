@@ -20,14 +20,20 @@ test.describe('sesión', () => {
     await page.getByLabel('Contraseña', { exact: true }).fill(ADMINISTRADOR.clave)
     await page.getByRole('button', { name: 'Ingresar' }).click()
 
-    await expect(page).toHaveURL(/\/incidentes$/, { timeout: 15_000 })
+    // Se compara la ruta: la dirección de ingreso también termina en «/incidentes» (?destino=/incidentes).
+    await expect(page).toHaveURL((url) => url.pathname === '/incidentes', { timeout: 15_000 })
     await expect(page.getByRole('heading', { name: 'Incidentes', level: 1 })).toBeVisible()
 
+    // Al salir, ninguna pantalla vuelve a pedir datos con el token ya revocado.
+    /** @type {string[]} */
+    const rechazadas = []
+    page.on('response', (respuesta) => respuesta.status() === 401 && rechazadas.push(respuesta.url()))
     await page.getByRole('button', { name: 'Menú de su cuenta' }).click()
     await page.getByText('Cerrar sesión').click()
-    await expect(page).toHaveURL(/\/ingresar/, { timeout: 15_000 })
+    await expect(page).toHaveURL((url) => url.pathname === '/ingresar', { timeout: 15_000 })
     // La sesión se borró del navegador: volver atrás no la recupera.
     await page.goto('/incidentes')
     await expect(page).toHaveURL(/\/ingresar/)
+    expect(rechazadas).toEqual([])
   })
 })
