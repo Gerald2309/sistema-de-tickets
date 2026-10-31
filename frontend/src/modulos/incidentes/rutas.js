@@ -1,4 +1,5 @@
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
+import { idDeCodigo } from './filtros.js'
 import { usePestanas } from './tienda/pestanas.js'
 
 /**
@@ -49,7 +50,10 @@ export const rutas = [
   // Un código escrito a mano (INC-000605) lleva a su incidente.
   {
     path: 'incidentes/:codigo(INC-\\d+)',
-    redirect: (ruta) => ({ name: 'incidente', params: { id: Number(String(ruta.params.codigo).slice(4)) } }),
+    redirect: (ruta) => {
+      const id = idDeCodigo(String(ruta.params.codigo))
+      return id ? { name: 'incidente', params: { id } } : { name: 'incidentes' }
+    },
   },
 ]
 

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { iconos } from '@/compartido/iconos.js'
 import { useSesion } from '@/modulos/identidad/index.js'
+import { codigoDe, idDeCodigo } from '@/modulos/incidentes/index.js'
 import { useNavegacion } from './useNavegacion.js'
 
 /**
@@ -30,7 +31,18 @@ const comandos = computed(() => [
 
 const resultados = computed(() => {
   const texto = normalizar(consulta.value)
-  return comandos.value.filter((comando) => normalizar(comando.titulo).includes(texto))
+  const coincidencias = comandos.value.filter((comando) => normalizar(comando.titulo).includes(texto))
+  // Un código (INC-000605 o 605) ofrece abrir ese incidente, primero (RF-F10).
+  const id = idDeCodigo(consulta.value)
+  if (id === null || !sesion.tieneAlguno('ver_propios', 'ver_todos')) {
+    return coincidencias
+  }
+  const abrir = {
+    titulo: `Abrir ${codigoDe(id)}`,
+    icono: iconos.incidente,
+    ejecutar: () => enrutador.push({ name: 'incidente', params: { id } }),
+  }
+  return [abrir, ...coincidencias]
 })
 
 /**

@@ -104,6 +104,24 @@ export function consultaDesdeFiltros(filtros) {
 }
 
 /**
+ * Lee un código de incidente escrito a mano: «INC-000605», «inc605» o solo «605».
+ * @param {string} texto
+ * @returns {number | null} el id, o null si no es un código
+ */
+export function idDeCodigo(texto) {
+  const coincidencia = /^\s*(?:inc-?)?0*(\d{1,9})\s*$/i.exec(texto)
+  const id = coincidencia ? Number(coincidencia[1]) : 0
+  return id > 0 ? id : null
+}
+
+/**
+ * Código de presentación de un id (el mismo formato que entrega la API).
+ * @param {number} id
+ * @returns {string}
+ */
+export const codigoDe = (id) => `INC-${String(id).padStart(6, '0')}`
+
+/**
  * Ruta del listado con esos filtros (para enlaces del panel, del detalle o de la paleta).
  * @param {FiltrosDeIncidentes} [filtros]
  * @returns {import('vue-router').RouteLocationRaw}

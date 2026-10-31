@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { consultaDesdeFiltros, filtrosDesdeConsulta } from './filtros.js'
+import { codigoDe, consultaDesdeFiltros, filtrosDesdeConsulta, idDeCodigo } from './filtros.js'
 
 describe('filtros en la dirección', () => {
   it('lee los filtros válidos y descarta en silencio lo desconocido o mal formado', () => {
@@ -51,5 +51,11 @@ describe('filtros en la dirección', () => {
     }
 
     expect(filtrosDesdeConsulta(consultaDesdeFiltros(/** @type {any} */ (filtros)))).toEqual(filtros)
+  })
+
+  it('reconoce un código escrito a mano y lo vuelve a escribir como la API', () => {
+    expect(['INC-000605', 'inc605', '  605 ', '000605'].map(idDeCodigo)).toEqual([605, 605, 605, 605])
+    expect(['', 'INC-', 'impresora', '0', '-5', '6.5'].map(idDeCodigo)).toEqual([null, null, null, null, null, null])
+    expect(codigoDe(605)).toBe('INC-000605')
   })
 })

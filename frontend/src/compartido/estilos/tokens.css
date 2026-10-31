@@ -8,6 +8,9 @@
   --marca-naranja: #ff9429;
   --marca-verde: #8abf22;
   --marca-noche: #003;
+
+  /* Verde intermedio del degradado de marca; la franja central de la cortina. */
+  --marca-verde-medio: #42b371;
   --degradado: linear-gradient(90deg, #08a5c9 0%, #42b371 35%, #7abb24 65%, #cda727 100%);
 
   /* Interfaz */
