@@ -4,7 +4,8 @@ import CampoDeBusqueda from '@/compartido/componentes/CampoDeBusqueda.vue'
 import ChipsDeFiltros from '@/compartido/componentes/ChipsDeFiltros.vue'
 import ControlSegmentado from '@/compartido/componentes/ControlSegmentado.vue'
 import MenuFiltro from '@/compartido/componentes/MenuFiltro.vue'
-import { iconos } from '@/compartido/iconos.js'
+import MenuMasFiltros from '@/compartido/componentes/MenuMasFiltros.vue'
+import RangoDeFechas from '@/compartido/componentes/RangoDeFechas.vue'
 import { useBuscadorDePersonas, useEmpresas } from '@/modulos/identidad/index.js'
 import { CATEGORIAS, ESTADOS, PRIORIDADES } from '../presentacion.js'
 
@@ -69,18 +70,6 @@ const chips = computed(() => {
     lista.push({ clave: 'hasta', etiqueta: `${f.sobre === 'creacion' ? 'Creados' : 'Vencen'} hasta ${f.hasta}` })
   return lista
 })
-
-/**
- * El calendario de Vuetify entrega un Date local; el filtro guarda el día AAAA-MM-DD.
- * @param {Date | null} fecha
- * @returns {string | undefined}
- */
-const aDia = (fecha) => (fecha ? fecha.toLocaleDateString('sv-SE') : undefined)
-/**
- * @param {string | undefined} dia
- * @returns {Date | null}
- */
-const aFecha = (dia) => (dia ? new Date(`${dia}T00:00:00`) : null)
 </script>
 
 <template>
@@ -110,128 +99,78 @@ const aFecha = (dia) => (dia ? new Date(`${dia}T00:00:00`) : null)
       :opciones="opcionesDePrioridad"
       @update:model-value="cambiar({ prioridad: $event })"
     />
-    <v-menu :close-on-content-click="false" location="bottom start">
-      <template #activator="{ props: activador }">
-        <button type="button" class="filtro" v-bind="activador">
-          <v-icon :icon="iconos.masFiltros" size="16" />Más filtros
-        </button>
-      </template>
-      <v-card class="mas-filtros" min-width="320">
-        <v-card-text class="mas-filtros__cuerpo">
-          <v-autocomplete
-            v-if="veTodo && filtros.vista !== 'para-mi'"
-            :model-value="filtros.asignado"
-            :items="personas.personas.value"
-            item-title="nombre"
-            item-value="id"
-            label="Asignado a"
-            clearable
-            hide-details
-            no-filter
-            :loading="personas.cargando.value"
-            no-data-text="Escriba un nombre"
-            @update:search="buscarPersona"
-            @update:model-value="cambiar({ asignado: $event ?? undefined })"
-          />
-          <v-autocomplete
-            v-if="veTodo"
-            :model-value="filtros.creador"
-            :items="personas.personas.value"
-            item-title="nombre"
-            item-value="id"
-            label="Creado por"
-            clearable
-            hide-details
-            no-filter
-            no-data-text="Escriba un nombre"
-            @update:search="buscarPersona"
-            @update:model-value="cambiar({ creador: $event ?? undefined, mios: undefined })"
-          />
-          <v-select
-            v-if="veEmpresas"
-            :model-value="filtros.cliente"
-            :items="empresas"
-            item-title="nombre"
-            item-value="id"
-            label="Empresa"
-            clearable
-            hide-details
-            @update:model-value="cambiar({ cliente: $event ?? undefined })"
-          />
-          <v-select
-            :model-value="filtros.categoria"
-            :items="opcionesDeCategoria"
-            label="Categoría"
-            clearable
-            hide-details
-            @update:model-value="cambiar({ categoria: $event ?? undefined })"
-          />
-          <v-select
-            :model-value="filtros.sobre ?? 'vencimiento'"
-            :items="[
-              { value: 'vencimiento', title: 'Fechas de vencimiento' },
-              { value: 'creacion', title: 'Fechas de creación' },
-            ]"
-            label="Las fechas se aplican a"
-            hide-details
-            @update:model-value="cambiar({ sobre: $event })"
-          />
-          <div class="mas-filtros__fechas">
-            <v-date-input
-              :model-value="aFecha(filtros.desde)"
-              label="Desde"
-              :first-day-of-week="1"
-              clearable
-              hide-details
-              prepend-icon=""
-              :prepend-inner-icon="iconos.calendario"
-              @update:model-value="cambiar({ desde: aDia($event) })"
-            />
-            <v-date-input
-              :model-value="aFecha(filtros.hasta)"
-              label="Hasta"
-              :first-day-of-week="1"
-              clearable
-              hide-details
-              prepend-icon=""
-              :prepend-inner-icon="iconos.calendario"
-              @update:model-value="cambiar({ hasta: aDia($event) })"
-            />
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-menu>
+    <MenuMasFiltros>
+      <v-autocomplete
+        v-if="veTodo && filtros.vista !== 'para-mi'"
+        :model-value="filtros.asignado"
+        :items="personas.personas.value"
+        item-title="nombre"
+        item-value="id"
+        label="Asignado a"
+        clearable
+        hide-details
+        no-filter
+        :loading="personas.cargando.value"
+        no-data-text="Escriba un nombre"
+        @update:search="buscarPersona"
+        @update:model-value="cambiar({ asignado: $event ?? undefined })"
+      />
+      <v-autocomplete
+        v-if="veTodo"
+        :model-value="filtros.creador"
+        :items="personas.personas.value"
+        item-title="nombre"
+        item-value="id"
+        label="Creado por"
+        clearable
+        hide-details
+        no-filter
+        no-data-text="Escriba un nombre"
+        @update:search="buscarPersona"
+        @update:model-value="cambiar({ creador: $event ?? undefined, mios: undefined })"
+      />
+      <v-select
+        v-if="veEmpresas"
+        :model-value="filtros.cliente"
+        :items="empresas"
+        item-title="nombre"
+        item-value="id"
+        label="Empresa"
+        clearable
+        hide-details
+        @update:model-value="cambiar({ cliente: $event ?? undefined })"
+      />
+      <v-select
+        :model-value="filtros.categoria"
+        :items="opcionesDeCategoria"
+        label="Categoría"
+        clearable
+        hide-details
+        @update:model-value="cambiar({ categoria: $event ?? undefined })"
+      />
+      <v-select
+        :model-value="filtros.sobre ?? 'vencimiento'"
+        :items="[
+          { value: 'vencimiento', title: 'Fechas de vencimiento' },
+          { value: 'creacion', title: 'Fechas de creación' },
+        ]"
+        label="Las fechas se aplican a"
+        hide-details
+        @update:model-value="cambiar({ sobre: $event })"
+      />
+      <RangoDeFechas
+        :desde="filtros.desde"
+        :hasta="filtros.hasta"
+        @update:desde="cambiar({ desde: $event })"
+        @update:hasta="cambiar({ hasta: $event })"
+      />
+    </MenuMasFiltros>
     <ChipsDeFiltros :filtros="chips" @quitar="emit('quitar', $event)" @limpiar="emit('limpiar')" />
   </div>
 </template>
 
 <style scoped>
-.barra-filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
 .barra-filtros__vistas {
   margin-right: 8px;
-}
-
-.mas-filtros {
-  border: 1px solid var(--borde);
-  box-shadow: var(--sombra-2) !important;
-}
-
-.mas-filtros__cuerpo {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.mas-filtros__fechas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
 }
 </style>

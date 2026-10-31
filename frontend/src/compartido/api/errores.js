@@ -103,3 +103,19 @@ function segundosDeEspera(valor) {
   const segundos = Number.parseInt(String(valor ?? ''), 10)
   return Number.isFinite(segundos) && segundos >= 0 ? segundos : null
 }
+
+/**
+ * El mensaje que se muestra por un error: el primero de los campos indicados, si no el primero de cualquier
+ * campo (por ejemplo, el código del incidente que impidió un lote) y, si no hay ninguno, el detalle.
+ * @param {unknown} causa
+ * @param {string[]} [campos] campos de la API en orden de preferencia
+ * @returns {string}
+ */
+export function mensajeDeError(causa, campos = []) {
+  const problema = aErrorDeApi(causa)
+  return (
+    campos.flatMap((campo) => problema.erroresDe(campo))[0] ??
+    Object.values(problema.errores).flat()[0] ??
+    problema.detalle
+  )
+}

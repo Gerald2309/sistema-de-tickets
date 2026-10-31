@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { aErrorDeApi, ErrorDeApi } from '@/compartido/api/errores.js'
+import { ErrorDeApi, mensajeDeError } from '@/compartido/api/errores.js'
 import { useConfirmacion } from '@/compartido/composables/useConfirmacion.js'
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
 import { useEmpresas, useSesion } from '@/modulos/identidad/index.js'
@@ -137,8 +137,7 @@ export function useDetalleIncidente(idActual) {
       await trasCambiarIncidentes([actualizado.id])
     },
     onError: (causa) => {
-      const problema = aErrorDeApi(causa)
-      errorDeEstado.value = [...problema.erroresDe('solucion'), ...problema.erroresDe('estado')][0] ?? problema.detalle
+      errorDeEstado.value = mensajeDeError(causa, ['solucion', 'estado'])
       notificaciones.error('No se cambió el estado', errorDeEstado.value)
     },
   })
@@ -172,7 +171,7 @@ export function useDetalleIncidente(idActual) {
     try {
       await eliminacion.mutateAsync()
     } catch (causa) {
-      notificaciones.error('No se eliminó', aErrorDeApi(causa).detalle)
+      notificaciones.error('No se eliminó', mensajeDeError(causa))
       return
     }
     const eliminado = id.value

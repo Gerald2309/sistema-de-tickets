@@ -219,3 +219,64 @@
 .filtro .v-icon {
   color: var(--suave);
 }
+
+/* Barra de herramientas de una lista: vistas, búsqueda y filtros (sistema de diseño). */
+.barra-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+/* Acciones de fila: aparecen al pasar por la fila o con el foco (sistema de diseño, Tablas). */
+.columna-acciones {
+  width: 44px;
+  text-align: right;
+}
+
+.columna-acciones .v-btn {
+  opacity: 0;
+  transition: opacity var(--rapida);
+}
+
+tr:hover .columna-acciones .v-btn,
+.columna-acciones .v-btn:focus-visible,
+.columna-acciones .v-btn[aria-expanded='true'] {
+  opacity: 1;
+}
+
+/* Punto de color que acompaña siempre a un texto (estado, prioridad, cuenta activa). */
+.punto {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.punto--activo {
+  background: var(--exito);
+}
+
+.punto--inactivo {
+  background: var(--estado-cerrado);
+}
+
+/* Franja que se despliega animando su altura real (barra de lote, cambios sin guardar). */
+.plegable {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition:
+    grid-template-rows var(--media) var(--curva),
+    margin var(--media) var(--curva);
+}
+
+.plegable--abierta {
+  grid-template-rows: 1fr;
+}
+
+.plegable > div {
+  min-height: 0;
+  overflow: hidden;
+}
