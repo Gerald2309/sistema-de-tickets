@@ -22,6 +22,15 @@ class AutorizacionServiceProvider extends ServiceProvider
         // Ver roles y permisos lo necesita quien administra roles y quien asigna roles a usuarios.
         Gate::define('consultar_roles', fn (User $usuario) => $usuario->permisos()->alguno(ClavePermiso::AdministrarRoles, ClavePermiso::AdministrarUsuarios));
 
+        // Elegir a una persona en un selector lo necesita quien asigna incidentes, quien filtra por persona
+        // (ve todo o audita) y quien administra usuarios.
+        Gate::define('consultar_personas', fn (User $usuario) => $usuario->permisos()->alguno(
+            ClavePermiso::Reasignar,
+            ClavePermiso::VerTodos,
+            ClavePermiso::VerAuditoria,
+            ClavePermiso::AdministrarUsuarios,
+        ));
+
         foreach (ClavePermiso::cases() as $permiso) {
             Gate::define($permiso->value, fn (User $usuario) => $usuario->permisos()->tiene($permiso));
         }

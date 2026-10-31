@@ -4,6 +4,7 @@ use App\Auditoria\Http\Controllers\AuditoriaController;
 use App\Identidad\Http\Controllers\AuthController;
 use App\Identidad\Http\Controllers\PerfilController;
 use App\Identidad\Http\Controllers\PermisoController;
+use App\Identidad\Http\Controllers\PersonaController;
 use App\Identidad\Http\Controllers\RolController;
 use App\Identidad\Http\Controllers\UsuarioController;
 use App\Incidentes\Http\Controllers\AvisosController;
@@ -57,6 +58,9 @@ Route::prefix('v1')->group(function () {
         Route::delete('roles/{rol}', [RolController::class, 'destroy'])->can('administrar_roles');
         Route::put('roles/{rol}/permisos', [RolController::class, 'asignarPermisos'])->can('administrar_roles');
         Route::get('permisos', PermisoController::class)->can('consultar_roles');
+
+        // Personas para asignar o filtrar (solo id, nombre y si está activa).
+        Route::get('personas', PersonaController::class)->can('consultar_personas');
 
         Route::get('auditoria', AuditoriaController::class)->can('ver_auditoria');
 
