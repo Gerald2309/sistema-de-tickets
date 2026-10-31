@@ -78,7 +78,7 @@ docker compose exec app php artisan migrate:fresh --seed
 | `PermisosSeeder` | El catálogo fijo de 13 permisos |
 | `RolesSeeder` | Los roles Administrador, Soporte N1, N2 y N3, y Solicitante, con sus permisos |
 | `AdministradorSeeder` | El primer administrador, con `ADMIN_*` |
-| `DatosDemoSeeder` | Fuera de producción: 5 empresas cliente, usuarios de cada perfil, 600 incidentes en todos los estados con su historial, y la auditoría de las altas |
+| `DatosDemoSeeder` | Fuera de producción: 5 empresas cliente, usuarios de cada perfil, 750 incidentes en todos los estados con su historial, y la auditoría de las altas |
 
 Aparte, para medir el rendimiento sobre una base vacía:
 
