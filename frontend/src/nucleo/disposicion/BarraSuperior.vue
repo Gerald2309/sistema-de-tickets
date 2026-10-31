@@ -42,8 +42,10 @@ const atajo = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
     <v-spacer />
     <v-menu location="bottom end">
       <template #activator="{ props }">
-        <v-btn v-bind="props" variant="text" class="barra__persona" aria-label="Menú de su cuenta">
-          <v-avatar size="28" class="barra__avatar">{{ iniciales }}</v-avatar>
+        <!-- El nombre accesible contiene el texto visible (WCAG 2.5.3); las iniciales son decorativas. -->
+        <v-btn v-bind="props" variant="text" class="barra__persona">
+          <span class="solo-lectores">Menú de su cuenta:</span>
+          <v-avatar size="28" class="barra__avatar" aria-hidden="true">{{ iniciales }}</v-avatar>
           <span class="barra__nombre">
             <b>{{ perfil?.nombre }}</b>
             <small>{{ perfil?.rol.nombre }}</small>

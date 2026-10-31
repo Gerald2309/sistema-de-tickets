@@ -26,7 +26,12 @@ export function crearVuetify() {
             error: '#B42318',
             background: '#F3F5F7',
             surface: '#FFFFFF',
+            'on-background': '#20242C',
+            'on-surface': '#20242C',
           },
+          // Etiquetas, ayudas y contadores de los campos usan esta opacidad sobre el texto: con 0,6 quedaban en
+          // 4,2:1; con 0,72 pasan de 6:1 (WCAG 1.4.3).
+          variables: { 'medium-emphasis-opacity': 0.72 },
         },
       },
     },

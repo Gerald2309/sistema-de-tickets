@@ -156,27 +156,22 @@ const personas = (/** @type {number} */ n) => `${n} ${n === 1 ? 'persona' : 'per
             <v-btn size="small" variant="text" :prepend-icon="iconos.editar" @click="abrirDialogo('renombrar')"
               >Renombrar</v-btn
             >
-            <v-tooltip
-              :disabled="rol.usuarios === 0"
-              location="top"
-              :text="`No se puede eliminar: tiene ${personas(rol.usuarios)} asignadas`"
+            <!-- Con personas asignadas no se puede eliminar, y el motivo se ve junto al botón (también con teclado). -->
+            <template v-if="rol.usuarios > 0">
+              <span class="nota roles__motivo">Tiene {{ personas(rol.usuarios) }}</span>
+              <v-btn size="small" variant="text" color="error" :prepend-icon="iconos.eliminar" disabled>Eliminar</v-btn>
+            </template>
+            <v-btn
+              v-else
+              size="small"
+              variant="text"
+              color="error"
+              :prepend-icon="iconos.eliminar"
+              :loading="admin.pendiente.eliminacion.value"
+              @click="eliminar"
             >
-              <template #activator="{ props: activador }">
-                <span v-bind="activador">
-                  <v-btn
-                    size="small"
-                    variant="text"
-                    color="error"
-                    :prepend-icon="iconos.eliminar"
-                    :disabled="rol.usuarios > 0"
-                    :loading="admin.pendiente.eliminacion.value"
-                    @click="eliminar"
-                  >
-                    Eliminar
-                  </v-btn>
-                </span>
-              </template>
-            </v-tooltip>
+              Eliminar
+            </v-btn>
           </div>
         </header>
 
@@ -254,6 +249,11 @@ const personas = (/** @type {number} */ n) => `${n} ${n === 1 ? 'persona' : 'per
 .roles__acciones {
   display: flex;
   gap: 4px;
+  align-items: center;
+}
+
+.roles__motivo {
+  margin-left: 8px;
 }
 
 .rol-item {

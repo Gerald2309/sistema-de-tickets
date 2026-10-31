@@ -90,7 +90,7 @@ function alPulsarTecla(evento, indice) {
 }
 
 .segmento__conteo {
-  color: var(--tenue);
+  color: var(--suave);
   font-weight: 500;
 }
 

@@ -12,6 +12,7 @@ import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
+import { desplazable } from '@/compartido/accesibilidad.js'
 import { revelar } from '@/compartido/movimiento.js'
 import { crearEnrutador } from '@/nucleo/enrutador/index.js'
 import { crearClienteDeConsultas } from '@/nucleo/plugins/consultas.js'
@@ -29,6 +30,7 @@ aplicacion.use(crearVuetify())
 aplicacion.use(VueQueryPlugin, { queryClient })
 aplicacion.use(router)
 aplicacion.directive('revelar', revelar)
+aplicacion.directive('desplazable', desplazable)
 
 conectarAplicacion({ router, queryClient })
 // Sin esperar: la aplicación funciona igual sin WebSocket (refresco periódico de respaldo).

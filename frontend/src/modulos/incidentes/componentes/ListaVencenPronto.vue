@@ -30,7 +30,7 @@ defineProps({
         Ver los {{ pagina.total }}
       </RouterLink>
     </header>
-    <v-table class="tabla-panel">
+    <v-table v-desplazable="'Vencen pronto'" class="tabla-panel">
       <tbody v-if="cargando">
         <tr v-for="fila in 5" :key="fila">
           <td><EsqueletoDeCarga ancho="84px" /></td>

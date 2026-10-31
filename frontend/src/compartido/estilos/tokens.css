@@ -20,7 +20,9 @@
   --acento-borde: #bfe6f3;
   --texto: #20242c;
   --suave: #5e6878;
-  --tenue: #8a93a3;
+
+  /* El gris más claro para texto que aún cumple 4,5:1 sobre el fondo (#f3f5f7). */
+  --tenue: #646d7d;
   --borde: #e2e4e9;
   --borde-fuerte: #c1c7d0;
   --fondo: #f3f5f7;

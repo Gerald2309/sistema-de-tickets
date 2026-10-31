@@ -115,6 +115,7 @@ function alPulsarTecla(evento) {
         :aria-selected="pestanas.activa === pestana.id"
         :tabindex="pestanas.activa === pestana.id ? 0 : -1"
         :title="pestana.titulo"
+        aria-keyshortcuts="Delete"
         @auxclick.middle.prevent="cerrar(pestana.id)"
       >
         <span
@@ -125,15 +126,11 @@ function alPulsarTecla(evento) {
         <span class="pt__codigo">{{ pestana.codigo ?? `#${pestana.id}` }}</span>
         <span class="pt__titulo">{{ pestana.titulo }}</span>
         <span v-if="pestana.sinGuardar" class="pt__sin-guardar" aria-label="cambios sin guardar" />
-        <button
-          type="button"
-          class="pt__cerrar"
-          tabindex="-1"
-          :aria-label="`Cerrar ${pestana.codigo ?? 'pestaña'}`"
-          @click.prevent.stop="cerrar(pestana.id)"
-        >
+        <!-- La × es para el puntero; con teclado se cierra con Supr (aria-keyshortcuts). Un botón dentro del
+             enlace sería un control interactivo anidado. -->
+        <span class="pt__cerrar" aria-hidden="true" @click.prevent.stop="cerrar(pestana.id)">
           <v-icon :icon="iconos.cerrar" size="14" />
-        </button>
+        </span>
       </RouterLink>
     </TransitionGroup>
   </div>

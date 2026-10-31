@@ -49,13 +49,14 @@ const porcentajeVencido = computed(() =>
         :to="rutaDelListado({ estado: etapa.valor })"
         class="etapa"
         :style="{ '--color': etapa.color }"
-        :aria-label="`${etapa.nombre}: ${etapa.cantidad} incidentes`"
       >
         <span class="etapa__cabecera">
           <span class="etapa__punto" aria-hidden="true" />{{ etapa.nombre }}
           <v-icon v-if="indice < etapas.length - 1" :icon="iconos.siguiente" size="18" class="etapa__flecha" />
         </span>
-        <b class="etapa__cantidad"><ContadorAnimado :valor="etapa.cantidad" /></b>
+        <b class="etapa__cantidad"
+          ><ContadorAnimado :valor="etapa.cantidad" /><span class="solo-lectores"> incidentes</span></b
+        >
         <span class="pista" aria-hidden="true">
           <span class="pista__relleno" :style="{ transform: `scaleX(${etapa.proporcion})`, '--i': indice }" />
         </span>

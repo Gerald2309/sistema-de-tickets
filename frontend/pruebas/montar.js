@@ -2,6 +2,7 @@ import { VueQueryPlugin } from '@tanstack/vue-query'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory } from 'vue-router'
+import { desplazable } from '@/compartido/accesibilidad.js'
 import { revelar } from '@/compartido/movimiento.js'
 import { crearEnrutador } from '@/nucleo/enrutador/index.js'
 import { crearClienteDeConsultas } from '@/nucleo/plugins/consultas.js'
@@ -31,7 +32,7 @@ export async function montarAplicacion(ruta = '/') {
     attachTo: contenedor,
     global: {
       plugins: [pinia, crearVuetify(), [VueQueryPlugin, { queryClient }], router],
-      directives: { revelar },
+      directives: { revelar, desplazable },
     },
   })
   return { envoltorio, router, queryClient, pinia }
