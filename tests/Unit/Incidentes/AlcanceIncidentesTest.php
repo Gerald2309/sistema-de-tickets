@@ -97,6 +97,14 @@ class AlcanceIncidentesTest extends TestCase
         $this->assertFalse($this->alcance(ClavePermiso::VerHistorial)->puedeVerHistorial(self::YO));
     }
 
+    public function test_los_casos_parecidos_son_solo_para_quien_ve_todo(): void
+    {
+        $this->assertTrue($this->soporte()->puedeVerSimilares(self::AJENO));
+        $this->assertFalse($this->solicitante()->puedeVerSimilares(self::YO));
+        $this->assertFalse($this->alcance(ClavePermiso::VerPropios, ClavePermiso::VerHistorial)->puedeVerSimilares(self::YO));
+        $this->assertFalse($this->alcance()->puedeVerSimilares(self::YO));
+    }
+
     public function test_ver_el_historial_exige_su_permiso(): void
     {
         $this->assertTrue($this->solicitante()->puedeVerHistorial(self::YO));

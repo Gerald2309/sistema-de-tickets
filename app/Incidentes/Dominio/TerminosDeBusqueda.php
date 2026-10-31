@@ -9,16 +9,20 @@ final class TerminosDeBusqueda
     /**
      * Palabras en minúsculas, sin repetir, en el orden en que aparecen. Se descartan las de menos de
      * `$longitudMinima` letras, porque el índice de texto no las guarda, y se conservan como máximo
-     * `$maximo`.
+     * `$maximo`. Con `$sinPalabrasVacias` también se descartan las muy comunes del español.
      *
      * @return list<string>
      */
-    public static function desde(string $texto, int $longitudMinima, int $maximo): array
+    public static function desde(string $texto, int $longitudMinima, int $maximo, bool $sinPalabrasVacias = false): array
     {
         $palabras = preg_split('/[^\p{L}\p{N}_]+/u', mb_strtolower($texto), -1, PREG_SPLIT_NO_EMPTY) ?: [];
         $terminos = [];
 
         foreach ($palabras as $palabra) {
+            if ($sinPalabrasVacias && PalabrasVacias::esVacia($palabra)) {
+                continue;
+            }
+
             if (mb_strlen($palabra) >= $longitudMinima && ! in_array($palabra, $terminos, true)) {
                 $terminos[] = $palabra;
             }

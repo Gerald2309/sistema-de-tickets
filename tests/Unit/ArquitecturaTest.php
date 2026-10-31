@@ -54,6 +54,25 @@ class ArquitecturaTest extends TestCase
         }
     }
 
+    // PHP trata cualquier carácter no ASCII como parte del nombre de una variable: en "«$titulo»" la
+    // variable es `$titulo»`, que no existe. Se escribe "«{$titulo}»".
+    public function test_ninguna_variable_interpolada_va_pegada_a_un_caracter_no_ascii(): void
+    {
+        foreach (['app', 'config', 'database', 'routes', 'tests'] as $carpeta) {
+            foreach ($this->archivos($carpeta) as $archivo) {
+                if (str_ends_with($archivo, 'ArquitecturaTest.php')) {
+                    continue;
+                }
+
+                $this->assertDoesNotMatchRegularExpression(
+                    '/"[^"\n]*\$[A-Za-z_][A-Za-z0-9_]*[^\x00-\x7F][^"\n]*"/u',
+                    file_get_contents($archivo),
+                    $this->relativo($archivo).' interpola una variable pegada a un carácter no ASCII; usa llaves: {$variable}.',
+                );
+            }
+        }
+    }
+
     public function test_no_quedan_clases_de_negocio_fuera_de_los_modulos(): void
     {
         $this->assertDirectoryDoesNotExist($this->raiz().'/app/Dominio');
