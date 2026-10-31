@@ -2,3 +2,6 @@
 .env
 .env.*
 !.env.example
+
+# Dependencias y cachés de herramientas: cada carpeta (backend, frontend) ignora las suyas; esto cubre la raíz.
+node_modules/

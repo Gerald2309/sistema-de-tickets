@@ -1,0 +1,33 @@
+# Actualizaciones de dependencias (OWASP A03, cadena de suministro): Dependabot abre una solicitud de cambio por
+# cada versión nueva, y la integración continua la prueba antes de aceptarla. Semanal, para no saturar.
+version: 2
+updates:
+  - package-ecosystem: composer
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # Las imágenes base, fijadas por digest en los Dockerfile y en docker-compose.yml.
+  - package-ecosystem: docker
+    directories:
+      - /backend/docker/php
+      - /frontend
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

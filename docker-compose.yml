@@ -17,7 +17,8 @@ x-configuracion: &configuracion
 
 services:
   db:
-    image: mysql:8.4
+    # Imágenes fijadas por su digest: lo que se probó es lo que corre. Dependabot propone las nuevas.
+    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
     container_name: incidentes-db
     <<: *configuracion
     # MySQL toma usuario, contraseña y bases de las mismas variables DB_* que usa Laravel.
@@ -71,7 +72,7 @@ services:
         condition: service_healthy
 
   api:
-    image: nginx:1.27-alpine
+    image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
     container_name: incidentes-api
     ports:
       - "127.0.0.1:${API_PORT:-8080}:80"

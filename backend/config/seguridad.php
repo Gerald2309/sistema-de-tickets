@@ -16,6 +16,17 @@ return [
     | Cuentas de prueba de la demostración, una por perfil: comparten esta contraseña para que
     | quien evalúe pueda entrar con cada rol. Sin ella, también se crean con contraseña aleatoria.
     */
+    /*
+    | Alertas de seguridad: cuántos inicios fallidos dentro de la ventana disparan una alerta, por cuenta
+    | (fuerza bruta sobre una persona) y por IP (rociado de contraseñas sobre muchas). Una sola alerta por
+    | ventana y por cuenta o IP.
+    */
+    'alertas' => [
+        'ventana_minutos' => (int) env('ALERTA_VENTANA_MINUTOS', 15),
+        'fallidos_por_cuenta' => (int) env('ALERTA_FALLIDOS_POR_CUENTA', 10),
+        'fallidos_por_ip' => (int) env('ALERTA_FALLIDOS_POR_IP', 20),
+    ],
+
     'demostracion' => [
         'password' => env('DEMO_PASSWORD'),
     ],
