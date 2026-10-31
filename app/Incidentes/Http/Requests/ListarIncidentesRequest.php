@@ -44,6 +44,8 @@ class ListarIncidentesRequest extends FormRequest
             'mios' => ['nullable', 'boolean', 'prohibits:usuario_creador_id'],
             'asignados_a_mi' => ['nullable', 'boolean', 'prohibits:usuario_asignado_id'],
             'vence_en_horas' => ['nullable', 'integer', 'between:1,'.self::MAXIMO_HORAS_POR_VENCER],
+            // «Vencidos» y «por vencer» miran a lados opuestos del instante actual: juntos nunca devuelven nada.
+            'vencidos' => ['nullable', 'boolean', 'prohibits:vence_en_horas'],
             'fecha_desde' => ['nullable', 'date_format:'.IncidenteRequest::FORMATOS_FECHA],
             'fecha_hasta' => ['nullable', 'date_format:'.IncidenteRequest::FORMATOS_FECHA, 'after_or_equal:fecha_desde'],
             'campo_fecha' => ['nullable', Rule::enum(CampoFecha::class)],
@@ -84,6 +86,7 @@ class ListarIncidentesRequest extends FormRequest
                 ? $this->user()->id
                 : ($this->filled('usuario_creador_id') ? $this->integer('usuario_creador_id') : null),
             porVencer: $this->filled('vence_en_horas') ? $this->ventanaPorVencer() : null,
+            vencidosAl: $this->boolean('vencidos') ? Date::now() : null,
             fechaDesde: $this->fecha('fecha_desde'),
             fechaHasta: $this->fecha('fecha_hasta'),
             campoFecha: $this->enum('campo_fecha', CampoFecha::class) ?? CampoFecha::Vencimiento,

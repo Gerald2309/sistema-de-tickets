@@ -21,6 +21,7 @@ class DashboardResource extends JsonResource
             'por_estado' => $this->resource->porEstado,
             'por_prioridad' => $this->resource->porPrioridad,
             'vencidos' => $this->resource->vencidos,
+            'vencidos_por_estado' => $this->resource->vencidosPorEstado,
         ];
     }
 }

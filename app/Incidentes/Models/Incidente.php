@@ -7,7 +7,9 @@ use App\Incidentes\Dominio\AlcanceIncidentes;
 use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
+use App\Incidentes\Dominio\Vencimiento;
 use Database\Factories\IncidenteFactory;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,6 +58,18 @@ class Incidente extends Model
             $alcance->veSoloLoPropio() => $consulta->where('usuario_creador_id', $alcance->usuarioId()),
             default => $consulta->whereRaw('1 = 0'),
         };
+    }
+
+    /**
+     * Los vencidos en ese instante (D-04): sin resolver y con el vencimiento ya pasado. Es la regla de
+     * Vencimiento expresada como consulta; la usan el listado y el dashboard.
+     *
+     * @param  Builder<Incidente>  $consulta
+     */
+    public function scopeVencidosAl(Builder $consulta, DateTimeInterface $instante): void
+    {
+        $consulta->whereIn('estado', array_column(Vencimiento::estadosQueVencen(), 'value'))
+            ->where('fecha_vencimiento', '<', $instante);
     }
 
     /**
