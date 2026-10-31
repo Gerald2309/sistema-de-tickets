@@ -32,7 +32,9 @@ return [
     'sesiones_maximas' => (int) env('SESIONES_MAXIMAS', 5),
 
     'limites' => [
-        'api' => env('LIMITE_API_POR_MINUTO', 60),
+        // Por persona. La aplicación web pide de 6 a 8 recursos por pantalla (listas, totales, detalle):
+        // 300 por minuto deja navegar con soltura y sigue frenando un uso abusivo.
+        'api' => env('LIMITE_API_POR_MINUTO', 300),
         'login_email' => env('LIMITE_LOGIN_POR_EMAIL', 5),
         'login_ip' => env('LIMITE_LOGIN_POR_IP', 30),
     ],
