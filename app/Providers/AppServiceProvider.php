@@ -5,7 +5,6 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -17,8 +16,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // Una consulta por relación cargada de antemano: fuera de producción, el N+1 lanza una excepción.
         Model::preventLazyLoading(! $this->app->isProduction());
-
-        JsonResource::withoutWrapping();
 
         // Una sola definición de contraseña segura (ASVS 6.2.1 y 6.2.5): longitud, sin reglas de composición.
         Password::defaults(fn () => Password::min(15)->max(256));

@@ -2,6 +2,8 @@
 
 namespace App\Http\Errores;
 
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Excepciones\TransicionInvalida;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
@@ -30,6 +32,13 @@ final class ProblemaHttp
                 tipo: 'urn:incidentes:problema:validacion',
                 titulo: 'Error de validación',
                 extension: ['errors' => $excepcion->errors()],
+            ),
+            $excepcion instanceof TransicionInvalida => self::respuesta(
+                422,
+                $excepcion->getMessage(),
+                tipo: 'urn:incidentes:problema:transicion-invalida',
+                titulo: 'Transición de estado no permitida',
+                extension: ['estados_permitidos' => array_map(fn (Estado $estado) => $estado->value, $excepcion->desde->siguientes())],
             ),
             $excepcion instanceof AuthenticationException => self::respuesta(
                 401,

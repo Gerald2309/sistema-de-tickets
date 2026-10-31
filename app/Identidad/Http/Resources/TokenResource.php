@@ -11,6 +11,8 @@ use Laravel\Sanctum\NewAccessToken;
  */
 class TokenResource extends JsonResource
 {
+    public static $wrap = null;
+
     /**
      * @return array<string, mixed>
      */
@@ -19,7 +21,7 @@ class TokenResource extends JsonResource
         return [
             'token' => $this->resource->plainTextToken,
             'tipo_token' => 'Bearer',
-            'expira_en' => $this->resource->accessToken->expires_at?->toIso8601String(),
+            'expira_en' => $this->resource->accessToken->expires_at?->toIso8601ZuluString(),
         ];
     }
 }

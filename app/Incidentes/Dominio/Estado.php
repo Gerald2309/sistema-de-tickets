@@ -27,6 +27,12 @@ enum Estado: string
         };
     }
 
+    // Para resolver un incidente hay que dejar escrita la solución aplicada.
+    public function exigeSolucion(): bool
+    {
+        return $this === self::Resuelto;
+    }
+
     public function puedePasarA(self $destino): bool
     {
         return in_array($destino, $this->siguientes(), true);

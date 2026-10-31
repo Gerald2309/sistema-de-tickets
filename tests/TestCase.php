@@ -2,8 +2,13 @@
 
 namespace Tests;
 
+use App\Identidad\Dominio\ClavePermiso;
+use App\Identidad\Models\Permiso;
 use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Prioridad;
+use App\Incidentes\Models\Incidente;
 use Database\Seeders\PermisosSeeder;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,6 +36,34 @@ abstract class TestCase extends BaseTestCase
         return User::factory()->create($atributos + [
             'password' => self::PASSWORD,
             'rol_id' => Rol::where('nombre', $rol)->firstOrFail()->id,
+        ]);
+    }
+
+    /**
+     * Usuario con un rol creado para la prueba, que tiene exactamente esos permisos.
+     */
+    protected function usuarioConPermisos(ClavePermiso ...$permisos): User
+    {
+        $rol = Rol::factory()->create();
+        $rol->permisos()->sync(Permiso::whereIn('clave', array_map(fn (ClavePermiso $permiso) => $permiso->value, $permisos))->pluck('id'));
+
+        return User::factory()->create(['password' => self::PASSWORD, 'rol_id' => $rol->id]);
+    }
+
+    /**
+     * Incidente de un creador, con valores fijos para que la prueba no dependa del azar de la factory.
+     *
+     * @param  array<string, mixed>  $atributos
+     */
+    protected function incidenteDe(User $creador, array $atributos = []): Incidente
+    {
+        return Incidente::factory()->create($atributos + [
+            'usuario_creador_id' => $creador->id,
+            'usuario_asignado_id' => null,
+            'estado' => Estado::Abierto,
+            'prioridad' => Prioridad::Media,
+            'solucion' => null,
+            'fecha_vencimiento' => now()->addDays(3),
         ]);
     }
 
