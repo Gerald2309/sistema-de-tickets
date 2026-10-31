@@ -7,12 +7,20 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Las versiones mayores cambian la API: se migran a mano, con su propio plan.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: npm
     directory: /frontend
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Las versiones mayores cambian la API: se migran a mano, con su propio plan.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   # Las imágenes base, fijadas por digest en los Dockerfile y en docker-compose.yml.
   - package-ecosystem: docker

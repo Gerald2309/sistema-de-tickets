@@ -193,4 +193,74 @@ describe('Mi día', { timeout: 20_000 }, () => {
       }),
     )
   })
+
+  it('«Sugerir mi día» agrega lo urgente desde la hora actual y se deshace quitando lo agregado', async () => {
+    servidor.use(
+      manejador.post(api('mi-dia/sugerencia'), async (contexto) => {
+        await anotar('POST', 'sugerencia')(contexto)
+        return HttpResponse.json({
+          data: [61, 62].map((id) => ({
+            id,
+            fecha: '2030-01-01',
+            inicio: 600,
+            duracion: 60,
+            incidente: incidente(id),
+            nota: null,
+          })),
+        })
+      }),
+    )
+    montada = await montarAplicacion('/mi-dia')
+    const { envoltorio } = montada
+    await vi.waitFor(() => expect(envoltorio.find('.bloque').exists()).toBe(true), { timeout: 8000 })
+
+    await envoltorio
+      .findAll('button')
+      .find((boton) => boton.text().includes('Sugerir mi día'))
+      ?.trigger('click')
+
+    await vi.waitFor(() =>
+      expect(escrituras.find((escritura) => escritura.ruta === 'sugerencia')?.cuerpo).toMatchObject({
+        fecha: diaLocal(new Date()),
+      }),
+    )
+    await vi.waitFor(() => expect(document.body.textContent).toContain('Se agregaron 2 al día'))
+    const deshacer = [...document.querySelectorAll('.aviso__accion')].find((boton) =>
+      boton.textContent?.includes('Deshacer'),
+    )
+    if (deshacer instanceof HTMLElement) {
+      deshacer.click()
+    }
+    await vi.waitFor(() =>
+      expect(
+        escrituras.filter((escritura) => escritura.metodo === 'DELETE').map((escritura) => escritura.ruta),
+      ).toEqual(['plan/61', 'plan/62']),
+    )
+  })
+
+  it('el menú del bloque quita la marca personal de bloqueado', async () => {
+    servidor.use(
+      manejador.delete(api('mi-dia/bloqueos/:id'), async (contexto) => {
+        await anotar('DELETE', `bloqueos/${contexto.params.id}`)(contexto)
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    montada = await montarAplicacion('/mi-dia')
+    const { envoltorio } = montada
+    await vi.waitFor(() => expect(envoltorio.find('.bloque').exists()).toBe(true), { timeout: 8000 })
+
+    // El bloque de la agenda ya viene bloqueado: su menú ofrece quitar la marca.
+    await envoltorio.find('.bloque [aria-label="Más opciones"]').trigger('click')
+    await esperarPintado()
+    const quitar = [...document.querySelectorAll('.v-list-item')].find((item) =>
+      item.textContent?.includes('Quitar el bloqueo'),
+    )
+    if (quitar instanceof HTMLElement) {
+      quitar.click()
+    }
+
+    await vi.waitFor(() =>
+      expect(escrituras).toContainEqual({ metodo: 'DELETE', ruta: 'bloqueos/733', cuerpo: undefined }),
+    )
+  })
 })
