@@ -66,33 +66,6 @@ defineProps({
 </template>
 
 <style scoped>
-.columna-codigo {
-  width: 110px;
-}
-
-.columna-titulo {
-  width: 100%;
-  max-width: 0;
-}
-
-.enlace-fila {
-  display: block;
-  overflow: hidden;
-  color: var(--texto);
-  font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-decoration: none;
-}
-
-.enlace-fila:hover {
-  color: var(--acento);
-}
-
-.tenue {
-  color: var(--tenue);
-}
-
 .tabla-panel__vacia {
   padding: 24px 16px !important;
   color: var(--suave);

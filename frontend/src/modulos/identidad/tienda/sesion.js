@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import * as api from '../api/sesion.js'
 
 /** @typedef {import('../tipos.js').Perfil} Perfil */
+/** @typedef {import('../tipos.js').Permiso} Permiso */
 
 const CLAVE_ALMACEN = 'mesa-de-ayuda.sesion'
 
@@ -59,7 +60,7 @@ export const useSesion = defineStore('sesion', () => {
   const autenticada = computed(() => token.value !== null && perfil.value !== null)
 
   /**
-   * @param {string} permiso
+   * @param {Permiso} permiso
    * @returns {boolean}
    */
   function tiene(permiso) {
@@ -67,7 +68,7 @@ export const useSesion = defineStore('sesion', () => {
   }
 
   /**
-   * @param {...string} lista
+   * @param {...Permiso} lista
    * @returns {boolean} tiene al menos uno de los permisos
    */
   function tieneAlguno(...lista) {

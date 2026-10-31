@@ -270,10 +270,6 @@ const limpiar = () => cambiar({ q: undefined, rol: undefined, cliente: undefined
   color: var(--acento);
 }
 
-.tenue {
-  color: var(--tenue);
-}
-
 .punto {
   margin-right: 6px;
 }

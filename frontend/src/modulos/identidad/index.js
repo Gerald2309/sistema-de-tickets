@@ -4,13 +4,15 @@
  */
 import { iconos } from '@/compartido/iconos.js'
 
+/** @typedef {import('./tipos.js').Permiso} Permiso */
+
 /**
  * Entrada del menú lateral o de la paleta de comandos.
  * @typedef {object} EntradaDeNavegacion
  * @property {string} titulo
  * @property {string} icono ruta SVG de compartido/iconos.js
  * @property {import('vue-router').RouteLocationRaw} destino
- * @property {string[]} permisos basta con tener uno
+ * @property {Permiso[]} permisos basta con tener uno
  * @property {'trabajo' | 'administracion'} grupo
  */
 

@@ -4,13 +4,21 @@
  */
 
 /**
+ * Clave de permiso: el catálogo fijo de la API (`ClavePermiso` en el backend). Al tiparla, un permiso mal
+ * escrito en una vista o una ruta falla en `npm run tipos` en lugar de ocultar el botón en silencio.
+ * @typedef {'crear_incidente' | 'ver_propios' | 'editar_propios' | 'ver_todos' | 'editar_todos' | 'cambiar_estado'
+ *   | 'reasignar' | 'borrar' | 'ver_historial' | 'ver_dashboard' | 'administrar_roles' | 'administrar_usuarios'
+ *   | 'ver_auditoria'} Permiso
+ */
+
+/**
  * @typedef {object} Perfil persona con sesión iniciada (`GET /me`)
  * @property {number} id
  * @property {string} nombre
  * @property {string} correo
  * @property {Referencia} rol
  * @property {Referencia | null} cliente empresa cliente; nula para el personal de Psicol
- * @property {string[]} permisos claves de permiso, por ejemplo 'ver_todos'
+ * @property {Permiso[]} permisos
  */
 
 /**

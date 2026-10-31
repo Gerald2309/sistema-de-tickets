@@ -214,29 +214,6 @@ watch(
   width: 44px;
 }
 
-.columna-codigo {
-  width: 110px;
-}
-
-.columna-titulo {
-  width: 100%;
-  max-width: 0;
-}
-
-.enlace-fila {
-  display: block;
-  overflow: hidden;
-  color: var(--texto);
-  font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-decoration: none;
-}
-
-.enlace-fila:hover {
-  color: var(--acento);
-}
-
 .columna-titulo__datos {
   display: block;
   overflow: hidden;
@@ -269,10 +246,6 @@ watch(
 
 .ordenar:hover {
   color: var(--texto);
-}
-
-.tenue {
-  color: var(--tenue);
 }
 
 .tabla-vacia {

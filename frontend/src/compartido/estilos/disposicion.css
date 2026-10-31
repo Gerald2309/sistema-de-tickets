@@ -195,6 +195,45 @@
   box-shadow: inset 2px 0 0 var(--marca-cian);
 }
 
+/* Columnas comunes: el código con ancho fijo y el título que ocupa el resto y se recorta con puntos. */
+.columna-codigo {
+  width: 110px;
+}
+
+.columna-titulo {
+  width: 100%;
+  max-width: 0;
+}
+
+.enlace-fila {
+  display: block;
+  overflow: hidden;
+  color: var(--texto);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+
+.enlace-fila:hover {
+  color: var(--acento);
+}
+
+.tenue {
+  color: var(--tenue);
+}
+
+/* Insignia de estado o prioridad en caja, como en el detalle. */
+.insignia-caja {
+  height: 24px;
+  padding: 0 9px;
+  font-size: 12.5px;
+  font-weight: 500;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
 /* Filtro de una barra de herramientas: texto con ícono, sin recuadro; gris al pasar o abrir. */
 .filtro {
   display: inline-flex;

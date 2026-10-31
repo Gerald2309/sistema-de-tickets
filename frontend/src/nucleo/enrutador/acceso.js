@@ -7,12 +7,13 @@
  * La autorización real la aplica la API; esto evita mostrar pantallas que van a fallar.
  */
 
-/** @typedef {'publica' | 'autenticado' | string | string[]} PermisoDeRuta */
+/** @typedef {import('@/modulos/identidad/index.js').Permiso} Permiso */
+/** @typedef {'publica' | 'autenticado' | Permiso | Permiso[]} PermisoDeRuta */
 
 /**
  * @typedef {object} EstadoDeSesion
  * @property {boolean} autenticada
- * @property {(...permisos: string[]) => boolean} tieneAlguno
+ * @property {(...permisos: Permiso[]) => boolean} tieneAlguno
  */
 
 /**
