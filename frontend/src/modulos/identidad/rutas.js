@@ -20,4 +20,22 @@ export const rutas = [
     component: () => import('./vistas/VistaMiCuenta.vue'),
     meta: { permiso: 'autenticado', titulo: 'Mi cuenta' },
   },
+  {
+    path: 'administracion/usuarios',
+    name: 'usuarios',
+    component: () => import('./vistas/VistaUsuarios.vue'),
+    meta: { permiso: 'administrar_usuarios', titulo: 'Usuarios' },
+  },
+  {
+    path: 'administracion/roles',
+    name: 'roles',
+    component: () => import('./vistas/VistaRoles.vue'),
+    meta: { permiso: 'administrar_roles', titulo: 'Roles y permisos' },
+  },
+  {
+    path: 'administracion/empresas',
+    name: 'empresas',
+    component: () => import('./vistas/VistaEmpresas.vue'),
+    meta: { permiso: 'administrar_usuarios', titulo: 'Empresas' },
+  },
 ]

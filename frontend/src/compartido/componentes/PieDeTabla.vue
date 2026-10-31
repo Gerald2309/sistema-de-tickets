@@ -31,7 +31,7 @@ const formato = new Intl.NumberFormat('es-CO')
       </span>
     </span>
     <span class="pie__controles">
-      <label class="pie__tamano">
+      <label v-if="tamanos.length > 1" class="pie__tamano">
         <span class="d-none d-sm-inline">Filas por página</span>
         <select
           :value="porPagina"

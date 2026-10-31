@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/vue-query'
 import { computed } from 'vue'
-import { aErrorDeApi } from '@/compartido/api/errores.js'
+import { mensajeDeError } from '@/compartido/api/errores.js'
 import { useConfirmacion } from '@/compartido/composables/useConfirmacion.js'
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
 import { useSesion } from '@/modulos/identidad/index.js'
@@ -30,9 +30,7 @@ export function useAccionesEnLote(idsElegidos, alTerminar) {
 
   /** @param {unknown} causa */
   function informar(causa) {
-    const problema = aErrorDeApi(causa)
-    const mensajes = Object.values(problema.errores).flat()
-    notificaciones.error('No se aplicó ningún cambio', mensajes[0] ?? problema.detalle)
+    notificaciones.error('No se aplicó ningún cambio', mensajeDeError(causa))
   }
 
   const cambio = useMutation({

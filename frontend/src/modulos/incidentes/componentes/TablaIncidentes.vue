@@ -231,23 +231,6 @@ const pendiente = (/** @type {string} */ estado) => estado === 'abierto' || esta
   text-overflow: ellipsis;
 }
 
-.columna-acciones {
-  width: 44px;
-  text-align: right;
-}
-
-/* Las acciones de fila aparecen solo cuando se necesitan (sistema de diseño, Tablas). */
-.columna-acciones .v-btn {
-  opacity: 0;
-  transition: opacity var(--rapida);
-}
-
-tr:hover .columna-acciones .v-btn,
-.columna-acciones .v-btn:focus-visible,
-.columna-acciones .v-btn[aria-expanded='true'] {
-  opacity: 1;
-}
-
 .fila--elegida {
   background: var(--acento-fondo) !important;
 }

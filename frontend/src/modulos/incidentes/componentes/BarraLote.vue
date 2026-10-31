@@ -175,23 +175,8 @@ const excedido = () => props.cantidad > props.maximo
 </template>
 
 <style scoped>
-/* Se despliega animando la altura real con una rejilla (sistema de diseño, Barra de selección). */
-.plegable {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition:
-    grid-template-rows var(--media) var(--curva),
-    margin var(--media) var(--curva);
-}
-
 .plegable--abierta {
-  grid-template-rows: 1fr;
   margin-bottom: 12px;
-}
-
-.plegable > div {
-  min-height: 0;
-  overflow: hidden;
 }
 
 .lote {
@@ -217,9 +202,6 @@ const excedido = () => props.cantidad > props.maximo
 }
 
 .punto {
-  width: 8px;
-  height: 8px;
   margin-right: 12px;
-  border-radius: 50%;
 }
 </style>

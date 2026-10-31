@@ -8,7 +8,15 @@ const { deTrabajo, deAdministracion } = useNavegacion()
 </script>
 
 <template>
-  <v-navigation-drawer v-model="abierto" :permanent="permanente" width="232" class="menu" aria-label="Secciones">
+  <!-- Fijo, se muestra siempre; desplegable, solo cuando se abre (Vuetify oculta incluso el fijo si el modelo es falso). -->
+  <v-navigation-drawer
+    :model-value="permanente || abierto"
+    :permanent="permanente"
+    width="232"
+    class="menu"
+    aria-label="Secciones"
+    @update:model-value="abierto = $event"
+  >
     <v-list nav class="pa-3">
       <v-list-item
         v-for="entrada in deTrabajo"

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { aErrorDeApi } from '@/compartido/api/errores.js'
+import { mensajeDeError } from '@/compartido/api/errores.js'
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
 import { exportarIncidentes } from '../api/incidentes.js'
 
@@ -29,9 +29,8 @@ export function useDescarga(filtrosActivos) {
       guardar(archivo, nombre)
       notificaciones.exito('Descarga lista', nombre)
     } catch (causa) {
-      const problema = aErrorDeApi(causa)
       // Un 422 por exceso de resultados trae el mensaje de la API («acote la búsqueda»).
-      notificaciones.error('No se pudo descargar', Object.values(problema.errores).flat()[0] ?? problema.detalle)
+      notificaciones.error('No se pudo descargar', mensajeDeError(causa))
     } finally {
       descargando.value = false
       progreso.value = null

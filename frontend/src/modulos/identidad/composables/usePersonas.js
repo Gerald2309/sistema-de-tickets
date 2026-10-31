@@ -1,16 +1,9 @@
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed, ref, toValue } from 'vue'
-import { buscarPersonas, listarClientes } from '../api/personas.js'
+import { clavesDeIdentidad } from '../api/claves.js'
+import { listarClientes } from '../api/clientes.js'
+import { buscarPersonas } from '../api/personas.js'
 import { useSesion } from '../tienda/sesion.js'
-
-export const clavesDeIdentidad = Object.freeze({
-  personas: () => ['personas'],
-  /** @param {object} criterio */
-  busquedaDePersonas: (criterio) => ['personas', criterio],
-  clientes: () => ['clientes'],
-  /** @param {object} criterio */
-  listaDeClientes: (criterio) => ['clientes', criterio],
-})
 
 /**
  * Selector de personas (asignar, filtrar): busca mientras se escribe y resuelve los nombres de los ids ya

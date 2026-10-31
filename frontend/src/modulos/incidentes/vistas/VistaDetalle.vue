@@ -368,10 +368,7 @@ const propiedades = computed(() => {
 }
 
 .punto {
-  width: 8px;
-  height: 8px;
   margin-right: 12px;
-  border-radius: 50%;
 }
 
 @media (width <= 960px) {

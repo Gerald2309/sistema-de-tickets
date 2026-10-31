@@ -19,4 +19,29 @@
  * @property {string | null} expiraEn ISO 8601 en UTC
  */
 
+/**
+ * @typedef {object} Usuario
+ * @property {number} id
+ * @property {string} nombre
+ * @property {string} correo
+ * @property {boolean} activo
+ * @property {Referencia} rol
+ * @property {Referencia | null} cliente null para el personal de Psicol
+ */
+
+/**
+ * @typedef {object} FiltrosDeUsuarios
+ * @property {string} [q]
+ * @property {number} [rol]
+ * @property {number} [cliente]
+ * @property {'activos' | 'inactivos'} [estado]
+ * @property {number} [pagina]
+ */
+
+/** @typedef {{ id: number, nombre: string, activo: boolean, usuarios: number }} Cliente empresa cliente; `usuarios` es cuántas personas tiene */
+
+/** @typedef {{ id: number, nombre: string, permisos: string[], usuarios: number }} Rol */
+
+/** @typedef {{ id: number, nombre: string, activo: boolean }} Persona para asignar o filtrar (G-05) */
+
 export {}
