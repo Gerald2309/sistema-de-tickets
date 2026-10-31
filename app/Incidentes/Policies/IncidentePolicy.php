@@ -21,6 +21,11 @@ class IncidentePolicy
         return $this->permitirSi(self::alcanceDe($usuario)->puedeListar());
     }
 
+    public function verAvisos(User $usuario): Response
+    {
+        return $this->permitirSi(self::alcanceDe($usuario)->puedeVerAvisos());
+    }
+
     public function crear(User $usuario): Response
     {
         return $this->permitirSi(self::alcanceDe($usuario)->puedeCrear());

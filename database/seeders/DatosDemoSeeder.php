@@ -7,8 +7,10 @@ use App\Auditoria\Models\Auditoria;
 use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
 use App\Incidentes\Dominio\CampoHistorial;
+use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\EventoHistorial;
+use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Models\HistorialIncidente;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Database\Seeder;
@@ -44,6 +46,44 @@ class DatosDemoSeeder extends Seeder
                         : $soporte->random()->id,
                 ])
                 ->create();
+
+            $this->registrarHistorial($incidente);
+        }
+
+        $this->reportesDeUnaCaidaDeRed($solicitantes);
+    }
+
+    /**
+     * Cinco reportes recientes de la misma falla, de cuatro personas distintas: dispara el aviso de
+     * posible incidente masivo.
+     *
+     * @param  Collection<int, User>  $solicitantes
+     */
+    private function reportesDeUnaCaidaDeRed(Collection $solicitantes): void
+    {
+        $reportes = [
+            ['Sin internet en el piso 3', 'Desde hace unos minutos no hay conexión de internet en el piso 3 y nadie puede trabajar.'],
+            ['No carga ninguna página web', 'La conexión de internet de mi equipo no responde, ninguna página web abre.'],
+            ['Se cayó el internet en contabilidad', 'En contabilidad no hay conexión de internet desde hace media hora.'],
+            ['Internet muy lento y se corta', 'La conexión de internet se corta cada pocos minutos y no puedo enviar archivos.'],
+            ['No hay conexión en la sala de juntas', 'La sala de juntas perdió la conexión de internet y tenemos una reunión.'],
+        ];
+
+        foreach ($reportes as $i => [$titulo, $descripcion]) {
+            $momento = now()->subMinutes(10 + $i * 15);
+
+            $incidente = Incidente::factory()->create([
+                'titulo' => $titulo,
+                'descripcion' => $descripcion,
+                'categoria' => Categoria::Red,
+                'estado' => Estado::Abierto,
+                'prioridad' => Prioridad::Alta,
+                'solucion' => null,
+                'usuario_creador_id' => $solicitantes[$i % 4]->id,
+                'usuario_asignado_id' => null,
+                'created_at' => $momento,
+                'updated_at' => $momento,
+            ]);
 
             $this->registrarHistorial($incidente);
         }

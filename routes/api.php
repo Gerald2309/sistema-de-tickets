@@ -2,6 +2,7 @@
 
 use App\Identidad\Http\Controllers\AuthController;
 use App\Identidad\Http\Controllers\PerfilController;
+use App\Incidentes\Http\Controllers\AvisosController;
 use App\Incidentes\Http\Controllers\CatalogoController;
 use App\Incidentes\Http\Controllers\HistorialController;
 use App\Incidentes\Http\Controllers\IncidenteController;
@@ -17,6 +18,7 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout'])->can('autenticado');
         Route::put('perfil/contrasena', [PerfilController::class, 'cambiarContrasena'])->can('autenticado');
 
+        Route::get('avisos', AvisosController::class)->can('verAvisos', Incidente::class);
         Route::get('catalogos', CatalogoController::class)->can('autenticado');
 
         Route::get('incidentes', [IncidenteController::class, 'index'])->can('listar', Incidente::class);
