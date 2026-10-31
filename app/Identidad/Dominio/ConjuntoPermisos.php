@@ -18,6 +18,17 @@ final class ConjuntoPermisos
         }
     }
 
+    /**
+     * @return list<string> las claves, en orden alfabético
+     */
+    public function claves(): array
+    {
+        $claves = array_keys($this->claves);
+        sort($claves);
+
+        return $claves;
+    }
+
     public function tiene(ClavePermiso $permiso): bool
     {
         return isset($this->claves[$permiso->value]);

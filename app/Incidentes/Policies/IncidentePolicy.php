@@ -21,6 +21,16 @@ class IncidentePolicy
         return $this->permitirSi(self::alcanceDe($usuario)->puedeListar());
     }
 
+    public function actualizarEnLote(User $usuario): Response
+    {
+        return $this->permitirSi(self::alcanceDe($usuario)->puedeActualizarEnLote());
+    }
+
+    public function eliminarEnLote(User $usuario): Response
+    {
+        return $this->permitirSi(self::alcanceDe($usuario)->puedeBorrarEnLote());
+    }
+
     public function verDashboard(User $usuario): Response
     {
         return $this->permitirSi(self::alcanceDe($usuario)->puedeVerDashboard());

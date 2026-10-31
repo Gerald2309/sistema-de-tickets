@@ -81,6 +81,22 @@ final class AlcanceIncidentes
         return $this->puedeVer($creadorId) && $this->permisos->tiene(ClavePermiso::VerHistorial);
     }
 
+    // En lote hay que poder hacer algo sobre lo que se ve; cada incidente se comprueba después, uno a uno.
+    public function puedeActualizarEnLote(): bool
+    {
+        return $this->puedeListar() && $this->permisos->alguno(
+            ClavePermiso::EditarPropios,
+            ClavePermiso::EditarTodos,
+            ClavePermiso::CambiarEstado,
+            ClavePermiso::Reasignar,
+        );
+    }
+
+    public function puedeBorrarEnLote(): bool
+    {
+        return $this->puedeListar() && $this->permisos->tiene(ClavePermiso::Borrar);
+    }
+
     // El dashboard cuenta solo lo que la persona ve; el permiso decide si accede a él.
     public function puedeVerDashboard(): bool
     {

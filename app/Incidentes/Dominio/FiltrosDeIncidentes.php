@@ -20,6 +20,8 @@ final readonly class FiltrosDeIncidentes
         public ?Estado $estado = null,
         public ?Categoria $categoria = null,
         public ?int $usuarioAsignadoId = null,
+        public ?int $usuarioCreadorId = null,
+        public ?VentanaDeVencimiento $porVencer = null,
         public ?DateTimeInterface $fechaDesde = null,
         public ?DateTimeInterface $fechaHasta = null,
         public CampoFecha $campoFecha = CampoFecha::Vencimiento,

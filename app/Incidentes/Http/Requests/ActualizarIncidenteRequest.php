@@ -2,9 +2,6 @@
 
 namespace App\Incidentes\Http\Requests;
 
-use App\Incidentes\Dominio\Estado;
-use Illuminate\Validation\Rule;
-
 class ActualizarIncidenteRequest extends IncidenteRequest
 {
     // Permiso por campo: editar, cambiar el estado y reasignar son capacidades distintas.
@@ -18,9 +15,6 @@ class ActualizarIncidenteRequest extends IncidenteRequest
      */
     public function rules(): array
     {
-        return $this->reglasComunes('sometimes') + [
-            'estado' => ['sometimes', Rule::enum(Estado::class)],
-            'solucion' => ['sometimes', 'required', 'string', 'max:10000'],
-        ];
+        return $this->reglasComunes('sometimes') + $this->reglasDeEstado();
     }
 }

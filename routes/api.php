@@ -11,6 +11,7 @@ use App\Incidentes\Http\Controllers\CatalogoController;
 use App\Incidentes\Http\Controllers\DashboardController;
 use App\Incidentes\Http\Controllers\HistorialController;
 use App\Incidentes\Http\Controllers\IncidenteController;
+use App\Incidentes\Http\Controllers\IncidenteLoteController;
 use App\Incidentes\Http\Controllers\SimilaresController;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,7 @@ Route::prefix('v1')->group(function () {
     // Toda ruta autenticada declara su permiso con ->can(). Sin él, ExigirAutorizacionDeclarada responde 403.
     Route::middleware(['auth:sanctum', 'throttle:api', 'autorizacion.declarada'])->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout'])->can('autenticado');
+        Route::get('me', [PerfilController::class, 'mostrar'])->can('autenticado');
         Route::put('perfil/contrasena', [PerfilController::class, 'cambiarContrasena'])->can('autenticado');
 
         Route::get('avisos', AvisosController::class)->can('verAvisos', Incidente::class);
@@ -29,6 +31,10 @@ Route::prefix('v1')->group(function () {
 
         Route::get('incidentes', [IncidenteController::class, 'index'])->can('listar', Incidente::class);
         Route::post('incidentes', [IncidenteController::class, 'store'])->can('crear', Incidente::class);
+        // Las rutas de lote van antes de las de un incidente: «lote» no es un id.
+        Route::patch('incidentes/lote', [IncidenteLoteController::class, 'actualizar'])->can('actualizarEnLote', Incidente::class);
+        Route::delete('incidentes/lote', [IncidenteLoteController::class, 'eliminar'])->can('eliminarEnLote', Incidente::class);
+
         Route::get('incidentes/{incidente}', [IncidenteController::class, 'show'])->can('ver', 'incidente');
         Route::patch('incidentes/{incidente}', [IncidenteController::class, 'update'])->can('actualizar', 'incidente');
         Route::delete('incidentes/{incidente}', [IncidenteController::class, 'destroy'])->can('eliminar', 'incidente');
