@@ -23,7 +23,7 @@ use Illuminate\Support\Collection;
 
 class DatosDemoSeeder extends Seeder
 {
-    private const INCIDENTES = 600;
+    private const INCIDENTES = 750;
 
     private const IP_ADMINISTRADOR = '192.168.10.5';
 
