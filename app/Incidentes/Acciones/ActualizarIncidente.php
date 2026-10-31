@@ -7,13 +7,17 @@ use App\Incidentes\Dominio\CambiosVigilados;
 use App\Incidentes\Dominio\CampoHistorial;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Excepciones\TransicionInvalida;
+use App\Incidentes\Dominio\TipoDeCambio;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ActualizarIncidente
 {
-    public function __construct(private readonly RegistrarHistorial $registrarHistorial) {}
+    public function __construct(
+        private readonly RegistrarHistorial $registrarHistorial,
+        private readonly AvisarCambios $avisarCambios,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $datos  ya validados y con el permiso de cada campo comprobado
@@ -27,6 +31,7 @@ class ActualizarIncidente
             // Se relee con bloqueo: dos cambios de estado simultáneos no pueden validarse contra el mismo estado.
             $actual = Incidente::lockForUpdate()->findOrFail($incidente->id);
             $antes = $this->valoresVigilados($actual);
+            $asignadoAnterior = $actual->usuario_asignado_id;
 
             $this->validarCambioDeEstado($actual, $datos);
 
@@ -40,6 +45,8 @@ class ActualizarIncidente
                     $autor,
                     CambiosVigilados::modificaciones($antes, $this->valoresVigilados($actual)),
                 );
+                // Quien deja de estar asignado también se entera: el incidente sale de su lista.
+                $this->avisarCambios->registrar($actual, TipoDeCambio::Actualizado, $asignadoAnterior);
             }
 
             return $actual->load(Incidente::RELACIONES_VISIBLES);

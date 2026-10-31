@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Incidentes\Acciones\AvisarCambios;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
@@ -13,8 +14,18 @@ use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        // Una instancia por petición: junta los avisos de tiempo real de esa petición (F-12).
+        $this->app->scoped(AvisarCambios::class);
+    }
+
     public function boot(): void
     {
+        // Canales del tiempo real. Su ruta de autorización está en routes/api.php, con token y límite
+        // como el resto de la API (no en el grupo web, que usaría sesión).
+        require base_path('routes/channels.php');
+
         // Detrás de un proxy que termina el TLS: sus direcciones (separadas por comas, o `*`) salen de TRUSTED_PROXIES.
         // Sin ella no se confía en ninguna cabecera X-Forwarded-*. Se lee de la configuración, no del entorno:
         // con la configuración en caché, env() fuera de config/ devuelve null.

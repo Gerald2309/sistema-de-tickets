@@ -17,6 +17,7 @@ use App\Incidentes\Http\Controllers\IncidenteController;
 use App\Incidentes\Http\Controllers\IncidenteLoteController;
 use App\Incidentes\Http\Controllers\SimilaresController;
 use App\Incidentes\Models\Incidente;
+use Illuminate\Broadcasting\BroadcastController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -31,6 +32,9 @@ Route::prefix('v1')->group(function () {
         Route::get('avisos', AvisosController::class)->can('verAvisos', Incidente::class);
         Route::get('dashboard', DashboardController::class)->can('verDashboard', Incidente::class);
         Route::get('catalogos', CatalogoController::class)->can('autenticado');
+
+        // Autorización de los canales privados del tiempo real (F-12); cada canal decide en routes/channels.php.
+        Route::post('broadcasting/auth', [BroadcastController::class, 'authenticate'])->can('autenticado');
 
         Route::get('incidentes', [IncidenteController::class, 'index'])->can('listar', Incidente::class);
         Route::post('incidentes', [IncidenteController::class, 'store'])->can('crear', Incidente::class);
