@@ -2,6 +2,7 @@
 
 namespace App\Http\Errores;
 
+use App\Http\Middleware\CabecerasDeApi;
 use App\Identidad\Dominio\Excepciones\RolEnUso;
 use App\Identidad\Dominio\Excepciones\UltimoAdministrador;
 use App\Incidentes\Dominio\Estado;
@@ -89,6 +90,6 @@ final class ProblemaHttp
             ...$extension,
         ];
 
-        return response()->json($cuerpo, $estado, $cabeceras + ['Content-Type' => 'application/problem+json'], JSON_UNESCAPED_UNICODE);
+        return response()->json($cuerpo, $estado, $cabeceras + ['Content-Type' => 'application/problem+json'] + CabecerasDeApi::CABECERAS, JSON_UNESCAPED_UNICODE);
     }
 }

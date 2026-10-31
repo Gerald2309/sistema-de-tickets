@@ -13,9 +13,9 @@ use Laravel\Sanctum\NewAccessToken;
 
 class IniciarSesion
 {
-    // Hash de una contraseña aleatoria que nadie conoce. Se compara cuando el correo no existe,
-    // para que el tiempo de respuesta no revele qué cuentas existen.
-    private const HASH_FICTICIO = '$2y$12$vSE5BQaiZoljsApLwByuMe.5IuYZzqXOuEK1Pv/uYJu1./UWqrdYi';
+    // Hash argon2id con los parámetros de producción que no pertenece a ninguna cuenta. Se compara cuando
+    // el correo no existe, para que el tiempo de respuesta no revele qué cuentas existen.
+    private const HASH_FICTICIO = '$argon2id$v=19$m=65536,t=4,p=1$bC84Mmp5UGxhOWFlYkc1SQ$bXghOkbPgtx6RBuHH63EH9Gjj9NWvOvuDWJjSNIDe3k';
 
     public function __construct(private readonly RegistrarAuditoria $registrarAuditoria) {}
 
