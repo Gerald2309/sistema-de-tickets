@@ -81,6 +81,12 @@ final class AlcanceIncidentes
         return $this->puedeVer($creadorId) && $this->permisos->tiene(ClavePermiso::VerHistorial);
     }
 
+    // El aviso resume incidentes de todas las personas: solo para quien ve todo.
+    public function puedeVerAvisos(): bool
+    {
+        return $this->veTodo();
+    }
+
     // Los casos parecidos muestran la solución de incidentes de otras personas: solo para quien ve todo.
     public function puedeVerSimilares(int $creadorId): bool
     {
