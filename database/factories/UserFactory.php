@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -12,34 +12,42 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    private const DOMINIO = 'empresa-ejemplo.com';
+
+    /** @var array<string, int> */
+    private static array $correosUsados = [];
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
+        $nombre = fake()->firstName();
+        $apellido = fake()->lastName();
+
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'name' => "$nombre $apellido",
+            'email' => self::correo($nombre, $apellido),
+            // Contraseña aleatoria: las cuentas de demostración no sirven para iniciar sesión.
+            'password' => Str::random(40),
+            'activo' => true,
+            'rol_id' => Rol::factory(),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function inactivo(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->state(fn () => ['activo' => false]);
+    }
+
+    /**
+     * Correo corporativo nombre.apellido@dominio; si ya existe, se numera (nombre.apellido2).
+     */
+    private static function correo(string $nombre, string $apellido): string
+    {
+        $base = preg_replace('/[^a-z.]/', '', Str::lower(Str::ascii("$nombre.$apellido")));
+        $repeticiones = self::$correosUsados[$base] = (self::$correosUsados[$base] ?? 0) + 1;
+
+        return ($repeticiones > 1 ? $base.$repeticiones : $base).'@'.self::DOMINIO;
     }
 }
