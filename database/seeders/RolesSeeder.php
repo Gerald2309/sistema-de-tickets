@@ -52,6 +52,7 @@ class RolesSeeder extends Seeder
                 ClavePermiso::VerDashboard,
                 ClavePermiso::AdministrarRoles,
                 ClavePermiso::AdministrarUsuarios,
+                ClavePermiso::VerAuditoria,
             ],
             'Solicitante' => [
                 ClavePermiso::CrearIncidente,
