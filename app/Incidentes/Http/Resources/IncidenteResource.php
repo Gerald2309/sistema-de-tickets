@@ -40,6 +40,9 @@ class IncidenteResource extends JsonResource
             'asignado' => $incidente->asignado
                 ? ['id' => $incidente->asignado->id, 'name' => $incidente->asignado->name]
                 : null,
+            'cliente' => $incidente->cliente
+                ? ['id' => $incidente->cliente->id, 'nombre' => $incidente->cliente->nombre]
+                : null,
             'created_at' => $incidente->created_at?->copy()->utc()->toIso8601ZuluString(),
             'updated_at' => $incidente->updated_at?->copy()->utc()->toIso8601ZuluString(),
         ];

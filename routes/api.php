@@ -2,6 +2,7 @@
 
 use App\Auditoria\Http\Controllers\AuditoriaController;
 use App\Identidad\Http\Controllers\AuthController;
+use App\Identidad\Http\Controllers\ClienteController;
 use App\Identidad\Http\Controllers\PerfilController;
 use App\Identidad\Http\Controllers\PermisoController;
 use App\Identidad\Http\Controllers\PersonaController;
@@ -58,6 +59,11 @@ Route::prefix('v1')->group(function () {
         Route::delete('roles/{rol}', [RolController::class, 'destroy'])->can('administrar_roles');
         Route::put('roles/{rol}/permisos', [RolController::class, 'asignarPermisos'])->can('administrar_roles');
         Route::get('permisos', PermisoController::class)->can('consultar_roles');
+
+        // Empresas cliente (F-10). No se borran: se desactivan.
+        Route::get('clientes', [ClienteController::class, 'index'])->can('consultar_clientes');
+        Route::post('clientes', [ClienteController::class, 'store'])->can('administrar_usuarios');
+        Route::patch('clientes/{cliente}', [ClienteController::class, 'update'])->can('administrar_usuarios');
 
         // Personas para asignar o filtrar (solo id, nombre y si está activa).
         Route::get('personas', PersonaController::class)->can('consultar_personas');

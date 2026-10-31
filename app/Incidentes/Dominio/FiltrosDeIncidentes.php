@@ -22,6 +22,7 @@ final readonly class FiltrosDeIncidentes
         public ?Categoria $categoria = null,
         public ?int $usuarioAsignadoId = null,
         public ?int $usuarioCreadorId = null,
+        public ?int $clienteId = null,
         public ?VentanaDeVencimiento $porVencer = null,
         public ?DateTimeInterface $vencidosAl = null,
         public ?DateTimeInterface $fechaDesde = null,

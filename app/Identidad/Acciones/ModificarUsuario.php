@@ -16,10 +16,10 @@ class ModificarUsuario
     ) {}
 
     /**
-     * Modifica nombre, correo, estado activo o, para restablecerla, la contraseña. Desactivar a alguien
+     * Modifica nombre, correo, empresa, estado activo o, para restablecerla, la contraseña. Desactivar a alguien
      * o restablecerle la contraseña cierra sus sesiones.
      *
-     * @param  array{name?: string, email?: string, activo?: bool, password?: string}  $cambios
+     * @param  array{name?: string, email?: string, activo?: bool, password?: string, cliente_id?: int|null}  $cambios
      *
      * @throws UltimoAdministrador
      */
@@ -46,7 +46,7 @@ class ModificarUsuario
                 $usuario->tokens()->delete();
             }
 
-            return $usuario->load('rol');
+            return $usuario->load(['rol', 'cliente']);
         });
     }
 
@@ -57,7 +57,7 @@ class ModificarUsuario
     {
         $registrar = fn (AccionAuditoria $accion, ?string $detalle = null) => $this->registrarAuditoria->ejecutar($accion, $administrador->id, $usuario->id, $detalle, $ip);
 
-        $datos = array_values(array_intersect($cambiados, ['name', 'email']));
+        $datos = array_values(array_intersect($cambiados, ['name', 'email', 'cliente_id']));
         if ($datos !== []) {
             $registrar(AccionAuditoria::UsuarioModificado, 'Campos: '.implode(', ', $datos));
         }

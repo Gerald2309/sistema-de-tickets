@@ -30,6 +30,7 @@ class ModificarUsuarioRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($usuario)],
             'activo' => ['sometimes', 'required', 'boolean'],
+            'cliente_id' => ['sometimes', 'nullable', 'integer', Rule::exists('clientes', 'id')->where('activo', true)],
             // Restablecer la contraseña de otra persona; la propia se cambia con la contraseña actual.
             'password' => [
                 'sometimes',
@@ -58,6 +59,10 @@ class ModificarUsuarioRequest extends FormRequest
 
         if ($this->has('activo')) {
             $cambios['activo'] = $this->boolean('activo');
+        }
+
+        if ($this->has('cliente_id')) {
+            $cambios['cliente_id'] = $this->filled('cliente_id') ? $this->integer('cliente_id') : null;
         }
 
         return $cambios;

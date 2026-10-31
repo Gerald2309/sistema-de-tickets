@@ -19,4 +19,6 @@ enum AccionAuditoria: string
     case RolEliminado = 'rol_eliminado';
     case PermisoConcedido = 'permiso_concedido';
     case PermisoRetirado = 'permiso_retirado';
+    case ClienteCreado = 'cliente_creado';
+    case ClienteModificado = 'cliente_modificado';
 }

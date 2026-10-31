@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Auditoria\Dominio\AccionAuditoria;
 use App\Auditoria\Models\Auditoria;
+use App\Identidad\Models\Cliente;
 use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
 use App\Incidentes\Dominio\CampoHistorial;
@@ -16,20 +17,25 @@ use App\Incidentes\Models\Incidente;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
-// Datos de demostración: usuarios con nombres reales y una mesa de soporte con incidentes en
-// todos los estados, con su historial y la auditoría de las altas. Las cuentas llevan
-// contraseñas aleatorias.
+// Datos de demostración: empresas cliente, usuarios con nombres reales y una mesa de soporte con
+// incidentes en todos los estados, con su historial y la auditoría de las altas. Las cuentas llevan
+// contraseñas aleatorias. Los solicitantes se reparten entre las empresas; el personal de soporte no tiene.
+
 class DatosDemoSeeder extends Seeder
 {
     private const INCIDENTES = 600;
 
     private const IP_ADMINISTRADOR = '192.168.10.5';
 
+    // Nombres inventados para la demostración.
+    private const EMPRESAS = ['Constructora Andina', 'Transportes Sabana', 'Clínica del Norte', 'Banco Aliado', 'Colegio Los Pinos'];
+
     public function run(): void
     {
         $administrador = User::where('email', config('seguridad.administrador.email'))->firstOrFail();
 
-        $solicitantes = $this->usuarios('Solicitante', 12, $administrador);
+        $empresas = $this->empresas($administrador);
+        $solicitantes = $this->usuarios('Solicitante', 12, $administrador, $empresas);
         $soporte = $this->usuarios('Soporte N1', 2, $administrador)
             ->concat($this->usuarios('Soporte N2', 2, $administrador))
             ->concat($this->usuarios('Soporte N3', 1, $administrador));
@@ -37,9 +43,11 @@ class DatosDemoSeeder extends Seeder
         $this->registrarInicioDeSesionFallido($solicitantes);
 
         for ($i = 0; $i < self::INCIDENTES; $i++) {
+            $creador = $solicitantes->random();
             $incidente = Incidente::factory()
                 ->state(fn (array $atributos) => [
-                    'usuario_creador_id' => $solicitantes->random()->id,
+                    'usuario_creador_id' => $creador->id,
+                    'cliente_id' => $creador->cliente_id,
                     // Un incidente sin atender (abierto) puede no tener todavía asignado.
                     'usuario_asignado_id' => $atributos['estado'] === Estado::Abierto && fake()->boolean(50)
                         ? null
@@ -71,6 +79,8 @@ class DatosDemoSeeder extends Seeder
 
         foreach ($reportes as $i => [$titulo, $descripcion]) {
             $momento = now()->subMinutes(10 + $i * 15);
+            /** @var User $creador hay más de cuatro solicitantes */
+            $creador = $solicitantes[$i % 4];
 
             $incidente = Incidente::factory()->create([
                 'titulo' => $titulo,
@@ -79,7 +89,8 @@ class DatosDemoSeeder extends Seeder
                 'estado' => Estado::Abierto,
                 'prioridad' => Prioridad::Alta,
                 'solucion' => null,
-                'usuario_creador_id' => $solicitantes[$i % 4]->id,
+                'usuario_creador_id' => $creador->id,
+                'cliente_id' => $creador->cliente_id,
                 'usuario_asignado_id' => null,
                 'created_at' => $momento,
                 'updated_at' => $momento,
@@ -90,19 +101,45 @@ class DatosDemoSeeder extends Seeder
     }
 
     /**
-     * Crea usuarios con el rol indicado y deja constancia de su alta en la auditoría.
+     * Crea las empresas cliente y deja constancia de su alta en la auditoría.
      *
+     * @return Collection<int, Cliente>
+     */
+    private function empresas(User $administrador): Collection
+    {
+        $empresas = collect(self::EMPRESAS)->map(fn (string $nombre) => Cliente::create(['nombre' => $nombre]));
+
+        Auditoria::insert($empresas->map(fn (Cliente $empresa) => [
+            'usuario_id' => $administrador->id,
+            'accion' => AccionAuditoria::ClienteCreado->value,
+            'usuario_afectado_id' => null,
+            'detalle' => "Empresa «{$empresa->nombre}»",
+            'ip' => self::IP_ADMINISTRADOR,
+            'created_at' => now(),
+        ])->all());
+
+        return $empresas;
+    }
+
+    /**
+     * Crea usuarios con el rol indicado, repartidos entre las empresas si se dan, y deja constancia de su
+     * alta en la auditoría.
+     *
+     * @param  Collection<int, Cliente>|null  $empresas
      * @return Collection<int, User>
      */
-    private function usuarios(string $rol, int $cantidad, User $administrador): Collection
+    private function usuarios(string $rol, int $cantidad, User $administrador, ?Collection $empresas = null): Collection
     {
-        $usuarios = User::factory($cantidad)->create(['rol_id' => Rol::where('nombre', $rol)->firstOrFail()->id]);
+        $usuarios = User::factory($cantidad)
+            ->sequence(fn ($secuencia) => ['cliente_id' => $empresas?->get($secuencia->index % $empresas->count())?->id])
+            ->create(['rol_id' => Rol::where('nombre', $rol)->firstOrFail()->id])
+            ->load('cliente');
 
         Auditoria::insert($usuarios->map(fn (User $usuario) => [
             'usuario_id' => $administrador->id,
             'accion' => AccionAuditoria::UsuarioCreado->value,
             'usuario_afectado_id' => $usuario->id,
-            'detalle' => "Rol «{$rol}»",
+            'detalle' => "Rol «{$rol}»".($usuario->cliente ? " · Empresa «{$usuario->cliente->nombre}»" : ''),
             'ip' => self::IP_ADMINISTRADOR,
             'created_at' => now(),
         ])->all());

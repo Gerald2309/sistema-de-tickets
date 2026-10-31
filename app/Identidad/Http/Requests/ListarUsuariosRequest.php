@@ -22,6 +22,7 @@ class ListarUsuariosRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:100'],
             'rol_id' => ['nullable', 'integer', Rule::exists('roles', 'id')],
+            'cliente_id' => ['nullable', 'integer', Rule::exists('clientes', 'id')],
             'activo' => ['nullable', 'boolean'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'between:1,'.ListarUsuarios::POR_PAGINA_MAXIMO],
@@ -29,13 +30,14 @@ class ListarUsuariosRequest extends FormRequest
     }
 
     /**
-     * @return array{q: string|null, rol_id: int|null, activo: bool|null}
+     * @return array{q: string|null, rol_id: int|null, cliente_id: int|null, activo: bool|null}
      */
     public function filtros(): array
     {
         return [
             'q' => $this->filled('q') ? $this->string('q')->trim()->toString() : null,
             'rol_id' => $this->filled('rol_id') ? $this->integer('rol_id') : null,
+            'cliente_id' => $this->filled('cliente_id') ? $this->integer('cliente_id') : null,
             'activo' => $this->filled('activo') ? $this->boolean('activo') : null,
         ];
     }

@@ -19,11 +19,11 @@ class EscritorDeIncidentes
 {
     private const ENCABEZADOS = [
         'Código', 'Título', 'Descripción', 'Prioridad', 'Estado', 'Categoría', 'Solución',
-        'Creador', 'Asignado', 'Vencimiento (UTC)', 'Vencido', 'Creado (UTC)', 'Actualizado (UTC)',
+        'Creador', 'Asignado', 'Empresa', 'Vencimiento (UTC)', 'Vencido', 'Creado (UTC)', 'Actualizado (UTC)',
     ];
 
     /**
-     * @param  iterable<Incidente>  $incidentes  con el creador y el asignado ya cargados
+     * @param  iterable<Incidente>  $incidentes  con el creador, el asignado y la empresa ya cargados
      */
     public function escribir(FormatoDeExportacion $formato, iterable $incidentes, DateTimeInterface $ahora): void
     {
@@ -57,6 +57,7 @@ class EscritorDeIncidentes
             CeldaDeHoja::segura($incidente->solucion),
             CeldaDeHoja::segura($incidente->creador->name),
             CeldaDeHoja::segura($incidente->asignado?->name),
+            CeldaDeHoja::segura($incidente->cliente?->nombre),
             $incidente->fecha_vencimiento->copy()->utc()->format('Y-m-d H:i:s'),
             Vencimiento::estaVencido($incidente->fecha_vencimiento, $incidente->estado, $ahora) ? 'Sí' : 'No',
             (string) $incidente->created_at?->copy()->utc()->format('Y-m-d H:i:s'),

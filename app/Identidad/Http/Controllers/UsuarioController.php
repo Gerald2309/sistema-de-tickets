@@ -33,7 +33,7 @@ class UsuarioController extends Controller
 
     public function show(User $usuario): UsuarioResource
     {
-        return new UsuarioResource($usuario->load('rol'));
+        return new UsuarioResource($usuario->load(['rol', 'cliente']));
     }
 
     public function update(ModificarUsuarioRequest $request, User $usuario, ModificarUsuario $modificarUsuario): UsuarioResource

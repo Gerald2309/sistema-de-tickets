@@ -40,6 +40,7 @@ class ListarIncidentesRequest extends FormRequest
             'categoria' => ['nullable', Rule::enum(Categoria::class)],
             'usuario_asignado_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'usuario_creador_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'cliente_id' => ['nullable', 'integer', Rule::exists('clientes', 'id')],
             // Atajos: «los que yo creé» y «los que me asignaron a mí». No se combinan con el filtro por persona.
             'mios' => ['nullable', 'boolean', 'prohibits:usuario_creador_id'],
             'asignados_a_mi' => ['nullable', 'boolean', 'prohibits:usuario_asignado_id'],
@@ -85,6 +86,7 @@ class ListarIncidentesRequest extends FormRequest
             usuarioCreadorId: $this->boolean('mios')
                 ? $this->user()->id
                 : ($this->filled('usuario_creador_id') ? $this->integer('usuario_creador_id') : null),
+            clienteId: $this->filled('cliente_id') ? $this->integer('cliente_id') : null,
             porVencer: $this->filled('vence_en_horas') ? $this->ventanaPorVencer() : null,
             vencidosAl: $this->boolean('vencidos') ? Date::now() : null,
             fechaDesde: $this->fecha('fecha_desde'),

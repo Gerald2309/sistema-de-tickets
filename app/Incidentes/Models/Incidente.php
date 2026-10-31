@@ -2,6 +2,7 @@
 
 namespace App\Incidentes\Models;
 
+use App\Identidad\Models\Cliente;
 use App\Identidad\Models\User;
 use App\Incidentes\Dominio\AlcanceIncidentes;
 use App\Incidentes\Dominio\Categoria;
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * @property-read User $creador todo incidente tiene creador (usuario_creador_id no admite nulos)
  * @property-read User|null $asignado
+ * @property-read Cliente|null $cliente empresa del solicitante al reportar
  */
 #[Fillable([
     'titulo',
@@ -32,6 +34,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'solucion',
     'usuario_creador_id',
     'usuario_asignado_id',
+    'cliente_id',
     'fecha_vencimiento',
 ])]
 #[UseFactory(IncidenteFactory::class)]
@@ -41,7 +44,7 @@ class Incidente extends Model
     use HasFactory, SoftDeletes;
 
     // Las relaciones que toda respuesta muestra se cargan de antemano (sin N+1).
-    public const RELACIONES_VISIBLES = ['creador:id,name', 'asignado:id,name'];
+    public const RELACIONES_VISIBLES = ['creador:id,name', 'asignado:id,name', 'cliente:id,nombre'];
 
     protected $with = self::RELACIONES_VISIBLES;
 
@@ -86,6 +89,14 @@ class Incidente extends Model
     public function asignado(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_asignado_id');
+    }
+
+    /**
+     * @return BelongsTo<Cliente, $this>
+     */
+    public function cliente(): BelongsTo
+    {
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
     /**
