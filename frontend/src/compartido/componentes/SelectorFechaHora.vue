@@ -101,8 +101,17 @@ function aplicar() {
     :disabled="deshabilitado"
   >
     <template #activator="{ props: activador }">
+      <!-- Un campo de texto admite aria-haspopup pero no aria-expanded (ARIA 1.2), y aria-controls y aria-owns apuntarían a un
+           menú que aún no existe: se quitan de lo que pone el menú. Con teclado se abre con Intro, espacio o
+           flecha abajo. -->
       <v-text-field
-        v-bind="activador"
+        v-bind="{
+          ...activador,
+          'aria-expanded': undefined,
+          'aria-controls': undefined,
+          'aria-owns': undefined,
+          'aria-haspopup': 'dialog',
+        }"
         :label="etiqueta"
         :model-value="texto"
         readonly
@@ -113,6 +122,7 @@ function aplicar() {
         persistent-hint
         :error-messages="errores"
         class="campo-fecha"
+        @keydown.enter.space.down.prevent="abierto = true"
       />
     </template>
     <v-card class="selector-fecha">

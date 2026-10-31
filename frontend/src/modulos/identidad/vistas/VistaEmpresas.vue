@@ -102,7 +102,7 @@ async function cambiarActiva(empresa) {
           :titulo="criterio.texto ? 'Ninguna empresa coincide' : 'Todavía no hay empresas'"
         />
       </div>
-      <v-table v-else density="compact">
+      <v-table v-else v-desplazable="'Empresas'" density="compact">
         <thead>
           <tr>
             <th>Empresa</th>

@@ -70,7 +70,7 @@
 
 @keyframes destello {
   from {
-    background-color: var(--acento-fondo);
+    background-color: color-mix(in srgb, var(--marca-cian) 16%, transparent);
   }
 
   to {

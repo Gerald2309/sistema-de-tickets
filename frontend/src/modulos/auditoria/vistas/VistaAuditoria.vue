@@ -111,7 +111,7 @@ const limpiar = () =>
       <div v-if="lista.data.value && !lista.data.value.elementos.length" class="auditoria__vacio">
         <EstadoVacio :icono="iconos.auditoria" titulo="No hay registros con estos filtros" />
       </div>
-      <v-table v-else density="compact">
+      <v-table v-else v-desplazable="'Registros de auditoría'" density="compact">
         <thead>
           <tr>
             <th>Fecha</th>

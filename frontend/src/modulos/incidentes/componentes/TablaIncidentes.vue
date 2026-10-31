@@ -1,4 +1,5 @@
 <script setup>
+import { ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import AvatarPersona from '@/compartido/componentes/AvatarPersona.vue'
 import EsqueletoDeCarga from '@/compartido/componentes/EsqueletoDeCarga.vue'
@@ -50,6 +51,20 @@ const COLUMNAS = /** @type {const} */ ([
  */
 const ordenAria = (campo) => (props.orden === campo ? (props.dir === 'asc' ? 'ascending' : 'descending') : 'none')
 const pendiente = (/** @type {string} */ estado) => estado === 'abierto' || estado === 'en_progreso'
+
+/**
+ * Lo que entra en vivo a la vista que ya estaba a la vista destella una vez (RF-F26, sistema de diseño,
+ * Actualización en vivo). Si no queda ninguna fila en común, cambió la página o los filtros: nada destella.
+ */
+const nuevas = ref(/** @type {Set<number>} */ (new Set()))
+watch(
+  () => props.elementos,
+  (actuales, anteriores) => {
+    const antes = new Set(anteriores.map((incidente) => incidente.id))
+    const entran = actuales.filter((incidente) => !antes.has(incidente.id)).map((incidente) => incidente.id)
+    nuevas.value = entran.length < actuales.length ? new Set(entran) : new Set()
+  },
+)
 </script>
 
 <template>
@@ -84,7 +99,7 @@ const pendiente = (/** @type {string} */ estado) => estado === 'abierto' || esta
     </li>
   </ul>
 
-  <v-table v-else class="tabla-incidentes">
+  <v-table v-else v-desplazable="'Incidentes'" class="tabla-incidentes">
     <thead>
       <tr>
         <th v-if="seleccionable" class="columna-seleccion">
@@ -129,7 +144,7 @@ const pendiente = (/** @type {string} */ estado) => estado === 'abierto' || esta
       <tr
         v-for="incidente in elementos"
         :key="incidente.id"
-        :class="{ 'fila--elegida': seleccion.has(incidente.id) }"
+        :class="{ 'fila--elegida': seleccion.has(incidente.id), 'fila--nueva': nuevas.has(incidente.id) }"
         @mouseenter="emit('precargar', incidente.id)"
       >
         <td v-if="seleccionable" class="columna-seleccion">
@@ -233,6 +248,10 @@ const pendiente = (/** @type {string} */ estado) => estado === 'abierto' || esta
 
 .fila--elegida {
   background: var(--acento-fondo) !important;
+}
+
+.fila--nueva td {
+  animation: destello 2s var(--curva) both;
 }
 
 .ordenar {

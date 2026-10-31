@@ -1,7 +1,10 @@
 <script setup>
 import { useNavegacion } from './useNavegacion.js'
 
-/** Menú lateral con solo las secciones que el rol permite (RF-F06, RF-F09). */
+/**
+ * Menú lateral con solo las secciones que el rol permite (RF-F06, RF-F09). Listas y enlaces nativos: es un
+ * grupo de enlaces de navegación, no un widget de lista con su propio teclado.
+ */
 defineProps({ permanente: { type: Boolean, default: false } })
 const abierto = defineModel({ type: Boolean, default: false })
 const { deTrabajo, deAdministracion } = useNavegacion()
@@ -14,28 +17,27 @@ const { deTrabajo, deAdministracion } = useNavegacion()
     :permanent="permanente"
     width="232"
     class="menu"
+    tag="nav"
     aria-label="Secciones"
     @update:model-value="abierto = $event"
   >
-    <v-list nav class="pa-3">
-      <v-list-item
-        v-for="entrada in deTrabajo"
-        :key="entrada.titulo"
-        :prepend-icon="entrada.icono"
-        :title="entrada.titulo"
-        :to="entrada.destino"
-      />
-      <template v-if="deAdministracion.length">
-        <div class="menu__grupo">Administración</div>
-        <v-list-item
-          v-for="entrada in deAdministracion"
-          :key="entrada.titulo"
-          :prepend-icon="entrada.icono"
-          :title="entrada.titulo"
-          :to="entrada.destino"
-        />
-      </template>
-    </v-list>
+    <ul class="menu__lista">
+      <li v-for="entrada in deTrabajo" :key="entrada.titulo">
+        <RouterLink :to="entrada.destino" class="menu__enlace">
+          <v-icon :icon="entrada.icono" size="20" class="menu__icono" />{{ entrada.titulo }}
+        </RouterLink>
+      </li>
+    </ul>
+    <template v-if="deAdministracion.length">
+      <h2 id="menu-administracion" class="menu__grupo">Administración</h2>
+      <ul class="menu__lista" aria-labelledby="menu-administracion">
+        <li v-for="entrada in deAdministracion" :key="entrada.titulo">
+          <RouterLink :to="entrada.destino" class="menu__enlace">
+            <v-icon :icon="entrada.icono" size="20" class="menu__icono" />{{ entrada.titulo }}
+          </RouterLink>
+        </li>
+      </ul>
+    </template>
   </v-navigation-drawer>
 </template>
 
@@ -45,8 +47,18 @@ const { deTrabajo, deAdministracion } = useNavegacion()
   border-right: 1px solid var(--borde) !important;
 }
 
+.menu__lista {
+  margin: 0;
+  padding: 12px;
+  list-style: none;
+}
+
+.menu__lista + .menu__grupo {
+  margin-top: 6px;
+}
+
 .menu__grupo {
-  margin: 18px 12px 6px;
+  margin: 6px 24px 0;
   color: var(--suave);
   font-size: 11px;
   font-weight: 700;
@@ -54,31 +66,46 @@ const { deTrabajo, deAdministracion } = useNavegacion()
   text-transform: uppercase;
 }
 
-.menu :deep(.v-list-item) {
-  position: relative;
-  min-height: 36px !important;
-  margin-bottom: 1px;
-  color: var(--texto);
-  font-weight: 500;
-  border-radius: var(--radio) !important;
+.menu__grupo + .menu__lista {
+  padding-top: 6px;
 }
 
-.menu :deep(.v-list-item:hover) {
+.menu__enlace {
+  position: relative;
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  min-height: 36px;
+  margin-bottom: 1px;
+  padding: 0 8px;
+  color: var(--texto);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radio);
+  transition: background-color var(--rapida);
+}
+
+.menu__enlace:hover {
   background: var(--resalte);
 }
 
-.menu :deep(.v-list-item--active) {
-  color: var(--acento-texto) !important;
+.menu__icono {
+  color: var(--suave);
+}
+
+/* Sección actual: fondo de acento y barra cian a la izquierda (sistema de diseño, Navegación). */
+.menu__enlace.router-link-active {
+  color: var(--acento-texto);
   font-weight: 600;
-  background: var(--acento-fondo) !important;
+  background: var(--acento-fondo);
 }
 
-.menu :deep(.v-list-item--active .v-list-item__overlay) {
-  display: none;
+.menu__enlace.router-link-active .menu__icono {
+  color: var(--acento-texto);
 }
 
-/* Barra cian a la izquierda del ítem activo. */
-.menu :deep(.v-list-item--active)::before {
+.menu__enlace.router-link-active::before {
   position: absolute;
   top: 6px;
   bottom: 6px;

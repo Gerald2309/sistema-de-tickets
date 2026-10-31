@@ -151,7 +151,7 @@ const limpiar = () => cambiar({ q: undefined, rol: undefined, cliente: undefined
           <v-btn v-if="hayFiltros" size="small" variant="outlined" @click="limpiar">Limpiar filtros</v-btn>
         </EstadoVacio>
       </div>
-      <v-table v-else density="compact">
+      <v-table v-else v-desplazable="'Usuarios'" density="compact">
         <thead>
           <tr>
             <th>Persona</th>

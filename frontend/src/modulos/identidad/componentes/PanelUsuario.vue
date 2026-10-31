@@ -34,6 +34,8 @@ const servidor = useErroresDeFormulario({
 })
 
 const PERSONAL_DE_PSICOL = 0
+/** Al crear, el rol propuesto es Solicitante (el más común); los roles pueden llegar después de abrir el panel. */
+const rolPropuesto = () => roles.data.value?.find((rol) => rol.nombre === 'Solicitante')?.id ?? 0
 const datos = reactive({
   nombre: '',
   correo: '',
@@ -51,12 +53,16 @@ watch(abierto, (valor) => {
   Object.assign(datos, {
     nombre: props.usuario?.nombre ?? '',
     correo: props.usuario?.correo ?? '',
-    rolId: props.usuario?.rol.id ?? roles.data.value?.find((rol) => rol.nombre === 'Solicitante')?.id ?? 0,
+    rolId: props.usuario?.rol.id ?? rolPropuesto(),
     clienteId: props.usuario?.cliente?.id ?? PERSONAL_DE_PSICOL,
     contrasena: '',
     activo: props.usuario?.activo ?? true,
   })
 })
+watch(
+  () => roles.data.value,
+  () => abierto.value && datos.rolId === 0 && (datos.rolId = rolPropuesto()),
+)
 
 const opcionesDeEmpresa = computed(() => [
   { id: PERSONAL_DE_PSICOL, nombre: 'Personal de Psicol' },
