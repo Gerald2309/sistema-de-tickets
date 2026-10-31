@@ -17,4 +17,5 @@ enum ClavePermiso: string
     case VerDashboard = 'ver_dashboard';
     case AdministrarRoles = 'administrar_roles';
     case AdministrarUsuarios = 'administrar_usuarios';
+    case VerAuditoria = 'ver_auditoria';
 }
