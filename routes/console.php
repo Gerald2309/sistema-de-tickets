@@ -1,8 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Limpia los tokens vencidos (requiere ejecutar `schedule:run` cada minuto en el despliegue).
+Schedule::command('sanctum:prune-expired', ['--hours=24'])->daily();
