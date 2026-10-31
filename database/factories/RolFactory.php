@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Rol;
+use App\Identidad\Models\Rol;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class RolFactory extends Factory
 {
+    protected $model = Rol::class;
+
     /**
      * @return array<string, mixed>
      */

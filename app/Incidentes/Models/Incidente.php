@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Incidentes\Models;
 
-use App\Dominio\Categoria;
-use App\Dominio\Estado;
-use App\Dominio\Prioridad;
+use App\Identidad\Models\User;
+use App\Incidentes\Dominio\Categoria;
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Prioridad;
 use Database\Factories\IncidenteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'usuario_asignado_id',
     'fecha_vencimiento',
 ])]
+#[UseFactory(IncidenteFactory::class)]
 class Incidente extends Model
 {
     /** @use HasFactory<IncidenteFactory> */

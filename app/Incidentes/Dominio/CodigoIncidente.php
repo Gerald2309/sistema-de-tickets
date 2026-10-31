@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Incidentes\Dominio;
 
 // Código legible del ticket, derivado del id (no se guarda): INC-000042.
 final class CodigoIncidente

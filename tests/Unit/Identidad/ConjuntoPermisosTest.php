@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Unit\Dominio;
+namespace Tests\Unit\Identidad;
 
-use App\Dominio\ClavePermiso;
-use App\Dominio\ConjuntoPermisos;
+use App\Identidad\Dominio\ClavePermiso;
+use App\Identidad\Dominio\ConjuntoPermisos;
 use PHPUnit\Framework\TestCase;
 
 class ConjuntoPermisosTest extends TestCase

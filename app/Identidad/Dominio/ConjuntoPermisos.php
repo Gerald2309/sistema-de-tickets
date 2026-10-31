@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Identidad\Dominio;
 
 // Permisos de un usuario. Valor inmutable, sin acceso a la base de datos.
 final class ConjuntoPermisos

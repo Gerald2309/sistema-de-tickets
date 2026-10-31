@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Incidentes\Models;
 
-use App\Dominio\CampoHistorial;
-use App\Dominio\EventoHistorial;
+use App\Identidad\Models\User;
+use App\Incidentes\Dominio\CampoHistorial;
+use App\Incidentes\Dominio\EventoHistorial;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

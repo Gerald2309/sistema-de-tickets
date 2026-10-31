@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Unit\Dominio;
+namespace Tests\Unit\Incidentes;
 
-use App\Dominio\Estado;
-use App\Dominio\Vencimiento;
+use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Vencimiento;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

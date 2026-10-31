@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dominio;
+namespace App\Identidad\Dominio;
 
 // Catálogo fijo de permisos: única fuente de verdad. La tabla `permisos` se siembra desde aquí.
 enum ClavePermiso: string

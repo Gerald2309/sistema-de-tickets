@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Rol;
-use App\Models\User;
+use App\Identidad\Models\Rol;
+use App\Identidad\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
+    protected $model = User::class;
+
     private const DOMINIO = 'empresa-ejemplo.com';
 
     /** @var array<string, int> */
