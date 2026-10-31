@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import DialogoConfirmacion from '@/compartido/componentes/DialogoConfirmacion.vue'
+import LimiteDeErrores from '@/compartido/componentes/LimiteDeErrores.vue'
 import PilaAvisos from '@/compartido/componentes/PilaAvisos.vue'
 import AvisoSinConexion from './AvisoSinConexion.vue'
 import BarraSuperior from './BarraSuperior.vue'
@@ -59,7 +60,8 @@ watch(
       <AvisoSinConexion />
       <RouterView v-slot="{ Component }">
         <Transition name="pagina" mode="out-in">
-          <component :is="Component" :key="ruta.path" />
+          <!-- Un fallo de la pantalla queda en ella; cambiar de ruta empieza un límite nuevo (RNF-F25). -->
+          <LimiteDeErrores :key="ruta.path"><component :is="Component" /></LimiteDeErrores>
         </Transition>
       </RouterView>
     </div>

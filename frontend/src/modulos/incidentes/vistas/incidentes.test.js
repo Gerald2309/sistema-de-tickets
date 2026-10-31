@@ -102,6 +102,43 @@ describe('incidentes', { timeout: 20_000 }, () => {
     expect(lote.text()).not.toContain('Eliminar')
   })
 
+  it('eliminar en lote pide confirmación, y cancelar no elimina nada', async () => {
+    let eliminaciones = 0
+    servidor.use(
+      manejador.get(api('me'), () =>
+        HttpResponse.json({ data: { ...PERFIL, permisos: [...PERFIL.permisos, 'borrar'] } }),
+      ),
+      // La eliminación de verdad la comprueba el recorrido en el navegador: happy-dom no transmite bien un DELETE
+      // con cuerpo.
+      manejador.delete(api('incidentes/lote'), () => {
+        eliminaciones += 1
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    montada = await montarAplicacion('/incidentes')
+    await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('Incidente 2'), { timeout: 8000 })
+
+    await montada.envoltorio.find('input[aria-label="Seleccionar INC-000001"]').setValue(true)
+    await montada.envoltorio.find('input[aria-label="Seleccionar INC-000003"]').setValue(true)
+    await esperarPintado()
+    const lote = montada.envoltorio.find('[aria-label="Acciones en lote"]')
+    await lote
+      .findAll('button')
+      .find((boton) => boton.text().includes('Eliminar'))
+      ?.trigger('click')
+    await esperarPintado()
+
+    const dialogo = /** @type {HTMLElement} */ (document.querySelector('[role="alertdialog"]'))
+    expect(dialogo.textContent).toContain('¿Eliminar 2 incidentes?')
+    expect(eliminaciones).toBe(0)
+    ;[...dialogo.querySelectorAll('button')].find((boton) => boton.textContent?.trim() === 'Cancelar')?.click()
+    await esperarPintado()
+
+    expect(eliminaciones).toBe(0)
+    // La selección sigue: la persona puede elegir otra acción.
+    expect(lote.text()).toContain('2 seleccionados')
+  })
+
   it('abrir un incidente lo pone en una pestaña con su código', async () => {
     montada = await montarAplicacion('/incidentes/2')
 

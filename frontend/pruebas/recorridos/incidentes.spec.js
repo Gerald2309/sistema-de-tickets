@@ -125,6 +125,29 @@ test('acciones en lote: cambiar la prioridad de varios a la vez', async ({ abrir
   expect(datos.data.prioridad).toBe('critica')
 })
 
+test('eliminar en lote pide confirmación y borra solo los elegidos', async ({ abrirComo }) => {
+  const a = await crearPorApi(`Borrar A ${EJECUCION}`)
+  const b = await crearPorApi(`Borrar B ${EJECUCION}`)
+  const queda = await crearPorApi(`Borrar C ${EJECUCION}`)
+  const page = await abrirComo(token(), `/incidentes?q=${encodeURIComponent(`Borrar ${EJECUCION}`)}`)
+  await expect(page.locator('tbody tr')).toHaveCount(3)
+
+  await page.getByLabel(`Seleccionar ${a.codigo}`).check()
+  await page.getByLabel(`Seleccionar ${b.codigo}`).check()
+  await page.getByRole('region', { name: 'Acciones en lote' }).getByRole('button', { name: 'Eliminar' }).click()
+  const dialogo = page.getByRole('alertdialog')
+  await expect(dialogo).toContainText('¿Eliminar 2 incidentes?')
+  await dialogo.getByRole('button', { name: 'Eliminar' }).click()
+
+  await expect(page.getByText('2 incidentes eliminados.')).toBeVisible()
+  await expect(page.locator('tbody tr')).toHaveCount(1)
+  expect((await api(`incidentes/${a.id}`, { token: token() })).estado).toBe(404)
+  expect((await api(`incidentes/${b.id}`, { token: token() })).estado).toBe(404)
+  expect((await api(`incidentes/${queda.id}`, { token: token() })).estado).toBe(200)
+  creados.splice(creados.indexOf(a.id), 1)
+  creados.splice(creados.indexOf(b.id), 1)
+})
+
 test('descargar el listado en CSV con los filtros activos', async ({ abrirComo }) => {
   await crearPorApi(`Descarga ${EJECUCION}`)
   const page = await abrirComo(token(), `/incidentes?q=${encodeURIComponent(`Descarga ${EJECUCION}`)}`)
