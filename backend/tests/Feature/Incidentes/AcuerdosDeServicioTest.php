@@ -152,6 +152,28 @@ class AcuerdosDeServicioTest extends TestCase
         $this->assertEquals(now()->addMinutes(240), $aMano->vence_respuesta_en);
     }
 
+    public function test_la_fecha_que_pide_el_solicitante_informa_pero_no_mueve_el_plazo_del_acuerdo(): void
+    {
+        $incidente = $this->crearIncidente($this->crearUsuario(), ['fecha_requerida' => '2026-11-02T11:00:00-05:00']);
+
+        $this->assertSame('2026-11-02 16:00:00', $incidente->fecha_requerida?->copy()->utc()->format('Y-m-d H:i:s'));
+        $this->assertEquals(now()->addMinutes(1440), $incidente->fecha_vencimiento);
+    }
+
+    public function test_la_fecha_que_pide_el_solicitante_debe_ser_futura_y_es_opcional(): void
+    {
+        $token = $this->iniciarSesion($this->crearUsuario());
+        $datos = ['titulo' => 'No imprime', 'descripcion' => 'La impresora no responde.'];
+
+        $this->conToken($token)->postJson('/api/v1/incidentes', $datos + ['fecha_requerida' => '2020-01-01T10:00:00Z'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('fecha_requerida');
+
+        $this->conToken($token)->postJson('/api/v1/incidentes', $datos)
+            ->assertCreated()
+            ->assertJsonPath('data.fecha_requerida', null);
+    }
+
     public function test_propone_los_limites_para_la_empresa_de_quien_pregunta(): void
     {
         $empresa = Cliente::factory()->create();

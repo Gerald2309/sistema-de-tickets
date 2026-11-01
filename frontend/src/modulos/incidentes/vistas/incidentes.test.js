@@ -327,6 +327,49 @@ describe('incidentes', { timeout: 20_000 }, () => {
     expect(recibido).not.toHaveProperty('fecha_vencimiento')
   })
 
+  it('el solicitante elige hasta prioridad alta, ve el aviso de la fecha requerida y no elige el vencimiento', async () => {
+    /** @type {Record<string, unknown> | undefined} */
+    let recibido
+    servidor.use(
+      manejador.get(api('me'), () =>
+        HttpResponse.json({ data: { ...PERFIL, permisos: ['ver_propios', 'editar_propios', 'crear_incidente'] } }),
+      ),
+      manejador.post(api('incidentes'), async ({ request }) => {
+        recibido = /** @type {Record<string, unknown>} */ (await request.json())
+        return HttpResponse.json({ data: incidente(9) }, { status: 201 })
+      }),
+      manejador.get(api('incidentes/:id'), () => HttpResponse.json({ data: incidente(9) })),
+    )
+    montada = await montarAplicacion('/incidentes/nuevo')
+    await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('¿Para cuándo lo necesita?'), { timeout: 8000 })
+
+    expect(montada.envoltorio.text()).toContain('Es una referencia, no la fecha final.')
+    expect(montada.envoltorio.text()).not.toContain('Fecha de vencimiento')
+
+    const [titulo] = montada.envoltorio.findAll('input')
+    await titulo.setValue('Sin internet')
+    await montada.envoltorio.find('textarea').setValue('No hay conexión.')
+    await montada.envoltorio.find('form').trigger('submit')
+
+    await vi.waitFor(() => expect(recibido).toBeDefined(), { timeout: 8000 })
+    expect(recibido).not.toHaveProperty('fecha_vencimiento')
+    expect(recibido).not.toHaveProperty('fecha_requerida')
+  })
+
+  it('el detalle avisa a soporte cuando piden el incidente para antes del plazo', async () => {
+    const pedido = {
+      ...incidente(4),
+      creador: { id: 30, name: 'Úrsula Apodaca' },
+      fecha_vencimiento: '2030-01-05T13:00:00Z',
+      fecha_requerida: '2030-01-02T13:00:00Z',
+    }
+    servidor.use(manejador.get(api('incidentes/:id'), () => HttpResponse.json({ data: pedido })))
+    montada = await montarAplicacion('/incidentes/4')
+
+    await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('La necesita para'), { timeout: 8000 })
+    expect(montada.envoltorio.text()).toContain('antes del plazo')
+  })
+
   it('el detalle muestra a soporte la cuenta regresiva de la primera respuesta y de la resolución', async () => {
     const conPlazos = {
       ...incidente(4),

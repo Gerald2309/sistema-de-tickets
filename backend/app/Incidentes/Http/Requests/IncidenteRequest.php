@@ -62,7 +62,7 @@ abstract class IncidenteRequest extends FormRequest
     }
 
     /**
-     * Datos validados, con el vencimiento ya en UTC: un valor con otra zona se guardaría con su hora local.
+     * Datos validados, con las fechas ya en UTC: un valor con otra zona se guardaría con su hora local.
      *
      * @return array<string, mixed>
      */
@@ -70,8 +70,10 @@ abstract class IncidenteRequest extends FormRequest
     {
         $datos = $this->validated();
 
-        if (isset($datos['fecha_vencimiento'])) {
-            $datos['fecha_vencimiento'] = Carbon::parse($datos['fecha_vencimiento'])->utc();
+        foreach (['fecha_vencimiento', 'fecha_requerida'] as $campo) {
+            if (isset($datos[$campo])) {
+                $datos[$campo] = Carbon::parse($datos[$campo])->utc();
+            }
         }
 
         return $datos;

@@ -13,10 +13,10 @@ import { useInvalidacion } from './useInvalidacion.js'
 export const MAXIMO_TITULO = 255
 export const MAXIMO_DESCRIPCION = 10_000
 
-/** @typedef {'titulo' | 'descripcion' | 'prioridad' | 'categoria' | 'vencimiento' | 'asignadoId'} Campo */
+/** @typedef {'titulo' | 'descripcion' | 'prioridad' | 'categoria' | 'vencimiento' | 'requerida' | 'asignadoId'} Campo */
 /** @type {Campo[]} */
-const CAMPOS = ['titulo', 'descripcion', 'prioridad', 'categoria', 'vencimiento', 'asignadoId']
-/** @typedef {{ titulo: string, descripcion: string, prioridad: string, categoria: string, asignadoId: number | null, vencimiento: Date | null }} Campos */
+const CAMPOS = ['titulo', 'descripcion', 'prioridad', 'categoria', 'vencimiento', 'requerida', 'asignadoId']
+/** @typedef {{ titulo: string, descripcion: string, prioridad: string, categoria: string, asignadoId: number | null, vencimiento: Date | null, requerida: Date | null }} Campos */
 
 /** @returns {Campos} */
 const camposIniciales = () => ({
@@ -26,6 +26,7 @@ const camposIniciales = () => ({
   categoria: 'otros',
   asignadoId: null,
   vencimiento: null,
+  requerida: null,
 })
 
 /**
@@ -45,6 +46,9 @@ export function validarIncidente(campos, { exigeVencimiento = true } = {}) {
     errores.descripcion = 'Describa qué ocurre.'
   } else if (campos.descripcion.length > MAXIMO_DESCRIPCION) {
     errores.descripcion = `Use como máximo ${MAXIMO_DESCRIPCION.toLocaleString('es-CO')} caracteres.`
+  }
+  if (campos.requerida && campos.requerida.getTime() <= Date.now()) {
+    errores.requerida = 'La fecha debe ser futura.'
   }
   if (!exigeVencimiento) {
     return errores
@@ -106,6 +110,7 @@ export function useFormularioIncidente() {
     categoria: 'categoria',
     usuario_asignado_id: 'asignadoId',
     fecha_vencimiento: 'vencimiento',
+    fecha_requerida: 'requerida',
   })
   const tocados = reactive(new Set(/** @type {Campo[]} */ ([])))
   const deCliente = computed(() => validarIncidente(campos, { exigeVencimiento: mueveLosPlazos.value }))
@@ -127,10 +132,11 @@ export function useFormularioIncidente() {
 
   /** @returns {Record<string, unknown>} lo que viaja a la API */
   function cuerpo() {
-    const { vencimiento, asignadoId, ...resto } = campos
+    const { vencimiento, requerida, asignadoId, ...resto } = campos
     return {
       ...resto,
       ...(vencimientoEditado.value && vencimiento ? { fechaVencimiento: aIsoConDesfase(vencimiento) } : {}),
+      ...(requerida ? { fechaRequerida: aIsoConDesfase(requerida) } : {}),
       ...(puedeAsignar.value && asignadoId !== null ? { asignadoId } : {}),
     }
   }

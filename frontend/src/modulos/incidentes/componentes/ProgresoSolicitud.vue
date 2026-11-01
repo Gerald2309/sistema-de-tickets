@@ -19,7 +19,7 @@ function respuestaEstimada() {
   const { fechaVencimiento, vencido } = props.incidente
   return vencido
     ? 'La fecha estimada ya pasó; soporte la tiene presente.'
-    : `Respuesta estimada: ${fechaHora(fechaVencimiento)}`
+    : `Entrega estimada: ${fechaHora(fechaVencimiento)}`
 }
 
 const pasos = computed(() => {

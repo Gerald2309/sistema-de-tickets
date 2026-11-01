@@ -22,7 +22,11 @@ class CrearIncidenteRequest extends IncidenteRequest
     public function rules(): array
     {
         // Sin fecha de vencimiento, la calcula el acuerdo de servicio de la empresa.
-        return ['fecha_vencimiento' => ['sometimes', 'date_format:'.self::FORMATOS_FECHA]] + $this->reglasComunes('required');
+        return [
+            'fecha_vencimiento' => ['sometimes', 'date_format:'.self::FORMATOS_FECHA],
+            // Se dice al reportar y solo informa a soporte: no mueve los plazos del acuerdo.
+            'fecha_requerida' => ['sometimes', 'nullable', 'date_format:'.self::FORMATOS_FECHA, 'after:now'],
+        ] + $this->reglasComunes('required');
     }
 
     /**

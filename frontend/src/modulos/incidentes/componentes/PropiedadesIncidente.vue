@@ -30,12 +30,30 @@ const vencimiento = ref(/** @type {Date | null} */ (null))
 const prioridades = computed(() => prioridadesElegibles(props.partes.plazos))
 const sinResolver = computed(() => props.incidente.estado === 'abierto' || props.incidente.estado === 'en_progreso')
 
+// Lo que pidió quien reporta solo informa; a soporte le interesa saber si es antes de lo acordado.
+const pideAntesDelPlazo = computed(() => {
+  const { fechaRequerida, fechaVencimiento } = props.incidente
+  return (
+    !props.vistaDelSolicitante &&
+    fechaRequerida !== null &&
+    new Date(fechaRequerida).getTime() < new Date(fechaVencimiento).getTime()
+  )
+})
+
 const propiedades = computed(() => [
   { etiqueta: 'Prioridad' },
   { etiqueta: 'Categoría' },
   { etiqueta: 'Solicitante', valor: props.incidente.creador.nombre },
   { etiqueta: 'Empresa', valor: props.incidente.cliente?.nombre ?? 'Sin empresa', tenue: !props.incidente.cliente },
-  { etiqueta: props.vistaDelSolicitante ? 'Respuesta estimada' : 'Vence' },
+  { etiqueta: props.vistaDelSolicitante ? 'Entrega estimada' : 'Vence' },
+  ...(props.incidente.fechaRequerida === null
+    ? []
+    : [
+        {
+          etiqueta: props.vistaDelSolicitante ? 'Usted la pidió para' : 'La necesita para',
+          valor: `${fechaHora(props.incidente.fechaRequerida)}${pideAntesDelPlazo.value ? ' · antes del plazo' : ''}`,
+        },
+      ]),
   { etiqueta: 'Actualizado', valor: fechaHora(props.incidente.actualizadoEn) },
   ...(props.incidente.calificacion === null
     ? []

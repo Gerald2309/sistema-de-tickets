@@ -11,6 +11,12 @@ const validos = () => ({
 })
 
 describe('validación del formulario de incidente', () => {
+  it('la fecha requerida es opcional, pero si se da debe ser futura', () => {
+    const pasada = new Date(Date.now() - 60_000)
+    expect(validarIncidente({ ...validos(), requerida: pasada }).requerida).toMatch(/futura/)
+    expect(validarIncidente({ ...validos(), vencimiento: null }, { exigeVencimiento: false })).toEqual({})
+  })
+
   it('un formulario completo no tiene errores', () => {
     expect(validarIncidente(validos())).toEqual({})
   })

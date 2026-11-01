@@ -39,6 +39,7 @@ class IncidenteResource extends JsonResource
             'vencido' => Vencimiento::estaVencido($incidente->fecha_vencimiento, $incidente->estado, Date::now()),
             'fecha_vencimiento' => $incidente->fecha_vencimiento->copy()->utc()->toIso8601ZuluString(),
             // Solo en el detalle: ListarIncidentes no los consulta.
+            'fecha_requerida' => $this->whenHas('fecha_requerida', fn () => $incidente->fecha_requerida?->copy()->utc()->toIso8601ZuluString()),
             'vence_respuesta_en' => $this->whenHas('vence_respuesta_en', fn () => $incidente->vence_respuesta_en?->copy()->utc()->toIso8601ZuluString()),
             'primera_respuesta_en' => $this->whenHas('primera_respuesta_en', fn () => $incidente->primera_respuesta_en?->copy()->utc()->toIso8601ZuluString()),
             'resuelto_en' => $this->whenHas('resuelto_en', fn () => $incidente->resuelto_en?->copy()->utc()->toIso8601ZuluString()),

@@ -32,6 +32,7 @@ export function aIncidente(dto) {
     mensajesSinLeer: dto.mensajes_sin_leer ?? 0,
     vencido: dto.vencido === true,
     fechaVencimiento: dto.fecha_vencimiento,
+    fechaRequerida: dto.fecha_requerida ?? null,
     venceRespuestaEn: dto.vence_respuesta_en ?? null,
     primeraRespuestaEn: dto.primera_respuesta_en ?? null,
     resueltoEn: dto.resuelto_en ?? null,
@@ -223,6 +224,7 @@ export function aCuerpoDeIncidente(campos) {
     solucion: 'solucion',
     asignadoId: 'usuario_asignado_id',
     fechaVencimiento: 'fecha_vencimiento',
+    fechaRequerida: 'fecha_requerida',
   })
   for (const [campo, nombreEnApi] of Object.entries(nombres)) {
     if (campo in campos) {

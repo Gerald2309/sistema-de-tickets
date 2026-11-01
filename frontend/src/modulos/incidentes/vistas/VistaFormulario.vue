@@ -155,6 +155,26 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
           </div>
         </section>
 
+        <section v-if="!formulario.mueveLosPlazos.value" class="seccion" data-seccion="requerida">
+          <div>
+            <h2 class="seccion__titulo">¿Para cuándo lo necesita?</h2>
+            <p class="seccion__ayuda">Opcional. Ayuda a soporte a organizar el trabajo.</p>
+          </div>
+          <div data-campo="requerida">
+            <SelectorFechaHora
+              v-model="campos.requerida"
+              etiqueta="Fecha requerida"
+              :errores="erroresDe('requerida')"
+              @blur="tocar('requerida')"
+              @update:model-value="alEscribir('requerida')"
+            />
+            <p class="nota formulario__plazo">
+              Es una referencia, no la fecha final. La fecha estimada de entrega se calcula según el acuerdo de servicio
+              de su empresa y la verá al crear el incidente.
+            </p>
+          </div>
+        </section>
+
         <section
           v-if="formulario.puedeAsignar.value || formulario.mueveLosPlazos.value"
           class="seccion seccion--ultima"
