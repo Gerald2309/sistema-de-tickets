@@ -12,15 +12,7 @@ import PizarraNotas from '../componentes/mi-dia/PizarraNotas.vue'
 import SemanaDelPlan from '../componentes/mi-dia/SemanaDelPlan.vue'
 import TarjetaAhora from '../componentes/mi-dia/TarjetaAhora.vue'
 import { useMiDia } from '../composables/useMiDia.js'
-import {
-  JORNADA,
-  aFecha,
-  ahoraYSiguiente,
-  cuadriculaDelMes,
-  estaTerminada,
-  semanaDe,
-  sumarDias,
-} from '../mi-dia.js'
+import { JORNADA, aFecha, ahoraYSiguiente, cuadriculaDelMes, estaTerminada, semanaDe, sumarDias } from '../mi-dia.js'
 
 /** @typedef {import('../composables/useMiDia.js').EntradaDelPlan} EntradaDelPlan */
 /** @typedef {import('../mi-dia.js').Arrastrado} Arrastrado */

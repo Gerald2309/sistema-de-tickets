@@ -2,7 +2,13 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { refrescoDeRespaldo } from '@/compartido/tiempo-real.js'
 import { useSesion } from '@/modulos/identidad/index.js'
-import { contarIncidentes, listarIncidentes, obtenerAvisos, obtenerIndicadores, obtenerResumen } from '../api/incidentes.js'
+import {
+  contarIncidentes,
+  listarIncidentes,
+  obtenerAvisos,
+  obtenerIndicadores,
+  obtenerResumen,
+} from '../api/incidentes.js'
 import { claves } from '../api/claves.js'
 
 const HORA_MS = 60 * 60 * 1000

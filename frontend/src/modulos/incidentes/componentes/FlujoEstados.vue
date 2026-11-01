@@ -63,10 +63,7 @@ const porcentajeVencido = computed(() =>
             ><ContadorAnimado :valor="etapa.cantidad" /><span class="solo-lectores"> incidentes</span></b
           >
           <span class="pista" aria-hidden="true">
-            <span
-              class="pista__relleno"
-              :style="{ width: `${etapa.proporcionVencida * 100}%`, '--i': indice }"
-            />
+            <span class="pista__relleno" :style="{ width: `${etapa.proporcionVencida * 100}%`, '--i': indice }" />
           </span>
           <span v-if="etapa.vencidos !== undefined" class="etapa__vencidos">{{ etapa.vencidos }} vencidos</span>
           <span v-else class="etapa__pie">{{ etapa.pie }}</span>

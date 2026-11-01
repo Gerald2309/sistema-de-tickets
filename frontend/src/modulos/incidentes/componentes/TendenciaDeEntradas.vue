@@ -73,7 +73,9 @@ const frase = computed(() => {
         </svg>
         <p class="tendencia__leyenda">
           <span><i class="tendencia__muestra tendencia__muestra--entran" />entraron {{ totales.entraron }}</span>
-          <span><i class="tendencia__muestra tendencia__muestra--resueltos" />se resolvieron {{ totales.resueltos }}</span>
+          <span
+            ><i class="tendencia__muestra tendencia__muestra--resueltos" />se resolvieron {{ totales.resueltos }}</span
+          >
         </p>
       </template>
       <EsqueletoDeCarga v-else alto="130px" />

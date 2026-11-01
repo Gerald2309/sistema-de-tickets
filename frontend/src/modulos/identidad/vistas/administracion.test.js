@@ -145,7 +145,9 @@ describe('administración', { timeout: 20_000 }, () => {
     expect(envoltorio.find('#formulario-usuario').text()).not.toContain('Faltan')
     await contrasena.trigger('blur')
 
-    await vi.waitFor(() => expect(envoltorio.find('#formulario-usuario').text()).toContain('Faltan 7 caracteres: mínimo 15.'))
+    await vi.waitFor(() =>
+      expect(envoltorio.find('#formulario-usuario').text()).toContain('Faltan 7 caracteres: mínimo 15.'),
+    )
     await contrasena.setValue('ya es bastante larga')
     await vi.waitFor(() => expect(envoltorio.find('#formulario-usuario').text()).not.toContain('Faltan'))
   })

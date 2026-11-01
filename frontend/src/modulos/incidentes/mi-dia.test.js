@@ -38,7 +38,15 @@ const entrada = (id, inicio, cambios = {}) => ({
 
 describe('Mi día', () => {
   it('cuenta los días locales: semana de lunes a domingo, mes en 6 semanas y saltos de mes', () => {
-    expect(semanaDe('2030-01-17')).toEqual(['2030-01-14', '2030-01-15', '2030-01-16', '2030-01-17', '2030-01-18', '2030-01-19', '2030-01-20'])
+    expect(semanaDe('2030-01-17')).toEqual([
+      '2030-01-14',
+      '2030-01-15',
+      '2030-01-16',
+      '2030-01-17',
+      '2030-01-18',
+      '2030-01-19',
+      '2030-01-20',
+    ])
     expect(esFinDeSemana('2030-01-19')).toBe(true)
     expect(esFinDeSemana('2030-01-18')).toBe(false)
     expect(semanaDe('2030-01-20')[0]).toBe('2030-01-14')

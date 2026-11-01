@@ -98,7 +98,10 @@ const prioridades = computed(() =>
           <b class="num">{{ resolucion.hastaAtender === null ? '—' : duracionAproximada(resolucion.hastaAtender) }}</b>
           hasta que alguien empieza a atenderlo
         </span>
-        <span><b class="num">{{ porcentaje(resolucion.devueltos) }}</b> de las soluciones devueltas por el solicitante</span>
+        <span
+          ><b class="num">{{ porcentaje(resolucion.devueltos) }}</b> de las soluciones devueltas por el
+          solicitante</span
+        >
       </footer>
     </template>
     <div v-else class="resolucion"><EsqueletoDeCarga alto="220px" /></div>

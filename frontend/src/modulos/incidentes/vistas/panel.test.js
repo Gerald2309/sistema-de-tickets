@@ -136,7 +136,12 @@ describe('panel', { timeout: 20_000 }, () => {
 
     await vi.waitFor(() =>
       expect(listados).toContainEqual(
-        expect.objectContaining({ prioridad: 'critica', vencidos: '1', ordenar_por: 'fecha_vencimiento', direccion: 'asc' }),
+        expect.objectContaining({
+          prioridad: 'critica',
+          vencidos: '1',
+          ordenar_por: 'fecha_vencimiento',
+          direccion: 'asc',
+        }),
       ),
     )
   })
