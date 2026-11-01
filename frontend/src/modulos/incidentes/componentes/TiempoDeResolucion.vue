@@ -6,8 +6,9 @@ import { PRIORIDADES } from '../presentacion.js'
 import InsigniaPrioridad from './InsigniaPrioridad.vue'
 
 /**
- * Cuánto se tarda en resolver: la mediana del periodo (la mitad se resuelve antes), comparada con el periodo
- * anterior, y por prioridad con qué parte se resolvió dentro del plazo.
+ * Cuánto se tarda en resolver frente a lo acordado: la mediana del periodo (la mitad se resuelve antes) junto a la
+ * del plazo de esos mismos incidentes, que depende del acuerdo de cada empresa. Por prioridad, además, qué parte
+ * se resolvió dentro del plazo.
  */
 const props = defineProps({
   resolucion: {
@@ -33,12 +34,22 @@ const comparacion = computed(() => {
   return { mejora, texto: `${diferencia} ${mejora ? 'menos' : 'más'} que el periodo anterior` }
 })
 
+/** @param {number | null} segundos */
+const duracion = (segundos) => (segundos === null ? '—' : duracionAproximada(segundos))
+
 const prioridades = computed(() =>
   Object.keys(PRIORIDADES).map((prioridad) => {
-    const datos = props.resolucion?.porPrioridad[prioridad] ?? { mediana: null, aTiempo: null, cantidad: 0 }
+    const datos = props.resolucion?.porPrioridad[prioridad] ?? {
+      mediana: null,
+      plazo: null,
+      aTiempo: null,
+      cantidad: 0,
+    }
     return {
       prioridad,
-      mediana: datos.mediana === null ? '—' : duracionAproximada(datos.mediana),
+      mediana: duracion(datos.mediana),
+      plazo: duracion(datos.plazo),
+      excede: datos.mediana !== null && datos.plazo !== null && datos.mediana > datos.plazo,
       aTiempo: datos.aTiempo,
     }
   }),
@@ -56,6 +67,9 @@ const prioridades = computed(() =>
         <template v-if="resolucion.mediana !== null">
           <p class="resolucion__cifra">
             <b class="num">{{ duracionAproximada(resolucion.mediana, { largo: true }) }}</b>
+            <span v-if="resolucion.plazo !== null" class="resolucion__sla num">
+              frente a {{ duracionAproximada(resolucion.plazo, { largo: true }) }} del SLA
+            </span>
             <span
               v-if="comparacion"
               class="resolucion__comparacion"
@@ -71,14 +85,16 @@ const prioridades = computed(() =>
             <thead>
               <tr>
                 <th scope="col">Prioridad</th>
-                <th scope="col">Mediana</th>
+                <th scope="col">Tardamos</th>
+                <th scope="col">SLA</th>
                 <th scope="col">A tiempo</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="fila in prioridades" :key="fila.prioridad">
                 <td><InsigniaPrioridad :prioridad="fila.prioridad" /></td>
-                <td>{{ fila.mediana }}</td>
+                <td :class="{ resolucion__excede: fila.excede }">{{ fila.mediana }}</td>
+                <td class="resolucion__plazo">{{ fila.plazo }}</td>
                 <td>
                   <span class="a-tiempo">
                     <span class="a-tiempo__pista" aria-hidden="true">
@@ -97,6 +113,9 @@ const prioridades = computed(() =>
         <span>
           <b class="num">{{ resolucion.hastaAtender === null ? '—' : duracionAproximada(resolucion.hastaAtender) }}</b>
           hasta que alguien empieza a atenderlo
+        </span>
+        <span>
+          <b class="num">{{ porcentaje(resolucion.respuestaATiempo) }}</b> de las primeras respuestas dentro del SLA
         </span>
         <span
           ><b class="num">{{ porcentaje(resolucion.devueltos) }}</b> de las soluciones devueltas por el
@@ -125,6 +144,20 @@ const prioridades = computed(() =>
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.resolucion__sla {
+  color: var(--suave);
+  font-size: 13px;
+}
+
+.resolucion__excede {
+  color: var(--advertencia);
+  font-weight: 600;
+}
+
+.resolucion__plazo {
+  color: var(--suave);
 }
 
 .resolucion__comparacion {

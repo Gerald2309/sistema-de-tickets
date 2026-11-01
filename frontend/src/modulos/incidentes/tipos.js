@@ -50,9 +50,11 @@
  * @property {number} dias periodo medido
  * @property {number | null} mediana
  * @property {number | null} medianaAnterior la del periodo anterior, para comparar
+ * @property {number | null} plazo mediana de lo acordado para esos mismos incidentes, según el acuerdo de cada empresa
  * @property {number | null} aTiempo de 0 a 1
- * @property {Record<string, { mediana: number | null, aTiempo: number | null, cantidad: number }>} porPrioridad
+ * @property {Record<string, { mediana: number | null, plazo: number | null, aTiempo: number | null, cantidad: number }>} porPrioridad
  * @property {number | null} hastaAtender desde que se reporta hasta que alguien empieza a atenderlo
+ * @property {number | null} respuestaATiempo parte de las primeras respuestas dentro de su límite, de 0 a 1
  * @property {number | null} devueltos parte de las soluciones que el solicitante devolvió, de 0 a 1
  */
 

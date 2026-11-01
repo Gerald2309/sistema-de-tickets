@@ -12,12 +12,14 @@
 /** @typedef {import('@/modulos/identidad/index.js').Permiso} Permiso */
 /** @typedef {{ tiene: (permiso: Permiso) => boolean, perfil: { id: number } | null }} Sesion */
 /** @typedef {Pick<import('./tipos.js').Incidente, 'creador' | 'asignado'>} ConParticipantes */
-/** @typedef {{ relato: boolean, clasificacion: boolean, plazos: boolean, estado: boolean, asignacion: boolean }} PartesEditables */
+/** @typedef {{ relato: boolean, clasificacion: boolean, prioridad: boolean, critica: boolean, plazos: boolean, estado: boolean, asignacion: boolean }} PartesEditables */
 
 /** @type {Readonly<PartesEditables>} */
 export const NADA_EDITABLE = Object.freeze({
   relato: false,
   clasificacion: false,
+  prioridad: false,
+  critica: false,
   plazos: false,
   estado: false,
   asignacion: false,
@@ -114,6 +116,9 @@ export function partesEditables(sesion, incidente) {
   return {
     relato: sesion.tiene('editar_propios') && loCreo(sesion, incidente) && incidente.asignado === null,
     clasificacion: puedeClasificar(sesion, incidente),
+    // Además de quien lo clasifica, quien reparte el trabajo decide qué va primero en cualquiera.
+    prioridad: puedeClasificar(sesion, incidente) || sesion.tiene('reasignar'),
+    critica: puedeMoverPlazos(sesion),
     plazos: puedeClasificar(sesion, incidente) && puedeMoverPlazos(sesion),
     estado: sesion.tiene('cambiar_estado') && loAtiende(sesion, incidente),
     asignacion: sesion.tiene('reasignar') || loAtiende(sesion, incidente),

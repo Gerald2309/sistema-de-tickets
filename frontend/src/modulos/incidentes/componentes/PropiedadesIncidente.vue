@@ -27,7 +27,7 @@ const emit = defineEmits(['ajustar'])
 
 const fijandoVencimiento = ref(false)
 const vencimiento = ref(/** @type {Date | null} */ (null))
-const prioridades = computed(() => prioridadesElegibles(props.partes.plazos))
+const prioridades = computed(() => prioridadesElegibles(props.partes.critica))
 const sinResolver = computed(() => props.incidente.estado === 'abierto' || props.incidente.estado === 'en_progreso')
 
 // Lo que pidió quien reporta solo informa; a soporte le interesa saber si es antes de lo acordado.
@@ -83,7 +83,7 @@ function guardarVencimiento() {
     <div class="tarjeta__cuerpo">
       <ListaPropiedades :elementos="propiedades">
         <template #valor-0>
-          <v-menu v-if="partes.clasificacion">
+          <v-menu v-if="partes.prioridad">
             <template #activator="{ props: activador }">
               <button v-bind="activador" type="button" class="filtro valor-editable" :disabled="pendiente">
                 <InsigniaPrioridad :prioridad="incidente.prioridad" />

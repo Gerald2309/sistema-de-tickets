@@ -39,15 +39,17 @@ const INDICADORES = {
   resolucion: {
     dias: 30,
     mediana_segundos: 2.4 * DIA,
+    plazo_segundos: 3 * DIA,
     mediana_anterior_segundos: 3 * DIA,
     a_tiempo: 0.78,
     por_prioridad: {
-      critica: { mediana_segundos: 5 * 3600, a_tiempo: 0.92, cantidad: 12 },
-      alta: { mediana_segundos: 1.1 * DIA, a_tiempo: 0.84, cantidad: 30 },
-      media: { mediana_segundos: null, a_tiempo: null, cantidad: 0 },
-      baja: { mediana_segundos: 4.2 * DIA, a_tiempo: 0.71, cantidad: 20 },
+      critica: { mediana_segundos: 5 * 3600, plazo_segundos: 2 * 3600, a_tiempo: 0.92, cantidad: 12 },
+      alta: { mediana_segundos: 1.1 * DIA, plazo_segundos: 2 * DIA, a_tiempo: 0.84, cantidad: 30 },
+      media: { mediana_segundos: null, plazo_segundos: null, a_tiempo: null, cantidad: 0 },
+      baja: { mediana_segundos: 4.2 * DIA, plazo_segundos: 5 * DIA, a_tiempo: 0.71, cantidad: 20 },
     },
     hasta_atender_segundos: 3 * 3600,
+    respuesta_a_tiempo: 0.85,
     devueltos: 0.06,
   },
 }
@@ -153,6 +155,11 @@ describe('panel', { timeout: 20_000 }, () => {
     expect(pedidosDeIndicadores[0]).toEqual({ desfase: String(-new Date().getTimezoneOffset()) })
     const texto = montada.envoltorio.text()
     expect(texto).toContain('0,6 días menos que el periodo anterior')
+    expect(texto).toContain('frente a 3 días del SLA')
+    expect(texto).toContain('85 % de las primeras respuestas dentro del SLA')
+    const [critica, alta] = montada.envoltorio.findAll('.resolucion__tabla tbody tr')
+    expect(critica.find('.resolucion__excede').text()).toBe('5 h')
+    expect(alta.find('.resolucion__excede').exists()).toBe(false)
     expect(texto).toContain('La mayoría lleva más de una semana')
     expect(texto).toContain('Entran más de los que se resuelven: la cola creció 12.')
     expect(texto).toContain('3 h hasta que alguien empieza a atenderlo')

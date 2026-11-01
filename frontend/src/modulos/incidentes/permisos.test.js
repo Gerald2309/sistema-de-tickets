@@ -20,6 +20,12 @@ describe('permisos por incidente (como AlcanceIncidentes del servidor)', () => {
     expect(partesEditables(sesion(['editar_propios']), ajenoLibre).clasificacion).toBe(false)
   })
 
+  it('quien reparte el trabajo cambia la prioridad de cualquiera, pero no el resto de la clasificación', () => {
+    const partes = partesEditables(sesion(['reasignar', 'editar_todos']), ajenoQueAtiendeOtro)
+    expect(partes).toMatchObject({ prioridad: true, critica: true, clasificacion: false, plazos: false })
+    expect(partesEditables(sesion(soporte), ajenoQueAtiendeOtro).prioridad).toBe(false)
+  })
+
   it('el solicitante clasifica lo suyo, pero los plazos los mueve soporte', () => {
     expect(partesEditables(sesion(['editar_propios']), propioLibre).plazos).toBe(false)
     expect(partesEditables(sesion(soporte), ajenoQueAtiendo).plazos).toBe(true)
@@ -37,12 +43,14 @@ describe('permisos por incidente (como AlcanceIncidentes del servidor)', () => {
     expect(partesEditables(sesion(soporte), ajenoQueAtiendo)).toEqual({
       relato: false,
       clasificacion: true,
+      prioridad: true,
+      critica: true,
       plazos: true,
       estado: true,
       asignacion: true,
     })
-    expect(partesEditables(sesion(soporte), ajenoLibre)).toEqual(NADA_EDITABLE)
-    expect(partesEditables(sesion(soporte), ajenoQueAtiendeOtro)).toEqual(NADA_EDITABLE)
+    expect(partesEditables(sesion(soporte), ajenoLibre)).toEqual({ ...NADA_EDITABLE, critica: true })
+    expect(partesEditables(sesion(soporte), ajenoQueAtiendeOtro)).toEqual({ ...NADA_EDITABLE, critica: true })
   })
 
   it('se toma un incidente libre y no cerrado, con el permiso de atenderlo', () => {

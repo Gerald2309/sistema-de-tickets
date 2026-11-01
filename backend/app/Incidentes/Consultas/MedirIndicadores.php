@@ -36,9 +36,11 @@ class MedirIndicadores
                 tendencia: $this->tendencia($alcance, $ahora, $desfase),
                 medianaDeResolucion: IndicadoresDelPanel::mediana(array_column($resueltos, 'segundos')),
                 medianaAnterior: IndicadoresDelPanel::mediana(array_column($anteriores, 'segundos')),
+                medianaDelPlazo: IndicadoresDelPanel::mediana(array_column($resueltos, 'plazo')),
                 aTiempo: IndicadoresDelPanel::proporcion(count(array_filter(array_column($resueltos, 'a_tiempo'))), count($resueltos)),
                 porPrioridad: $this->porPrioridad($resueltos),
                 medianaHastaAtender: $this->medianaHastaAtender($alcance, $desde),
+                respuestaATiempo: $this->respuestaATiempo($alcance, $desde),
                 devueltos: $this->devueltos($alcance, $desde),
             );
         });
@@ -121,22 +123,22 @@ class MedirIndicadores
     }
 
     /**
-     * @return list<array{prioridad: string, segundos: int, a_tiempo: bool}>
+     * @return list<array{prioridad: string, segundos: int, plazo: int, a_tiempo: bool}>
      */
     private function resueltosEntre(AlcanceIncidentes $alcance, CarbonImmutable $desde, CarbonImmutable $hasta): array
     {
         return array_values($this->visibles($alcance)->toBase()
-            ->selectRaw('prioridad, timestampdiff(second, created_at, resuelto_en) as segundos, resuelto_en <= fecha_vencimiento as a_tiempo')
+            ->selectRaw('prioridad, timestampdiff(second, created_at, resuelto_en) as segundos, timestampdiff(second, created_at, fecha_vencimiento) as plazo, resuelto_en <= fecha_vencimiento as a_tiempo')
             ->where('resuelto_en', '>=', $desde)
             ->where('resuelto_en', '<', $hasta)
             ->get()
-            ->map(fn (object $fila) => ['prioridad' => (string) $fila->prioridad, 'segundos' => (int) $fila->segundos, 'a_tiempo' => (bool) $fila->a_tiempo])
+            ->map(fn (object $fila) => ['prioridad' => (string) $fila->prioridad, 'segundos' => (int) $fila->segundos, 'plazo' => (int) $fila->plazo, 'a_tiempo' => (bool) $fila->a_tiempo])
             ->all());
     }
 
     /**
-     * @param  list<array{prioridad: string, segundos: int, a_tiempo: bool}>  $resueltos
-     * @return array<string, array{mediana: int|null, a_tiempo: float|null, cantidad: int}>
+     * @param  list<array{prioridad: string, segundos: int, plazo: int, a_tiempo: bool}>  $resueltos
+     * @return array<string, array{mediana: int|null, plazo: int|null, a_tiempo: float|null, cantidad: int}>
      */
     private function porPrioridad(array $resueltos): array
     {
@@ -146,12 +148,25 @@ class MedirIndicadores
             $deEsta = array_values(array_filter($resueltos, fn (array $fila) => $fila['prioridad'] === $prioridad->value));
             $resultado[$prioridad->value] = [
                 'mediana' => IndicadoresDelPanel::mediana(array_column($deEsta, 'segundos')),
+                'plazo' => IndicadoresDelPanel::mediana(array_column($deEsta, 'plazo')),
                 'a_tiempo' => IndicadoresDelPanel::proporcion(count(array_filter(array_column($deEsta, 'a_tiempo'))), count($deEsta)),
                 'cantidad' => count($deEsta),
             ];
         }
 
         return $resultado;
+    }
+
+    // De las primeras respuestas del periodo, qué parte llegó dentro de su límite.
+    private function respuestaATiempo(AlcanceIncidentes $alcance, CarbonImmutable $desde): ?float
+    {
+        $respuestas = $this->visibles($alcance)->toBase()
+            ->where('primera_respuesta_en', '>=', $desde)
+            ->whereNotNull('vence_respuesta_en')
+            ->selectRaw('count(*) as total, count(case when primera_respuesta_en <= vence_respuesta_en then 1 end) as a_tiempo')
+            ->first();
+
+        return IndicadoresDelPanel::proporcion((int) ($respuestas->a_tiempo ?? 0), (int) ($respuestas->total ?? 0));
     }
 
     // Desde que se reporta hasta que alguien empieza a atenderlo (su primer paso a «en progreso»).

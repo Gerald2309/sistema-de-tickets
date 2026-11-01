@@ -29,13 +29,16 @@ class IndicadoresResource extends JsonResource
                 'dias' => IndicadoresDelPanel::DIAS_DE_RESOLUCION,
                 'mediana_segundos' => $this->resource->medianaDeResolucion,
                 'mediana_anterior_segundos' => $this->resource->medianaAnterior,
+                'plazo_segundos' => $this->resource->medianaDelPlazo,
                 'a_tiempo' => $this->resource->aTiempo,
                 'por_prioridad' => array_map(fn (array $datos) => [
                     'mediana_segundos' => $datos['mediana'],
+                    'plazo_segundos' => $datos['plazo'],
                     'a_tiempo' => $datos['a_tiempo'],
                     'cantidad' => $datos['cantidad'],
                 ], $this->resource->porPrioridad),
                 'hasta_atender_segundos' => $this->resource->medianaHastaAtender,
+                'respuesta_a_tiempo' => $this->resource->respuestaATiempo,
                 'devueltos' => $this->resource->devueltos,
             ],
         ];

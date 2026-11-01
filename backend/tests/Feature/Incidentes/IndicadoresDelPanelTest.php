@@ -112,10 +112,11 @@ class IndicadoresDelPanelTest extends TestCase
         $this->indicadores()->assertOk()
             ->assertJsonPath('data.resolucion.dias', 30)
             ->assertJsonPath('data.resolucion.mediana_segundos', 3 * 3600)
+            ->assertJsonPath('data.resolucion.plazo_segundos', 2 * 3600)
             ->assertJsonPath('data.resolucion.mediana_anterior_segundos', 10 * 3600)
             ->assertJsonPath('data.resolucion.a_tiempo', 0.667)
-            ->assertJsonPath('data.resolucion.por_prioridad.critica', ['mediana_segundos' => 2 * 3600, 'a_tiempo' => 1, 'cantidad' => 2])
-            ->assertJsonPath('data.resolucion.por_prioridad.baja', ['mediana_segundos' => null, 'a_tiempo' => null, 'cantidad' => 0]);
+            ->assertJsonPath('data.resolucion.por_prioridad.critica', ['mediana_segundos' => 2 * 3600, 'plazo_segundos' => 3 * 3600, 'a_tiempo' => 1, 'cantidad' => 2])
+            ->assertJsonPath('data.resolucion.por_prioridad.baja', ['mediana_segundos' => null, 'plazo_segundos' => null, 'a_tiempo' => null, 'cantidad' => 0]);
     }
 
     public function test_mide_cuanto_tarda_en_empezar_a_atenderse_y_que_parte_de_las_soluciones_se_devuelve(): void
@@ -136,6 +137,19 @@ class IndicadoresDelPanelTest extends TestCase
         $this->indicadores()->assertOk()
             ->assertJsonPath('data.resolucion.hasta_atender_segundos', 2 * 3600)
             ->assertJsonPath('data.resolucion.devueltos', 0.25);
+    }
+
+    public function test_mide_que_parte_de_las_primeras_respuestas_llego_dentro_de_su_limite(): void
+    {
+        foreach ([1, 2, 3] as $horas) {
+            $this->incidenteDe($this->creador, ['vence_respuesta_en' => now()->subHours(5), 'primera_respuesta_en' => now()->subHours(5 + $horas)]);
+        }
+        $this->incidenteDe($this->creador, ['vence_respuesta_en' => now()->subHours(5), 'primera_respuesta_en' => now()->subHour()]);
+        // Sin límite o de hace más de un mes, no cuenta.
+        $this->incidenteDe($this->creador, ['primera_respuesta_en' => now()->subHour()]);
+        $this->incidenteDe($this->creador, ['vence_respuesta_en' => now()->subDays(41), 'primera_respuesta_en' => now()->subDays(40)]);
+
+        $this->indicadores()->assertOk()->assertJsonPath('data.resolucion.respuesta_a_tiempo', 0.75);
     }
 
     public function test_sin_datos_los_tiempos_son_nulos_y_no_cero(): void

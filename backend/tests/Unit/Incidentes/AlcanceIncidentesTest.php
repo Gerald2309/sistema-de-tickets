@@ -225,6 +225,15 @@ class AlcanceIncidentesTest extends TestCase
         $this->assertFalse($this->alcance(ClavePermiso::VerTodos)->puedeActualizar(self::ajenoLibre()));
     }
 
+    public function test_el_administrador_cambia_la_prioridad_de_cualquiera_pero_no_el_resto_de_la_clasificacion(): void
+    {
+        $this->assertTrue($this->administrador()->puedeModificar(['prioridad' => 'critica'], self::ajenoQueAtiendeOtro()));
+        $this->assertTrue($this->administrador()->puedeModificar(['prioridad' => 'alta'], self::ajenoLibre()));
+        $this->assertFalse($this->administrador()->puedeModificar(['categoria' => 'red'], self::ajenoQueAtiendeOtro()));
+        $this->assertFalse($this->administrador()->puedeModificar(['fecha_vencimiento' => 'c'], self::ajenoQueAtiendeOtro()));
+        $this->assertFalse($this->soporte()->puedeModificar(['prioridad' => 'alta'], self::ajenoQueAtiendeOtro()), 'Soporte solo la cambia en lo que atiende.');
+    }
+
     public function test_cada_campo_exige_su_capacidad(): void
     {
         $contenido = ['prioridad' => 'alta', 'categoria' => 'red'];

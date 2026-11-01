@@ -18,7 +18,9 @@ final class AlcanceIncidentes
 {
     private const CAMPOS_DEL_RELATO = ['titulo', 'descripcion'];
 
-    private const CAMPOS_DE_CLASIFICACION = ['prioridad', 'categoria', 'fecha_vencimiento'];
+    private const CAMPO_DE_PRIORIDAD = 'prioridad';
+
+    private const CAMPOS_DE_CLASIFICACION = ['categoria', 'fecha_vencimiento'];
 
     private const CAMPOS_DE_ESTADO = ['estado', 'solucion'];
 
@@ -95,6 +97,13 @@ final class AlcanceIncidentes
 
         return ($this->permisos->tiene(ClavePermiso::EditarTodos) && $this->loAtiende($participantes))
             || ($this->permisos->tiene(ClavePermiso::EditarPropios) && $this->loCreo($participantes) && $participantes->sinAsignar());
+    }
+
+    // Además de quien lo clasifica, quien reparte el trabajo (el administrador) decide qué va primero en cualquiera.
+    public function puedeCambiarPrioridad(Participantes $participantes): bool
+    {
+        return $this->puedeClasificar($participantes)
+            || ($this->puedeVer($participantes) && $this->permisos->tiene(ClavePermiso::Reasignar));
     }
 
     // El título y la descripción: quien lo reportó, mientras nadie lo ha tomado. Después, lo que atiende soporte
@@ -227,6 +236,7 @@ final class AlcanceIncidentes
 
         $grupos = [
             [self::CAMPOS_DEL_RELATO, $this->puedeCorregirRelato($participantes)],
+            [[self::CAMPO_DE_PRIORIDAD], $this->puedeCambiarPrioridad($participantes)],
             [self::CAMPOS_DE_CLASIFICACION, $this->puedeClasificar($participantes)],
             [self::CAMPOS_DE_ESTADO, $this->puedeCambiarEstado($participantes)],
             [[self::CAMPO_DE_ASIGNACION], $this->puedeReasignar($participantes)],

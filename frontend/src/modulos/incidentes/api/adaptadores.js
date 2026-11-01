@@ -70,15 +70,22 @@ export function aIndicadoresPanel(dto) {
     resolucion: {
       dias: resolucion.dias,
       mediana: resolucion.mediana_segundos,
+      plazo: resolucion.plazo_segundos,
       medianaAnterior: resolucion.mediana_anterior_segundos,
       aTiempo: resolucion.a_tiempo,
       porPrioridad: Object.fromEntries(
         Object.entries(resolucion.por_prioridad).map(([prioridad, /** @type {any} */ datos]) => [
           prioridad,
-          { mediana: datos.mediana_segundos, aTiempo: datos.a_tiempo, cantidad: datos.cantidad },
+          {
+            mediana: datos.mediana_segundos,
+            plazo: datos.plazo_segundos,
+            aTiempo: datos.a_tiempo,
+            cantidad: datos.cantidad,
+          },
         ]),
       ),
       hastaAtender: resolucion.hasta_atender_segundos,
+      respuestaATiempo: resolucion.respuesta_a_tiempo,
       devueltos: resolucion.devueltos,
     },
   }

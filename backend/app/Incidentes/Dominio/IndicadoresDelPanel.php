@@ -17,16 +17,18 @@ final readonly class IndicadoresDelPanel
     /**
      * @param  list<int>  $espera  pendientes por tramo, del más reciente al más antiguo
      * @param  list<array{fecha: string, entraron: int, resueltos: int}>  $tendencia  un día por entrada, del más antiguo a hoy
-     * @param  array<string, array{mediana: int|null, a_tiempo: float|null, cantidad: int}>  $porPrioridad  una entrada por prioridad
+     * @param  array<string, array{mediana: int|null, plazo: int|null, a_tiempo: float|null, cantidad: int}>  $porPrioridad  una entrada por prioridad
      */
     public function __construct(
         public array $espera,
         public array $tendencia,
         public ?int $medianaDeResolucion,
         public ?int $medianaAnterior,
+        public ?int $medianaDelPlazo,
         public ?float $aTiempo,
         public array $porPrioridad,
         public ?int $medianaHastaAtender,
+        public ?float $respuestaATiempo,
         public ?float $devueltos,
     ) {}
 
