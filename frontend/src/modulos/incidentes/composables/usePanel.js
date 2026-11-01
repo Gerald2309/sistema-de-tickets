@@ -2,13 +2,21 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { refrescoDeRespaldo } from '@/compartido/tiempo-real.js'
 import { useSesion } from '@/modulos/identidad/index.js'
-import { contarIncidentes, listarIncidentes, obtenerAvisos, obtenerResumen } from '../api/incidentes.js'
+import { contarIncidentes, listarIncidentes, obtenerAvisos, obtenerIndicadores, obtenerResumen } from '../api/incidentes.js'
 import { claves } from '../api/claves.js'
 
 const HORA_MS = 60 * 60 * 1000
 
-/** Pendientes que vencen en las próximas 24 h, los más urgentes primero (RF-F15). */
-export const FILTROS_VENCEN_PRONTO = Object.freeze({ vence: 24, orden: 'fecha_vencimiento', dir: 'asc', por: 5 })
+/** Críticos fuera de plazo, primero los que más tiempo llevan vencidos (RF-F15). */
+export const FILTROS_CRITICOS_VENCIDOS = Object.freeze(
+  /** @type {import('../tipos.js').FiltrosDeIncidentes} */ ({
+    vista: 'vencidos',
+    prioridad: 'critica',
+    orden: 'fecha_vencimiento',
+    dir: 'asc',
+    por: 5,
+  }),
+)
 
 /**
  * Horas que faltan para el fin del día local (al menos 1), para «asignados a mí que vencen hoy».
@@ -21,7 +29,8 @@ export function horasHastaFinDelDia(ahora = new Date()) {
 }
 
 /**
- * Caso de uso del panel (RF-F13 a RF-F18): resumen por etapa, vencimientos próximos, trabajo propio y avisos.
+ * Caso de uso del panel (RF-F13 a RF-F18): resumen por etapa, indicadores (espera, tendencia y resolución),
+ * críticos vencidos, trabajo propio y avisos.
  * Cada parte es su propia consulta: si una falla, las demás siguen visibles.
  */
 export function usePanel() {
@@ -44,9 +53,17 @@ export function usePanel() {
     refetchInterval: refrescoDeRespaldo(60_000),
   })
 
-  const vencenPronto = useQuery({
-    queryKey: claves.lista(FILTROS_VENCEN_PRONTO),
-    queryFn: ({ signal }) => listarIncidentes(FILTROS_VENCEN_PRONTO, signal),
+  // Miran hacia atrás y cambian despacio: no hace falta pedirlos tan seguido como el resumen.
+  const indicadores = useQuery({
+    queryKey: claves.indicadores,
+    queryFn: ({ signal }) => obtenerIndicadores(signal),
+    staleTime: 60_000,
+    refetchInterval: refrescoDeRespaldo(120_000),
+  })
+
+  const criticosVencidos = useQuery({
+    queryKey: claves.lista(FILTROS_CRITICOS_VENCIDOS),
+    queryFn: ({ signal }) => listarIncidentes(FILTROS_CRITICOS_VENCIDOS, signal),
     refetchInterval: respaldo,
   })
 
@@ -91,7 +108,8 @@ export function usePanel() {
     veTodo,
     resumen,
     avisos,
-    vencenPronto,
+    indicadores,
+    criticosVencidos,
     miTrabajo: { asignados, vencenHoy, creados, filtros: filtrosMiTrabajo },
     actualizadoEn,
     actualizar,

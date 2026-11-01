@@ -7,14 +7,16 @@ import { iconos } from '@/compartido/iconos.js'
 import { haceCuanto } from '@/compartido/presentacion/fechas.js'
 import { useSesion } from '@/modulos/identidad/index.js'
 import AvisoMasivo from '../componentes/AvisoMasivo.vue'
-import BarraPrioridades from '../componentes/BarraPrioridades.vue'
+import CriticosVencidos from '../componentes/CriticosVencidos.vue'
+import EsperaDePendientes from '../componentes/EsperaDePendientes.vue'
 import FlujoEstados from '../componentes/FlujoEstados.vue'
-import ListaVencenPronto from '../componentes/ListaVencenPronto.vue'
 import MiTrabajo from '../componentes/MiTrabajo.vue'
+import TendenciaDeEntradas from '../componentes/TendenciaDeEntradas.vue'
+import TiempoDeResolucion from '../componentes/TiempoDeResolucion.vue'
 import { usePanel } from '../composables/usePanel.js'
 
 const { perfil } = storeToRefs(useSesion())
-const { veTodo, resumen, avisos, vencenPronto, miTrabajo, actualizadoEn, actualizar } = usePanel()
+const { veTodo, resumen, avisos, indicadores, criticosVencidos, miTrabajo, actualizadoEn, actualizar } = usePanel()
 
 // «Actualizado hace…» avanza solo.
 const ahora = ref(Date.now())
@@ -83,24 +85,33 @@ const accesos = computed(() => [
     </div>
     <FlujoEstados v-else :resumen="resumen.data.value" class="entra" style="--i: 3" />
 
+    <MensajeEnPagina
+      v-if="indicadores.isError.value"
+      tipo="error"
+      titulo="No se pudieron cargar los indicadores"
+      reintentable
+      class="mt-3"
+      @reintentar="indicadores.refetch()"
+    >
+      {{ indicadores.error.value?.message }}
+    </MensajeEnPagina>
+
     <div class="panel__rejilla">
-      <ListaVencenPronto
-        :pagina="vencenPronto.data.value"
-        :cargando="vencenPronto.isPending.value"
-        class="entra"
-        style="--i: 7"
-      />
-      <div class="panel__lateral">
-        <MiTrabajo :accesos="accesos" class="entra" style="--i: 8" />
-        <BarraPrioridades
-          v-if="resumen.data.value"
-          :por-prioridad="resumen.data.value.porPrioridad"
-          :total="resumen.data.value.total"
+      <div class="panel__columna">
+        <EsperaDePendientes :espera="indicadores.data.value?.espera" class="entra" style="--i: 7" />
+        <CriticosVencidos
+          :pagina="criticosVencidos.data.value"
+          :cargando="criticosVencidos.isPending.value"
           class="entra"
-          style="--i: 9"
+          style="--i: 8"
         />
       </div>
+      <div class="panel__columna">
+        <MiTrabajo :accesos="accesos" class="entra" style="--i: 8" />
+        <TiempoDeResolucion :resolucion="indicadores.data.value?.resolucion" class="entra" style="--i: 9" />
+      </div>
     </div>
+    <TendenciaDeEntradas :tendencia="indicadores.data.value?.tendencia" class="panel__ancho entra" style="--i: 10" />
   </div>
 </template>
 
@@ -121,16 +132,25 @@ const accesos = computed(() => [
 
 .panel__rejilla {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   gap: 12px;
   margin-top: 12px;
-  align-items: start;
 }
 
-.panel__lateral {
+/* Las dos columnas terminan a la misma altura: la última tarjeta de cada una ocupa lo que sobra. */
+.panel__columna {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
+}
+
+.panel__columna > :last-child {
+  flex: 1;
+}
+
+.panel__ancho {
+  margin-top: 12px;
 }
 
 .vivo {

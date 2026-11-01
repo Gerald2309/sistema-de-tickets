@@ -49,6 +49,16 @@
   --estado-en-progreso: #ff9429;
   --estado-resuelto: #8abf22;
   --estado-cerrado: #98a2b3;
+
+  /* Fondo suave y texto (4,5:1 sobre ese fondo) de cada estado, para el recorrido del panel. */
+  --estado-abierto-fondo: #e3f5fb;
+  --estado-abierto-texto: #05627d;
+  --estado-en-progreso-fondo: #fff1e3;
+  --estado-en-progreso-texto: #9a4a00;
+  --estado-resuelto-fondo: #f1f8e3;
+  --estado-resuelto-texto: #4b6b10;
+  --estado-cerrado-fondo: #eef0f3;
+  --estado-cerrado-texto: #475467;
   --prioridad-critica: #ef4444;
   --prioridad-alta: #f97316;
   --prioridad-media: #cda727;
@@ -61,6 +71,10 @@
   --papel-naranja-borde: #ffbd7a;
   --papel-verde: #eef7dd;
   --papel-verde-borde: #b6d872;
+
+  /* Gráficos del panel: barras suaves y la que se destaca, siempre con su cifra escrita al lado. */
+  --grafico-barra: #cfe9f3;
+  --grafico-resalte: #6cc3e0;
 
   /* Forma */
   --radio: 4px;

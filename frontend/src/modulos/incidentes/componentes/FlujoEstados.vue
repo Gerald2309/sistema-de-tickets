@@ -6,27 +6,32 @@ import { rutaDelListado } from '../filtros.js'
 import { ESTADOS } from '../presentacion.js'
 
 /**
- * Flujo de incidentes por etapa (RF-F13, RF-F14): una columna por estado con su conteo, los vencidos dentro de
- * cada etapa pendiente y la franja de vencidos. Cada cifra abre el listado que la compone.
+ * Recorrido de los incidentes (RF-F13, RF-F14): cada estado es una flecha que apunta al siguiente, con su
+ * conteo y, en las etapas pendientes, la parte vencida. Cada etapa abre el listado que la compone.
  */
 const props = defineProps({
   resumen: { type: /** @type {import('vue').PropType<import('../tipos.js').ResumenPanel>} */ (Object), required: true },
 })
 
-const etapas = computed(() => {
-  const mayor = Math.max(1, ...Object.values(props.resumen.porEstado))
-  return Object.entries(ESTADOS).map(([valor, presentacion]) => {
+/** Nota de las etapas que no vencen. */
+const PIES = Object.freeze({ resuelto: 'esperan confirmación' })
+
+const etapas = computed(() =>
+  Object.entries(ESTADOS).map(([valor, presentacion]) => {
     const cantidad = props.resumen.porEstado[valor] ?? 0
+    const vencidos = props.resumen.vencidosPorEstado[valor]
     return {
       valor,
       ...presentacion,
       cantidad,
-      proporcion: cantidad / mayor,
-      porcentaje: props.resumen.total ? Math.round((cantidad / props.resumen.total) * 100) : 0,
-      vencidos: props.resumen.vencidosPorEstado[valor],
+      vencidos,
+      proporcionVencida: vencidos !== undefined && cantidad ? vencidos / cantidad : 0,
+      pie:
+        PIES[/** @type {keyof typeof PIES} */ (valor)] ??
+        `${props.resumen.total ? Math.round((cantidad / props.resumen.total) * 100) : 0} % del total`,
     }
-  })
-})
+  }),
+)
 
 const pendientes = computed(() => (props.resumen.porEstado.abierto ?? 0) + (props.resumen.porEstado.en_progreso ?? 0))
 const porcentajeVencido = computed(() =>
@@ -37,35 +42,37 @@ const porcentajeVencido = computed(() =>
 <template>
   <section class="tarjeta" aria-labelledby="titulo-flujo">
     <header class="tarjeta__cabecera">
-      <h2 id="titulo-flujo" class="tarjeta__titulo">Flujo de incidentes</h2>
+      <h2 id="titulo-flujo" class="tarjeta__titulo">Recorrido de los incidentes</h2>
       <span class="nota">
-        Total <b><ContadorAnimado :valor="resumen.total" /></b> · pulse una etapa para ver sus incidentes
+        <ContadorAnimado :valor="resumen.total" /> en total · pulse una etapa para ver sus incidentes
       </span>
     </header>
-    <div class="flujo">
-      <RouterLink
-        v-for="(etapa, indice) in etapas"
-        :key="etapa.valor"
-        :to="rutaDelListado({ estado: etapa.valor })"
-        class="etapa"
-        :style="{ '--color': etapa.color }"
-      >
-        <span class="etapa__cabecera">
-          <span class="etapa__punto" aria-hidden="true" />{{ etapa.nombre }}
-          <v-icon v-if="indice < etapas.length - 1" :icon="iconos.siguiente" size="18" class="etapa__flecha" />
-        </span>
-        <b class="etapa__cantidad"
-          ><ContadorAnimado :valor="etapa.cantidad" /><span class="solo-lectores"> incidentes</span></b
+    <ol class="flujo">
+      <li v-for="(etapa, indice) in etapas" :key="etapa.valor" class="flujo__paso">
+        <RouterLink
+          :to="rutaDelListado({ estado: etapa.valor })"
+          class="etapa"
+          :style="{
+            '--fondo-etapa': `var(--estado-${etapa.valor.replace('_', '-')}-fondo)`,
+            '--texto-etapa': `var(--estado-${etapa.valor.replace('_', '-')}-texto)`,
+            '--color': etapa.color,
+          }"
         >
-        <span class="pista" aria-hidden="true">
-          <span class="pista__relleno" :style="{ transform: `scaleX(${etapa.proporcion})`, '--i': indice }" />
-        </span>
-        <span v-if="etapa.vencidos !== undefined" class="etapa__vencidos">
-          <v-icon :icon="iconos.vencido" size="13" />{{ etapa.vencidos }} vencidos
-        </span>
-        <span v-else class="etapa__pie">{{ etapa.porcentaje }} % del total</span>
-      </RouterLink>
-    </div>
+          <span class="etapa__nombre"><span class="etapa__punto" aria-hidden="true" />{{ etapa.nombre }}</span>
+          <b class="etapa__cantidad"
+            ><ContadorAnimado :valor="etapa.cantidad" /><span class="solo-lectores"> incidentes</span></b
+          >
+          <span class="pista" aria-hidden="true">
+            <span
+              class="pista__relleno"
+              :style="{ width: `${etapa.proporcionVencida * 100}%`, '--i': indice }"
+            />
+          </span>
+          <span v-if="etapa.vencidos !== undefined" class="etapa__vencidos">{{ etapa.vencidos }} vencidos</span>
+          <span v-else class="etapa__pie">{{ etapa.pie }}</span>
+        </RouterLink>
+      </li>
+    </ol>
     <footer class="flujo__pie">
       <v-icon :icon="iconos.vencido" size="16" class="flujo__icono" />
       <b class="flujo__vencidos"><ContadorAnimado :valor="resumen.vencidos" /> vencidos</b>
@@ -78,33 +85,56 @@ const porcentajeVencido = computed(() =>
 </template>
 
 <style scoped>
+/* La punta de cada flecha mide 22 px; cada etapa se monta 14 px sobre la anterior para encajar con ella. */
 .flujo {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  margin: 0;
+  padding: 16px;
+  list-style: none;
+}
+
+.flujo__paso {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.flujo__paso + .flujo__paso {
+  margin-left: -14px;
 }
 
 .etapa {
-  display: block;
-  padding: 16px 18px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 16px 32px 14px 42px;
   color: var(--texto);
   text-decoration: none;
-  border-top: 3px solid var(--color);
-  border-right: 1px solid var(--borde);
-  transition: background-color var(--rapida);
+  background: var(--fondo-etapa);
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%, 22px 50%);
+  transition: filter var(--rapida);
 }
 
-.etapa:last-child {
-  border-right: 0;
+.flujo__paso:first-child .etapa {
+  padding-left: 20px;
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%);
+  border-radius: var(--radio) 0 0 var(--radio);
 }
 
 .etapa:hover {
-  background: var(--sutil);
+  filter: brightness(0.97);
 }
 
-.etapa__cabecera {
+.etapa:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: -4px;
+}
+
+.etapa__nombre {
   display: flex;
+  gap: 8px;
   align-items: center;
-  color: var(--suave);
+  color: var(--texto-etapa);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -114,20 +144,14 @@ const porcentajeVencido = computed(() =>
 .etapa__punto {
   width: 8px;
   height: 8px;
-  margin-right: 8px;
   background: var(--color);
   border-radius: 50%;
 }
 
-.etapa__flecha {
-  margin-left: auto;
-  color: var(--tenue);
-}
-
 .etapa__cantidad {
   display: block;
-  margin: 8px 0 10px;
-  font-size: 30px;
+  margin: 4px 0 8px;
+  font-size: 32px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -135,16 +159,16 @@ const porcentajeVencido = computed(() =>
 .pista {
   display: block;
   height: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   overflow: hidden;
-  background: var(--borde);
+  background: var(--superficie);
   border-radius: 3px;
 }
 
 .pista__relleno {
   display: block;
   height: 100%;
-  background: var(--color);
+  background: var(--error);
   border-radius: 3px;
   transform-origin: left;
   animation: crece 1s var(--curva) both;
@@ -152,17 +176,13 @@ const porcentajeVencido = computed(() =>
 }
 
 .etapa__vencidos {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
   color: var(--error);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
 }
 
 .etapa__pie {
   color: var(--suave);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .flujo__pie {
@@ -186,17 +206,22 @@ const porcentajeVencido = computed(() =>
   margin-left: auto;
 }
 
+/* En pantallas angostas las flechas se apilan como bloques. */
 @media (width <= 760px) {
   .flujo {
-    grid-template-columns: 1fr 1fr;
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .etapa:nth-child(2) {
-    border-right: 0;
+  .flujo__paso + .flujo__paso {
+    margin-left: 0;
   }
 
-  .etapa:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--borde);
+  .etapa,
+  .flujo__paso:first-child .etapa {
+    padding: 14px 18px;
+    clip-path: none;
+    border-radius: var(--radio);
   }
 }
 </style>

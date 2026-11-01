@@ -18,6 +18,7 @@ use App\Incidentes\Http\Controllers\ExportacionController;
 use App\Incidentes\Http\Controllers\HistorialController;
 use App\Incidentes\Http\Controllers\IncidenteController;
 use App\Incidentes\Http\Controllers\IncidenteLoteController;
+use App\Incidentes\Http\Controllers\IndicadoresController;
 use App\Incidentes\Http\Controllers\LecturaController;
 use App\Incidentes\Http\Controllers\MensajeController;
 use App\Incidentes\Http\Controllers\NotaPersonalController;
@@ -43,6 +44,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('avisos', AvisosController::class)->can('verAvisos', Incidente::class);
         Route::get('dashboard', DashboardController::class)->can('verDashboard', Incidente::class);
+        Route::get('dashboard/indicadores', IndicadoresController::class)->can('verDashboard', Incidente::class);
         Route::get('catalogos', CatalogoController::class)->can('autenticado');
 
         // Autorización de los canales privados del tiempo real (F-12); cada canal decide en routes/channels.php.

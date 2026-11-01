@@ -6,6 +6,7 @@ import {
   aCuerpoDeIncidente,
   aEntradaHistorial,
   aIncidente,
+  aIndicadoresPanel,
   aMensaje,
   aParametrosDeListado,
   aResumenPanel,
@@ -239,6 +240,19 @@ export async function exportarIncidentes(filtros, formato, alProgresar) {
 export async function obtenerResumen(senal) {
   const { data } = await http.get('dashboard', { signal: senal })
   return aResumenPanel(data.data)
+}
+
+/**
+ * `GET dashboard/indicadores` (API 11b): los días de la tendencia son los de la zona horaria del navegador.
+ * @param {AbortSignal} [senal]
+ * @returns {Promise<import('../tipos.js').IndicadoresPanel>}
+ */
+export async function obtenerIndicadores(senal) {
+  const { data } = await http.get('dashboard/indicadores', {
+    params: { desfase: -new Date().getTimezoneOffset() },
+    signal: senal,
+  })
+  return aIndicadoresPanel(data.data)
 }
 
 /**

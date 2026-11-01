@@ -172,6 +172,7 @@ class Incidente extends Model
             'estado' => Estado::class,
             'categoria' => Categoria::class,
             'fecha_vencimiento' => 'datetime',
+            'resuelto_en' => 'datetime',
             'calificacion' => 'integer',
         ];
     }

@@ -7,6 +7,7 @@ use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Models\Incidente;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -92,9 +93,26 @@ class IncidenteFactory extends Factory
             'usuario_creador_id' => User::factory(),
             'usuario_asignado_id' => null,
             'fecha_vencimiento' => $creado->copy()->addHours(self::PLAZO_HORAS[$prioridad->value]),
+            'resuelto_en' => self::resueltoEn($estado, $creado, $actualizado),
             'created_at' => $creado,
             'updated_at' => $actualizado,
         ];
+    }
+
+    /**
+     * El paso a resuelto, en el mismo punto donde el seeder lo deja en el historial: los pasos del ciclo se
+     * reparten en partes iguales entre la creación y la última actualización.
+     */
+    private static function resueltoEn(Estado $estado, CarbonInterface $creado, CarbonInterface $actualizado): ?CarbonInterface
+    {
+        $pasos = (int) array_search($estado, Estado::cases(), true);
+        $pasoResuelto = (int) array_search(Estado::Resuelto, Estado::cases(), true);
+
+        if ($pasos < $pasoResuelto || $pasos === 0) {
+            return null;
+        }
+
+        return $creado->copy()->addSeconds((int) ($creado->diffInSeconds($actualizado, true) * $pasoResuelto / $pasos));
     }
 
     private static function estadoAlAzar(): string

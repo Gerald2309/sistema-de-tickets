@@ -9,6 +9,7 @@ use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Excepciones\TransicionInvalida;
 use App\Incidentes\Dominio\TipoDeCambio;
 use App\Incidentes\Models\Incidente;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -36,6 +37,7 @@ class ActualizarIncidente
             $this->validarCambioDeEstado($actual, $datos);
 
             $actual->fill($datos);
+            $this->anotarResolucion($actual);
 
             if ($actual->isDirty()) {
                 $actual->save();
@@ -78,6 +80,23 @@ class ActualizarIncidente
         if ($resuelve && blank($datos['solucion'] ?? $actual->solucion)) {
             throw ValidationException::withMessages(['solucion' => [trans('incidentes.solucion_obligatoria')]]);
         }
+    }
+
+    /**
+     * Resolver marca el momento; si el solicitante lo devuelve, deja de estar resuelto. Cerrar lo conserva:
+     * el tiempo de resolución se mide hasta la solución, no hasta la confirmación.
+     */
+    private function anotarResolucion(Incidente $actual): void
+    {
+        if (! $actual->isDirty('estado')) {
+            return;
+        }
+
+        $actual->resuelto_en = match ($actual->estado) {
+            Estado::Resuelto => Date::now(),
+            Estado::Cerrado => $actual->resuelto_en,
+            default => null,
+        };
     }
 
     /**

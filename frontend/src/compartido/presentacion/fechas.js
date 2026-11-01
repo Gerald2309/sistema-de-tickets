@@ -109,6 +109,29 @@ export function haceCuanto(instante, ahora = Date.now()) {
   return minutos < 60 ? `hace ${minutos} min` : `hace ${Math.round(minutos / 60)} h`
 }
 
+const formatoDecimal = new Intl.NumberFormat('es', { maximumFractionDigits: 1 })
+
+/**
+ * Una duración en su unidad más legible: «45 min», «5 h», «2,4 d». Con `largo`, «2,4 días». Con `unidadDe`, la
+ * unidad la decide otra duración: una diferencia se escribe en la misma unidad que la cifra que compara.
+ * @param {number} segundos
+ * @param {{ largo?: boolean, unidadDe?: number }} [opciones]
+ * @returns {string}
+ */
+export function duracionAproximada(segundos, { largo = false, unidadDe = segundos } = {}) {
+  const minutos = Math.max(0, segundos) / 60
+  const referencia = Math.max(0, unidadDe) / 60
+  if (referencia < 60) {
+    return `${Math.round(minutos)} min`
+  }
+  if (referencia < 48 * 60) {
+    const horas = minutos / 60
+    return `${formatoDecimal.format(horas)} ${largo ? (horas === 1 ? 'hora' : 'horas') : 'h'}`
+  }
+  const dias = minutos / (24 * 60)
+  return `${formatoDecimal.format(dias)} ${largo ? (dias === 1 ? 'día' : 'días') : 'd'}`
+}
+
 /**
  * «mar, 27 oct 2026» para el selector de fecha.
  * @param {Date} fecha

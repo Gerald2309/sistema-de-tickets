@@ -205,6 +205,27 @@ class ActualizarIncidenteTest extends TestCase
             ->assertJsonPath('data.solucion', 'Primera solución.');
     }
 
+    public function test_resolver_anota_cuando_reabrir_lo_borra_y_cerrar_lo_conserva(): void
+    {
+        $this->freezeSecond();
+        $soporte = $this->crearUsuario('Soporte N1');
+        $incidente = $this->incidenteAtendidoPor($soporte, ['estado' => Estado::EnProgreso]);
+        $token = $this->iniciarSesion($soporte);
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto', 'solucion' => 'Listo.'])->assertOk();
+        $this->assertEquals(now(), $incidente->refresh()->resuelto_en);
+
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'en_progreso'])->assertOk();
+        $this->assertNull($incidente->refresh()->resuelto_en);
+
+        $this->travel(2)->minutes();
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'resuelto'])->assertOk();
+        $this->travel(3)->minutes();
+        $this->conToken($token)->patchJson($this->ruta($incidente), ['estado' => 'cerrado'])->assertOk();
+
+        $this->assertEquals(now()->subMinutes(3), $incidente->refresh()->resuelto_en);
+    }
+
     public function test_pedir_el_estado_actual_no_cambia_nada_ni_deja_historial(): void
     {
         $soporte = $this->crearUsuario('Soporte N1');

@@ -55,6 +55,32 @@ export function aResumenPanel(dto) {
 }
 
 /**
+ * @param {any} dto `IndicadoresResource`
+ * @returns {import('../tipos.js').IndicadoresPanel}
+ */
+export function aIndicadoresPanel(dto) {
+  const resolucion = dto.resolucion
+  return {
+    espera: dto.espera.map((/** @type {any} */ tramo) => ({ hastaDias: tramo.hasta_dias, cantidad: tramo.cantidad })),
+    tendencia: dto.tendencia,
+    resolucion: {
+      dias: resolucion.dias,
+      mediana: resolucion.mediana_segundos,
+      medianaAnterior: resolucion.mediana_anterior_segundos,
+      aTiempo: resolucion.a_tiempo,
+      porPrioridad: Object.fromEntries(
+        Object.entries(resolucion.por_prioridad).map(([prioridad, /** @type {any} */ datos]) => [
+          prioridad,
+          { mediana: datos.mediana_segundos, aTiempo: datos.a_tiempo, cantidad: datos.cantidad },
+        ]),
+      ),
+      hastaAtender: resolucion.hasta_atender_segundos,
+      devueltos: resolucion.devueltos,
+    },
+  }
+}
+
+/**
  * @param {any} dto `AvisoResource`
  * @returns {import('../tipos.js').AvisoMasivo}
  */

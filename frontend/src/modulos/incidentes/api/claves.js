@@ -40,6 +40,8 @@ export const claves = Object.freeze({
   notas: (hoy) => ['incidentes', 'mi-dia', 'notas', hoy],
   ultimoTrabajado: ['incidentes', 'mi-dia', 'ultimo'],
   panel: ['panel'],
+  // Dentro de 'panel': «Actualizar» y el tiempo real lo refrescan junto con el resumen.
+  indicadores: ['panel', 'indicadores'],
   avisos: ['avisos'],
   catalogos: ['catalogos'],
 })

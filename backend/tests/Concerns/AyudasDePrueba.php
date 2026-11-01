@@ -74,6 +74,7 @@ trait AyudasDePrueba
             'categoria' => Categoria::Otros,
             'solucion' => null,
             'fecha_vencimiento' => now()->addDays(3),
+            'resuelto_en' => null,
         ]);
     }
 

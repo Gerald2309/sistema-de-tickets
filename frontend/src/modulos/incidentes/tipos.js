@@ -35,6 +35,24 @@
  */
 
 /**
+ * @typedef {object} IndicadoresPanel lo que mira hacia atrás (API 11b); tiempos en segundos, null sin datos
+ * @property {{ hastaDias: number | null, cantidad: number }[]} espera pendientes por tramo, del más reciente al más antiguo
+ * @property {{ fecha: string, entraron: number, resueltos: number }[]} tendencia un día local por entrada
+ * @property {ResolucionPanel} resolucion
+ */
+
+/**
+ * @typedef {object} ResolucionPanel
+ * @property {number} dias periodo medido
+ * @property {number | null} mediana
+ * @property {number | null} medianaAnterior la del periodo anterior, para comparar
+ * @property {number | null} aTiempo de 0 a 1
+ * @property {Record<string, { mediana: number | null, aTiempo: number | null, cantidad: number }>} porPrioridad
+ * @property {number | null} hastaAtender desde que se reporta hasta que alguien empieza a atenderlo
+ * @property {number | null} devueltos parte de las soluciones que el solicitante devolvió, de 0 a 1
+ */
+
+/**
  * @typedef {object} AvisoMasivo posible incidente masivo (API 26)
  * @property {string} categoria
  * @property {number} incidentes
