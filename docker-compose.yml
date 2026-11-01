@@ -10,6 +10,8 @@ name: incidentes
 # La configuración sale de .env.example (valores de demostración) y de .env, si existe, que los reemplaza.
 
 x-configuracion: &configuracion
+  # Vuelve solo si termina o si el servidor se reinicia. Reverb, además, termina sin error cuando se le pide reiniciar.
+  restart: unless-stopped
   env_file:
     - path: .env.example
     - path: .env
@@ -64,8 +66,6 @@ services:
     <<: *configuracion
     working_dir: /var/www/html
     command: ["sh", "docker/php/iniciar.sh", "php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
-    # Reverb termina sin error cuando se le pide reiniciar: sin esto, el tiempo real queda abajo sin avisar.
-    restart: unless-stopped
     volumes:
       - ./backend:/var/www/html
       - vendor:/var/www/html/vendor
@@ -76,6 +76,7 @@ services:
   api:
     image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
     container_name: incidentes-api
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${API_PORT:-8080}:80"
     volumes:
@@ -88,6 +89,7 @@ services:
   web:
     build: ./frontend
     container_name: incidentes-web
+    restart: unless-stopped
     # Solo la clave pública de Reverb: este contenedor da a Internet y no recibe ninguna contraseña.
     environment:
       REVERB_APP_KEY: ${REVERB_APP_KEY:-clave-publica-mesa-de-ayuda}
