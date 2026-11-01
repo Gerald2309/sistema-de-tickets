@@ -4,7 +4,7 @@ import { mensajeDeError } from '@/compartido/api/errores.js'
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
 import { claves } from '../api/claves.js'
 import * as api from '../api/mi-dia.js'
-import { JORNADA, aTramo, cuadriculaDelMes, diaLocal, minutoDelDia, semanaLaboral, sumarDias } from '../mi-dia.js'
+import { JORNADA, aTramo, cuadriculaDelMes, diaLocal, minutoDelDia, semanaDe, sumarDias } from '../mi-dia.js'
 
 /** @typedef {import('../api/mi-dia.js').EntradaDelPlan} EntradaDelPlan */
 /** @typedef {import('../api/mi-dia.js').NotaPersonal} NotaPersonal */
@@ -36,8 +36,8 @@ export function useMiDia() {
   const dia = ref(hoy.value)
   const rango = computed(() => {
     if (vista.value === 'semana') {
-      const semana = semanaLaboral(dia.value)
-      return { desde: semana[0], hasta: semana[4] }
+      const semana = semanaDe(dia.value)
+      return { desde: semana[0], hasta: semana[6] }
     }
     if (vista.value === 'mes') {
       const casillas = cuadriculaDelMes(dia.value)

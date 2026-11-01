@@ -18,7 +18,7 @@ import {
   ahoraYSiguiente,
   cuadriculaDelMes,
   estaTerminada,
-  semanaLaboral,
+  semanaDe,
   sumarDias,
 } from '../mi-dia.js'
 
@@ -46,8 +46,8 @@ const titulo = computed(() => {
     return texto.charAt(0).toUpperCase() + texto.slice(1)
   }
   if (vista.value === 'semana') {
-    const semana = semanaLaboral(dia.value)
-    return `Semana del ${formatoDia.format(aFecha(semana[0]))} al ${formatoDia.format(aFecha(semana[4]))}`
+    const semana = semanaDe(dia.value)
+    return `Semana del ${formatoDia.format(aFecha(semana[0]))} al ${formatoDia.format(aFecha(semana[6]))}`
   }
   const fecha = formatoDia.format(aFecha(dia.value))
   return dia.value === hoy.value ? `Hoy · ${fecha}` : fecha
@@ -285,7 +285,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', alPulsarTecla))
           />
           <SemanaDelPlan
             v-else-if="vista === 'semana'"
-            :dias="semanaLaboral(dia)"
+            :dias="semanaDe(dia)"
             :entradas="miDia.entradas.value"
             :hoy="hoy"
             @abrir-dia="miDia.irADia"

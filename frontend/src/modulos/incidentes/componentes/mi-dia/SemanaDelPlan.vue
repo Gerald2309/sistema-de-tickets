@@ -1,9 +1,9 @@
 <script setup>
-import { aFecha, colorDeNota, empezarArrastre, hora, leerArrastre } from '../../mi-dia.js'
+import { aFecha, colorDeNota, esFinDeSemana, empezarArrastre, hora, leerArrastre } from '../../mi-dia.js'
 import { presentarPrioridad } from '../../presentacion.js'
 
 /**
- * La semana laboral en columnas, con tarjetas mínimas (franja del color de la prioridad). Se arrastra de un
+ * La semana, de lunes a domingo, en columnas, con tarjetas mínimas (franja del color de la prioridad). Se arrastra de un
  * día a otro y pulsar el día abre su vista por horas.
  */
 const props = defineProps({
@@ -16,7 +16,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['abrir-dia', 'soltar'])
 
-const formato = new Intl.DateTimeFormat('es', { weekday: 'short', day: 'numeric' })
+const nombreDelDia = new Intl.DateTimeFormat('es', { weekday: 'short' })
 
 /** @param {string} dia */
 const delDia = (dia) => props.entradas.filter((entrada) => entrada.fecha === dia)
@@ -45,13 +45,14 @@ function alSoltar(evento, dia) {
       v-for="dia in dias"
       :key="dia"
       class="semana__dia"
-      :class="{ 'semana__dia--hoy': dia === hoy }"
+      :class="{ 'semana__dia--hoy': dia === hoy, 'semana__dia--fin': esFinDeSemana(dia) }"
       @dragover.prevent
       @drop.prevent="alSoltar($event, dia)"
     >
       <button type="button" class="semana__cabecera" @click="emit('abrir-dia', dia)">
-        <b>{{ formato.format(aFecha(dia)) }}</b>
-        <span class="nota num">{{ delDia(dia).length }}</span>
+        <span class="semana__nombre">{{ nombreDelDia.format(aFecha(dia)) }}</span>
+        <b class="semana__numero num">{{ Number(dia.slice(8)) }}</b>
+        <span v-if="delDia(dia).length" class="semana__cuenta num">{{ delDia(dia).length }}</span>
       </button>
       <div
         v-for="entrada in delDia(dia)"
@@ -73,7 +74,7 @@ function alSoltar(evento, dia) {
 <style scoped>
 .semana {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .semana__dia {
@@ -81,18 +82,51 @@ function alSoltar(evento, dia) {
   border-left: 1px solid var(--borde);
 }
 
+/* El fin de semana se puede planear, pero se distingue de los días hábiles. */
+.semana__dia--fin {
+  background: var(--sutil);
+}
+
 .semana__dia:first-child {
   border-left: 0;
 }
 
 .semana__cabecera {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
   width: 100%;
-  padding: 10px 12px;
-  text-transform: capitalize;
+  padding: 8px 10px;
+  text-align: left;
+  background: transparent;
+  border: 0;
   border-bottom: 1px solid var(--borde);
+}
+
+.semana__nombre {
+  grid-column: 1;
+  color: var(--suave);
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.semana__numero {
+  grid-column: 1;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.semana__cuenta {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  min-width: 20px;
+  padding: 0 6px;
+  color: var(--suave);
+  font-size: 12px;
+  text-align: center;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
 }
 
 .semana__cabecera:hover,
@@ -109,8 +143,8 @@ function alSoltar(evento, dia) {
 .semana__mini {
   display: flex;
   flex-direction: column;
-  margin: 8px;
-  padding: 6px 8px;
+  margin: 6px;
+  padding: 6px;
   font-size: 12.5px;
   background: var(--superficie);
   border: 1px solid var(--borde);
@@ -126,7 +160,10 @@ function alSoltar(evento, dia) {
 
 .semana__codigo {
   color: var(--acento-texto);
-  font-size: 12px;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 600;
 }
 

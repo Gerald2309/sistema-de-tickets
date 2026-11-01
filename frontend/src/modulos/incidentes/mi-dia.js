@@ -60,11 +60,19 @@ export function lunesDe(dia) {
 
 /**
  * @param {string} dia
- * @returns {string[]} lunes a viernes de la semana de ese día
+ * @returns {string[]} lunes a domingo de la semana de ese día
  */
-export function semanaLaboral(dia) {
+export function semanaDe(dia) {
   const lunes = lunesDe(dia)
-  return [0, 1, 2, 3, 4].map((n) => sumarDias(lunes, n))
+  return Array.from({ length: 7 }, (_, n) => sumarDias(lunes, n))
+}
+
+/**
+ * @param {string} dia
+ * @returns {boolean} es sábado o domingo
+ */
+export function esFinDeSemana(dia) {
+  return [0, 6].includes(aFecha(dia).getDay())
 }
 
 /**
