@@ -5,24 +5,14 @@ import BotonEnvio from '@/compartido/componentes/BotonEnvio.vue'
 import ListaPropiedades from '@/compartido/componentes/ListaPropiedades.vue'
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
 import { iconos } from '@/compartido/iconos.js'
-import { LONGITUD_MAXIMA, LONGITUD_MINIMA, useCambioDeContrasena } from '../composables/useCambioDeContrasena.js'
+import RequisitosDeContrasena from '../componentes/RequisitosDeContrasena.vue'
+import { useCambioDeContrasena } from '../composables/useCambioDeContrasena.js'
+import { LONGITUD_MAXIMA } from '../contrasena.js'
 import { useSesion } from '../tienda/sesion.js'
 
 const { perfil } = storeToRefs(useSesion())
-const {
-  actual,
-  nueva,
-  repetida,
-  pendiente,
-  exito,
-  errores,
-  general,
-  cumpleLongitud,
-  coincide,
-  listo,
-  guardar,
-  limpiarCampo,
-} = useCambioDeContrasena()
+const { actual, nueva, repetida, pendiente, exito, errores, general, coincide, listo, guardar, limpiarCampo } =
+  useCambioDeContrasena()
 const verNueva = ref(false)
 </script>
 
@@ -91,17 +81,7 @@ const verNueva = ref(false)
                 />
               </template>
             </v-text-field>
-            <p
-              id="requisito-contrasena"
-              class="requisito"
-              :class="{ 'requisito--cumplido': cumpleLongitud }"
-              aria-live="polite"
-            >
-              <v-icon :icon="cumpleLongitud ? iconos.requisitoCumplido : iconos.requisitoPendiente" size="16" />
-              Al menos {{ LONGITUD_MINIMA }} caracteres (<span class="num"
-                >{{ nueva.length }}/{{ LONGITUD_MINIMA }}</span
-              >). Una frase larga es más segura que símbolos raros.
-            </p>
+            <RequisitosDeContrasena id="requisito-contrasena" :contrasena="nueva" class="mi-cuenta__requisitos" />
             <v-text-field
               v-model="repetida"
               label="Repita la nueva contraseña *"
@@ -120,16 +100,7 @@ const verNueva = ref(false)
 </template>
 
 <style scoped>
-.requisito {
-  display: flex;
-  gap: 6px;
-  align-items: center;
+.mi-cuenta__requisitos {
   margin: -6px 0 14px;
-  color: var(--suave);
-  font-size: 12.5px;
-}
-
-.requisito--cumplido {
-  color: var(--exito-texto);
 }
 </style>

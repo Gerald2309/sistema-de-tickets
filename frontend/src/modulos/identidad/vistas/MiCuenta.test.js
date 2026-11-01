@@ -39,7 +39,7 @@ describe('mi cuenta: cambio de contraseña', { timeout: 20_000 }, () => {
   }
 
   it('si la repetición no coincide, no se puede enviar', async () => {
-    const formulario = await completar('la contraseña de antes', 'una contraseña nueva', 'otra distinta')
+    const formulario = await completar('la contraseña de antes', 'Una contraseña nueva 2026', 'otra distinta')
 
     const boton = formulario?.findAll('button').find((b) => b.text().includes('Cambiar contraseña'))
     expect(boton?.attributes('disabled')).toBeDefined()
@@ -54,11 +54,11 @@ describe('mi cuenta: cambio de contraseña', { timeout: 20_000 }, () => {
         return new HttpResponse(null, { status: 204 })
       }),
     )
-    const formulario = await completar('la contraseña de antes', 'una contraseña nueva')
+    const formulario = await completar('la contraseña de antes', 'Una contraseña nueva 2026')
     await formulario?.trigger('submit')
 
     await vi.waitFor(() =>
-      expect(recibido).toEqual({ password_actual: 'la contraseña de antes', password: 'una contraseña nueva' }),
+      expect(recibido).toEqual({ password_actual: 'la contraseña de antes', password: 'Una contraseña nueva 2026' }),
     )
     await vi.waitFor(() => expect(document.body.textContent).toContain('Contraseña actualizada'))
     const campos = montada.envoltorio.findAll('input[type="password"]')
@@ -78,7 +78,7 @@ describe('mi cuenta: cambio de contraseña', { timeout: 20_000 }, () => {
         ),
       ),
     )
-    const formulario = await completar('una equivocada', 'una contraseña nueva')
+    const formulario = await completar('una equivocada', 'Una contraseña nueva 2026')
     await formulario?.trigger('submit')
 
     await vi.waitFor(() => expect(formulario?.text()).toContain('La contraseña actual no es correcta.'))

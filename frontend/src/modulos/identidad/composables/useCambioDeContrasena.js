@@ -2,10 +2,7 @@ import { computed, ref } from 'vue'
 import { useErroresDeFormulario } from '@/compartido/composables/useErroresDeFormulario.js'
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
 import { cambiarContrasena } from '../api/sesion.js'
-
-/** Mínimo de la política de contraseñas del backend (ASVS 6.2.1): solo longitud, sin reglas de composición. */
-export const LONGITUD_MINIMA = 15
-export const LONGITUD_MAXIMA = 256
+import { cumpleRequisitos } from '../contrasena.js'
 
 /** Cambio de la propia contraseña (RF-F08). Tras el éxito, el servidor cierra las demás sesiones. */
 export function useCambioDeContrasena() {
@@ -20,9 +17,8 @@ export function useCambioDeContrasena() {
     password: 'nueva',
   })
 
-  const cumpleLongitud = computed(() => nueva.value.length >= LONGITUD_MINIMA)
   const coincide = computed(() => repetida.value === '' || repetida.value === nueva.value)
-  const listo = computed(() => actual.value !== '' && cumpleLongitud.value && repetida.value === nueva.value)
+  const listo = computed(() => actual.value !== '' && cumpleRequisitos(nueva.value) && repetida.value === nueva.value)
 
   /** @returns {Promise<void>} */
   async function guardar() {
@@ -52,7 +48,6 @@ export function useCambioDeContrasena() {
     exito,
     errores,
     general,
-    cumpleLongitud,
     coincide,
     listo,
     guardar,

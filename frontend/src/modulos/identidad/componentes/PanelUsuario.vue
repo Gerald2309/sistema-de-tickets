@@ -5,9 +5,10 @@ import InterruptorCompacto from '@/compartido/componentes/InterruptorCompacto.vu
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
 import PanelLateral from '@/compartido/componentes/PanelLateral.vue'
 import { useErroresDeFormulario } from '@/compartido/composables/useErroresDeFormulario.js'
-import { LONGITUD_MAXIMA, LONGITUD_MINIMA } from '../composables/useCambioDeContrasena.js'
+import { LONGITUD_MAXIMA, cumpleRequisitos } from '../contrasena.js'
 import { useEmpresas } from '../composables/usePersonas.js'
 import { useEdicionDeUsuarios, useRoles } from '../composables/useUsuarios.js'
+import RequisitosDeContrasena from './RequisitosDeContrasena.vue'
 
 /**
  * Alta y edición de un usuario en panel lateral (RF-F42, sistema de diseño). La contraseña inicial solo se pide
@@ -80,17 +81,15 @@ const completo = computed(
     datos.nombre.trim() !== '' &&
     datos.correo.trim() !== '' &&
     datos.rolId > 0 &&
-    (props.usuario !== null || datos.contrasena.length >= LONGITUD_MINIMA),
+    (props.usuario !== null || cumpleRequisitos(datos.contrasena)),
 )
 
-/** Al salir del campo, dice cuánto falta: el botón deshabilitado por sí solo no explica por qué. */
-const errorDeContrasena = computed(() => {
-  const faltan = LONGITUD_MINIMA - datos.contrasena.length
-  if (!contrasenaTocada.value || faltan <= 0) {
-    return servidor.errores.contrasena
-  }
-  return [`Faltan ${faltan} ${faltan === 1 ? 'carácter' : 'caracteres'}: mínimo ${LONGITUD_MINIMA}.`]
-})
+/** Al salir del campo la marca en rojo: el botón deshabilitado por sí solo no explica por qué. */
+const errorDeContrasena = computed(() =>
+  contrasenaTocada.value && !cumpleRequisitos(datos.contrasena)
+    ? ['Aún no cumple todos los requisitos.']
+    : servidor.errores.contrasena,
+)
 
 async function guardar() {
   if (!completo.value) {
@@ -168,12 +167,13 @@ async function guardar() {
         autocomplete="new-password"
         :counter="LONGITUD_MAXIMA"
         :maxlength="LONGITUD_MAXIMA"
-        :hint="`Mínimo ${LONGITUD_MINIMA} caracteres. La persona puede cambiarla en Mi cuenta.`"
+        hint="La persona puede cambiarla en Mi cuenta."
         persistent-hint
         :error-messages="errorDeContrasena"
         @update:model-value="servidor.limpiarCampo('contrasena')"
         @blur="contrasenaTocada = true"
       />
+      <RequisitosDeContrasena v-if="!usuario" :contrasena="datos.contrasena" />
       <label v-else class="panel-usuario__activo">
         <b>Puede iniciar sesión</b>
         <InterruptorCompacto v-model="datos.activo" etiqueta="Puede iniciar sesión" />

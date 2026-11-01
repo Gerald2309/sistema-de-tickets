@@ -10,7 +10,8 @@ const token = () => /** @type {string} */ (process.env.TOKEN_ADMINISTRADOR)
 const persona = {
   nombre: `Solicitante ${EJECUCION}`,
   correo: `${EJECUCION}@empresa-ejemplo.com`,
-  clave: randomBytes(18).toString('base64url'),
+  // Al azar en cada ejecución, con lo que exige la regla de contraseñas.
+  clave: `Aa1-${randomBytes(18).toString('base64url')}`,
 }
 /** @type {number | undefined} */
 let idPersona

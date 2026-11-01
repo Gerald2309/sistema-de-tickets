@@ -49,6 +49,7 @@ uso, copie el archivo a `.env` y cambie las contraseñas y los secretos.
 | `SESIONES_MAXIMAS` | Sesiones abiertas por persona; al pasarse se cierran las más antiguas | `5` |
 | `LIMITE_API_POR_MINUTO` | Peticiones por minuto a la API | `300` |
 | `LIMITE_LOGIN_POR_EMAIL` / `LIMITE_LOGIN_POR_IP` | Intentos de inicio de sesión por minuto | `5` / `30` |
+| `CONTRASENAS_COMPROBAR_FILTRADAS` | Rechazar contraseñas nuevas que aparezcan en filtraciones | `true` |
 | `ACUERDOS_ZONA_HORARIA` | Zona horaria en que se cuentan los plazos en horario laboral | `America/Bogota` |
 | `ALERTA_VENTANA_MINUTOS` / `ALERTA_FALLIDOS_POR_CUENTA` / `ALERTA_FALLIDOS_POR_IP` | Inicios fallidos que disparan una alerta de seguridad en la auditoría | `15` / `10` / `20` |
 | `LOG_LEVEL` | Nivel del log de Laravel | `info` |
@@ -92,7 +93,7 @@ docker compose exec app php artisan db:seed --class=VolumenSeeder
 
 ## Credenciales de prueba
 
-Todas las cuentas usan la contraseña de demostración **`Psicol-Mesa-De-Ayuda`**
+Todas las cuentas usan la contraseña de demostración **`Psicol-Mesa-De-Ayuda-2026`**
 (`ADMIN_PASSWORD` y `DEMO_PASSWORD` de `.env.example`).
 
 | Perfil | Correo | Qué puede hacer |

@@ -72,11 +72,11 @@ class PersonasTest extends TestCase
 
     public function test_por_defecto_excluye_a_las_inactivas_y_se_pueden_incluir(): void
     {
-        $this->crearUsuario('Solicitante', ['name' => 'Inés Activa']);
-        $this->crearUsuario('Solicitante', ['name' => 'Inés Inactiva', 'activo' => false]);
+        $this->crearUsuario('Solicitante', ['name' => 'Zuleima Activa']);
+        $this->crearUsuario('Solicitante', ['name' => 'Zuleima Inactiva', 'activo' => false]);
 
-        $this->assertSame(['Inés Activa'], $this->nombres('q=Inés'));
-        $this->assertSame(['Inés Activa', 'Inés Inactiva'], $this->nombres('q=Inés&incluir_inactivas=1'));
+        $this->assertSame(['Zuleima Activa'], $this->nombres('q=Zuleima'));
+        $this->assertSame(['Zuleima Activa', 'Zuleima Inactiva'], $this->nombres('q=Zuleima&incluir_inactivas=1'));
     }
 
     public function test_resuelve_personas_concretas_aunque_esten_inactivas(): void

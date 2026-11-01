@@ -31,6 +31,14 @@ return [
         'string' => 'El campo :attribute debe tener al menos :min caracteres.',
     ],
 
+    'password' => [
+        'letters' => 'La :attribute debe tener al menos una letra.',
+        'mixed' => 'La :attribute debe tener al menos una mayúscula y una minúscula.',
+        'numbers' => 'La :attribute debe tener al menos un número.',
+        'symbols' => 'La :attribute debe tener al menos un símbolo o un espacio.',
+        'uncompromised' => 'Esta :attribute apareció en una filtración de datos. Elija otra.',
+    ],
+
     'attributes' => [
         'email' => 'correo electrónico',
         'password' => 'contraseña',

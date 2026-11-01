@@ -37,8 +37,14 @@ class AppServiceProvider extends ServiceProvider
         // Una consulta por relación cargada de antemano: fuera de producción, el N+1 lanza una excepción.
         Model::preventLazyLoading(! $this->app->isProduction());
 
-        // Una sola definición de contraseña segura (ASVS 6.2.1 y 6.2.5): longitud, sin reglas de composición.
-        Password::defaults(fn () => Password::min(15)->max(256));
+        // Una sola definición de contraseña segura: larga, con mayúscula, minúscula, número y símbolo, y que no
+        // aparezca en filtraciones (sin enviarla: solo viaja el inicio de su hash). Si ese servicio no responde, la
+        // comprobación se omite y no impide guardar.
+        Password::defaults(function () {
+            $regla = Password::min(15)->max(256)->mixedCase()->numbers()->symbols();
+
+            return config('seguridad.contrasenas.comprobar_filtradas') ? $regla->uncompromised() : $regla;
+        });
 
         $this->definirLimitesDePeticiones();
     }

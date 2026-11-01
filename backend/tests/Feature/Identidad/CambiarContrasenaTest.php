@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 class CambiarContrasenaTest extends TestCase
 {
-    private const NUEVA = 'otra contraseña distinta y larga';
+    private const NUEVA = 'Otra contraseña distinta 2026';
 
     /**
      * @return array<string, array{string}>
@@ -17,10 +17,10 @@ class CambiarContrasenaTest extends TestCase
     public static function contrasenasAceptadas(): array
     {
         return [
-            'justo 15 caracteres, solo minúsculas' => ['abcdefghijklmno'],
-            'frase con espacios' => ['la impresora del segundo piso'],
-            '64 caracteres' => [str_repeat('a1', 32)],
-            '256 caracteres' => [str_repeat('x', 256)],
+            'justo 15 caracteres' => ['Abcdefghijkl-12'],
+            'frase con espacios' => ['La impresora del piso 2'],
+            '64 caracteres' => [str_repeat('aB1-', 16)],
+            '256 caracteres' => [str_repeat('aB1-', 64)],
         ];
     }
 
@@ -90,7 +90,7 @@ class CambiarContrasenaTest extends TestCase
     }
 
     #[DataProvider('contrasenasAceptadas')]
-    public function test_acepta_contrasenas_largas_sin_reglas_de_composicion(string $nueva): void
+    public function test_acepta_contrasenas_que_cumplen_la_regla_hasta_el_limite(string $nueva): void
     {
         $token = $this->iniciarSesion($this->crearUsuario());
 

@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { LONGITUD_MAXIMA, LONGITUD_MINIMA } from '../composables/useCambioDeContrasena.js'
+import { LONGITUD_MAXIMA, cumpleRequisitos } from '../contrasena.js'
 import { useEdicionDeUsuarios } from '../composables/useUsuarios.js'
+import RequisitosDeContrasena from './RequisitosDeContrasena.vue'
 
 /** Restablecer la contraseña de otra persona (RF-F42): se cierran todas sus sesiones. */
 const props = defineProps({
@@ -19,7 +20,7 @@ watch(abierto, () => {
   contrasena.value = ''
   error.value = ''
 })
-const valida = computed(() => contrasena.value.length >= LONGITUD_MINIMA)
+const valida = computed(() => cumpleRequisitos(contrasena.value))
 
 async function restablecer() {
   if (!props.usuario || !valida.value) {
@@ -48,11 +49,10 @@ async function restablecer() {
             autocomplete="new-password"
             :counter="LONGITUD_MAXIMA"
             :maxlength="LONGITUD_MAXIMA"
-            :hint="`Mínimo ${LONGITUD_MINIMA} caracteres.`"
-            persistent-hint
             :error-messages="error ? [error] : []"
             autofocus
           />
+          <RequisitosDeContrasena :contrasena="contrasena" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />

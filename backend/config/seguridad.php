@@ -27,6 +27,10 @@ return [
         'fallidos_por_ip' => (int) env('ALERTA_FALLIDOS_POR_IP', 20),
     ],
 
+    'contrasenas' => [
+        'comprobar_filtradas' => (bool) env('CONTRASENAS_COMPROBAR_FILTRADAS', true),
+    ],
+
     'demostracion' => [
         'password' => env('DEMO_PASSWORD'),
     ],

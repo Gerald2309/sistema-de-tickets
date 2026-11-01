@@ -37,7 +37,7 @@ class UsuariosTest extends TestCase
         $respuesta = $this->conToken($this->token)->postJson('/api/v1/usuarios', [
             'name' => 'Marta Ruiz',
             'email' => '  Marta.Ruiz@Empresa-Ejemplo.com ',
-            'password' => 'una contraseña inicial bastante larga',
+            'password' => 'Una contraseña inicial 2026',
             'rol_id' => $rol->id,
         ])->assertCreated();
 
@@ -47,8 +47,8 @@ class UsuariosTest extends TestCase
             ->assertJsonMissingPath('data.password');
 
         $usuario = User::findOrFail($respuesta->json('data.id'));
-        $this->assertTrue(Hash::check('una contraseña inicial bastante larga', $usuario->password));
-        $this->assertNotNull($this->iniciarSesion($usuario, 'una contraseña inicial bastante larga'));
+        $this->assertTrue(Hash::check('Una contraseña inicial 2026', $usuario->password));
+        $this->assertNotNull($this->iniciarSesion($usuario, 'Una contraseña inicial 2026'));
 
         $registro = $this->auditoria(AccionAuditoria::UsuarioCreado);
         $this->assertSame($this->administrador->id, $registro->usuario_id);
@@ -155,10 +155,10 @@ class UsuariosTest extends TestCase
         $usuario = $this->crearUsuario();
         $this->iniciarSesion($usuario);
 
-        $this->conToken($this->token)->patchJson("/api/v1/usuarios/{$usuario->id}", ['password' => 'contraseña provisional muy larga'])->assertOk();
+        $this->conToken($this->token)->patchJson("/api/v1/usuarios/{$usuario->id}", ['password' => 'Contraseña provisional 2026'])->assertOk();
 
         $this->assertSame(0, $usuario->tokens()->count());
-        $this->assertNotNull($this->iniciarSesion($usuario, 'contraseña provisional muy larga'));
+        $this->assertNotNull($this->iniciarSesion($usuario, 'Contraseña provisional 2026'));
         $registro = $this->auditoria(AccionAuditoria::ContrasenaRestablecida);
         $this->assertSame($usuario->id, $registro->usuario_afectado_id);
         $this->assertNull($registro->detalle);
@@ -174,7 +174,7 @@ class UsuariosTest extends TestCase
 
     public function test_no_se_restablece_la_contrasena_propia_por_aqui(): void
     {
-        $this->conToken($this->token)->patchJson("/api/v1/usuarios/{$this->administrador->id}", ['password' => 'contraseña provisional muy larga'])
+        $this->conToken($this->token)->patchJson("/api/v1/usuarios/{$this->administrador->id}", ['password' => 'Contraseña provisional 2026'])
             ->assertUnprocessable()->assertJsonPath('errors.password.0', trans('identidad.password_propia'));
 
         $this->assertTrue(Hash::check(self::PASSWORD, $this->administrador->fresh()->password));

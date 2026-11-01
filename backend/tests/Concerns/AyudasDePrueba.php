@@ -17,7 +17,7 @@ use RuntimeException;
 // Ayudantes comunes de las pruebas de funcionalidad, compartidos por las dos bases de pruebas.
 trait AyudasDePrueba
 {
-    protected const PASSWORD = 'una contraseña de pruebas bastante larga';
+    protected const PASSWORD = 'Una contraseña de pruebas 2026';
 
     /**
      * Las pruebas vacían la base. Antes se comprueba la que la aplicación va a usar de verdad: si no es de

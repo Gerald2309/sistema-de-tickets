@@ -115,7 +115,7 @@ describe('administración', { timeout: 20_000 }, () => {
     const [nombre, correo] = panel.findAll('input[type="text"], input[type="email"]')
     await nombre.setValue('Marta Ruiz')
     await correo.setValue('  Marta.Ruiz@Psicol.co ')
-    await panel.find('input[type="password"]').setValue('una contraseña inicial larga')
+    await panel.find('input[type="password"]').setValue('Una contraseña inicial 2026')
     await vi.waitFor(() =>
       expect(envoltorio.find('button[form="formulario-usuario"]').attributes('disabled')).toBeUndefined(),
     )
@@ -125,31 +125,34 @@ describe('administración', { timeout: 20_000 }, () => {
     expect(recibidos.usuario).toEqual({
       name: 'Marta Ruiz',
       email: 'marta.ruiz@psicol.co',
-      password: 'una contraseña inicial larga',
+      password: 'Una contraseña inicial 2026',
       rol_id: 4,
       cliente_id: null,
     })
     await vi.waitFor(() => expect(document.body.textContent).toContain('Usuario creado'))
   })
 
-  it('usuarios: una contraseña corta se marca al salir del campo y dice cuánto falta', async () => {
+  it('usuarios: la contraseña que no cumple se marca al salir del campo y dice qué le falta', async () => {
     const envoltorio = await abrir('/administracion/usuarios', 'Luis Pardo')
     await envoltorio
       .findAll('button')
       .find((boton) => boton.text() === 'Nuevo usuario')
       ?.trigger('click')
     await esperarPintado()
-    const contrasena = envoltorio.find('#formulario-usuario input[type="password"]')
+    const formulario = envoltorio.find('#formulario-usuario')
+    const contrasena = formulario.find('input[type="password"]')
+    /** @param {string} texto */
+    const requisito = (texto) => formulario.findAll('.requisito').find((fila) => fila.text().includes(texto))
 
-    await contrasena.setValue('corta123')
-    expect(envoltorio.find('#formulario-usuario').text()).not.toContain('Faltan')
+    await contrasena.setValue('solo minusculas largas')
+    expect(formulario.text()).not.toContain('Aún no cumple')
+    expect(requisito('Al menos 15')?.classes()).toContain('requisito--cumplido')
+    expect(requisito('Un número')?.classes()).not.toContain('requisito--cumplido')
     await contrasena.trigger('blur')
+    await vi.waitFor(() => expect(formulario.text()).toContain('Aún no cumple todos los requisitos.'))
 
-    await vi.waitFor(() =>
-      expect(envoltorio.find('#formulario-usuario').text()).toContain('Faltan 7 caracteres: mínimo 15.'),
-    )
-    await contrasena.setValue('ya es bastante larga')
-    await vi.waitFor(() => expect(envoltorio.find('#formulario-usuario').text()).not.toContain('Faltan'))
+    await contrasena.setValue('Ya cumple todo 2026')
+    await vi.waitFor(() => expect(formulario.text()).not.toContain('Aún no cumple'))
   })
 
   it('usuarios: el error de la API queda bajo su campo', async () => {
@@ -171,7 +174,7 @@ describe('administración', { timeout: 20_000 }, () => {
     const [nombre, correo] = panel.findAll('input[type="text"], input[type="email"]')
     await nombre.setValue('Ana Gómez')
     await correo.setValue('ana.gomez@psicol.co')
-    await panel.find('input[type="password"]').setValue('una contraseña inicial larga')
+    await panel.find('input[type="password"]').setValue('Una contraseña inicial 2026')
     await vi.waitFor(() =>
       expect(envoltorio.find('button[form="formulario-usuario"]').attributes('disabled')).toBeUndefined(),
     )

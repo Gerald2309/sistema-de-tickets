@@ -113,7 +113,7 @@ class ClientesTest extends TestCase
         $creada = $this->conToken($this->token)->postJson('/api/v1/usuarios', [
             'name' => 'Jorge León',
             'email' => 'jorge.leon@empresa-ejemplo.com',
-            'password' => 'una contraseña inicial bastante larga',
+            'password' => 'Una contraseña inicial 2026',
             'rol_id' => $rol->id,
             'cliente_id' => $empresa->id,
         ])->assertCreated()->assertJsonPath('data.cliente', ['id' => $empresa->id, 'nombre' => 'Transportes Sabana']);
