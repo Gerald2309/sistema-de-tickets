@@ -2,6 +2,7 @@ import { http as manejador, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { montarAplicacion } from '../../../../pruebas/montar.js'
 import { api, servidor } from '../../../../pruebas/servidor.js'
+import { tiempoReal } from '@/compartido/tiempo-real.js'
 
 const PERFIL = {
   id: 7,
@@ -104,6 +105,20 @@ describe('panel', { timeout: 20_000 }, () => {
     expect(aviso).toContain('5 reportes de 4 personas')
     expect(aviso).toContain('internet')
     expect(montada.envoltorio.find('h1').text()).toBe('Operación de hoy')
+  })
+
+  it('dice «en vivo» solo mientras el tiempo real está conectado', async () => {
+    montada = await montarAplicacion('/panel')
+    const subtitulo = () => montada.envoltorio.find('.subtitulo')
+
+    tiempoReal.conectado = true
+    await vi.waitFor(() => expect(subtitulo().text()).toContain('en vivo'), { timeout: 8000 })
+    expect(subtitulo().text()).not.toContain('sin conexión')
+    expect(subtitulo().find('.vivo--conectado').exists()).toBe(true)
+
+    tiempoReal.conectado = false
+    await vi.waitFor(() => expect(subtitulo().text()).toContain('sin conexión en vivo'))
+    expect(subtitulo().find('.vivo--conectado').exists()).toBe(false)
   })
 
   it('el recorrido muestra cada estado con lo vencido de las etapas pendientes', async () => {

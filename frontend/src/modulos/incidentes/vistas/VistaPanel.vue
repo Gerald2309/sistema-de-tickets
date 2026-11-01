@@ -5,6 +5,7 @@ import EsqueletoDeCarga from '@/compartido/componentes/EsqueletoDeCarga.vue'
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
 import { iconos } from '@/compartido/iconos.js'
 import { haceCuanto } from '@/compartido/presentacion/fechas.js'
+import { tiempoReal } from '@/compartido/tiempo-real.js'
 import { useSesion } from '@/modulos/identidad/index.js'
 import AvisoMasivo from '../componentes/AvisoMasivo.vue'
 import CriticosVencidos from '../componentes/CriticosVencidos.vue'
@@ -18,10 +19,19 @@ import { usePanel } from '../composables/usePanel.js'
 const { perfil } = storeToRefs(useSesion())
 const { veTodo, resumen, avisos, indicadores, criticosVencidos, miTrabajo, actualizadoEn, actualizar } = usePanel()
 
-// «Actualizado hace…» avanza solo.
+// «Actualizado hace…» avanza solo; con el socket conectado dice «en vivo», aunque nada haya cambiado hace rato.
 const ahora = ref(Date.now())
 const reloj = setInterval(() => (ahora.value = Date.now()), 5000)
 onBeforeUnmount(() => clearInterval(reloj))
+
+const estadoDeLosDatos = computed(() => {
+  if (tiempoReal.conectado) {
+    return 'en vivo'
+  }
+  return actualizadoEn.value
+    ? `sin conexión en vivo · actualizado ${haceCuanto(actualizadoEn.value, ahora.value)}`
+    : 'sin conexión en vivo'
+})
 
 const accesos = computed(() => [
   ...(veTodo.value
@@ -57,8 +67,10 @@ const accesos = computed(() => [
         <div class="migas entra">Mesa de ayuda · Panel</div>
         <h1 v-revelar class="titulo-pagina">Operación de hoy</h1>
         <p class="subtitulo entra" style="--i: 2">
-          <span class="vivo" aria-hidden="true" />{{ perfil?.nombre }} · {{ perfil?.rol.nombre }}
-          <template v-if="actualizadoEn"> · actualizado {{ haceCuanto(actualizadoEn, ahora) }}</template>
+          <span class="vivo" :class="{ 'vivo--conectado': tiempoReal.conectado }" aria-hidden="true" />{{
+            perfil?.nombre
+          }}
+          · {{ perfil?.rol.nombre }} · {{ estadoDeLosDatos }}
         </p>
       </div>
       <v-btn variant="outlined" class="entra" style="--i: 2" :prepend-icon="iconos.actualizar" @click="actualizar"
@@ -158,8 +170,12 @@ const accesos = computed(() => [
   width: 7px;
   height: 7px;
   margin-right: 7px;
-  background: var(--marca-verde);
+  background: var(--estado-cerrado);
   border-radius: 50%;
+}
+
+.vivo--conectado {
+  background: var(--marca-verde);
   animation: pulso 2s infinite;
 }
 
