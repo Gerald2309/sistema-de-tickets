@@ -12,7 +12,8 @@ class CrearIncidenteRequest extends IncidenteRequest
 
     public function authorize(): bool
     {
-        return $this->input('usuario_asignado_id') === null || $this->alcance()->puedeAsignarAlCrear();
+        return $this->alcance()->puedePedirEstosPlazos($this->all())
+            && ($this->input('usuario_asignado_id') === null || $this->alcance()->puedeAsignarAlCrear());
     }
 
     /**

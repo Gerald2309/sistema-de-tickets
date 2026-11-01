@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { iconos } from '@/compartido/iconos.js'
-import { CATEGORIAS, ESTADOS, PRIORIDADES } from '../presentacion.js'
+import { CATEGORIAS, ESTADOS, prioridadesElegibles } from '../presentacion.js'
 import DialogoResolver from './DialogoResolver.vue'
 import MenuReasignar from './MenuReasignar.vue'
 
@@ -12,7 +12,7 @@ import MenuReasignar from './MenuReasignar.vue'
 const props = defineProps({
   cantidad: { type: Number, required: true },
   permite: {
-    type: /** @type {import('vue').PropType<{ estado: boolean, reasignar: boolean, clasificar: boolean, eliminar: boolean }>} */ (
+    type: /** @type {import('vue').PropType<{ estado: boolean, reasignar: boolean, clasificar: boolean, moverPlazos: boolean, eliminar: boolean }>} */ (
       Object
     ),
     required: true,
@@ -110,7 +110,7 @@ const excedido = () => props.cantidad > props.maximo
             </template>
             <v-list min-width="180">
               <v-list-item
-                v-for="(prioridad, valor) in PRIORIDADES"
+                v-for="(prioridad, valor) in prioridadesElegibles(permite.moverPlazos)"
                 :key="valor"
                 :title="prioridad.nombre"
                 @click="emit('aplicar', { prioridad: valor })"

@@ -21,7 +21,6 @@ class CrearIncidenteTest extends TestCase
         return [
             'titulo' => 'No puedo conectarme a la VPN',
             'descripcion' => 'Desde ayer la VPN rechaza mis credenciales con el error 691.',
-            'fecha_vencimiento' => '2030-01-15T10:00:00-05:00',
         ];
     }
 
@@ -37,9 +36,6 @@ class CrearIncidenteTest extends TestCase
             'descripción demasiado larga' => ['descripcion', str_repeat('a', 10001)],
             'prioridad desconocida' => ['prioridad', 'urgentisima'],
             'categoría desconocida' => ['categoria', 'cocina'],
-            'sin vencimiento' => ['fecha_vencimiento', null],
-            'vencimiento sin zona horaria' => ['fecha_vencimiento', '2030-01-15T10:00:00'],
-            'vencimiento solo con fecha' => ['fecha_vencimiento', '2030-01-15'],
             'asignado inexistente' => ['usuario_asignado_id', 999999],
             'asignado que no es un número' => ['usuario_asignado_id', 'abc'],
         ];
@@ -59,11 +55,9 @@ class CrearIncidenteTest extends TestCase
             ->assertJsonPath('data.creador.id', $solicitante->id)
             ->assertJsonPath('data.asignado', null)
             ->assertJsonPath('data.solucion', null)
-            ->assertJsonPath('data.vencido', false)
-            ->assertJsonPath('data.fecha_vencimiento', '2030-01-15T15:00:00Z');
+            ->assertJsonPath('data.vencido', false);
 
         $this->assertSame(CodigoIncidente::deId($respuesta->json('data.id')), $respuesta->json('data.codigo'));
-        $this->assertDatabaseHas('incidentes', ['id' => $respuesta->json('data.id'), 'fecha_vencimiento' => '2030-01-15 15:00:00']);
     }
 
     public function test_reintentar_con_la_misma_clave_de_idempotencia_no_crea_un_duplicado(): void
@@ -107,18 +101,68 @@ class CrearIncidenteTest extends TestCase
         $this->assertSame(0, Incidente::count());
     }
 
-    public function test_acepta_el_vencimiento_en_utc_con_la_letra_z(): void
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function vencimientosEscritos(): array
     {
-        $token = $this->iniciarSesion($this->crearUsuario());
+        return [
+            'con desfase' => ['2030-01-15T15:00:00-05:00'],
+            'en UTC con la letra Z' => ['2030-01-15T20:00:00Z'],
+        ];
+    }
 
-        $this->conToken($token)->postJson('/api/v1/incidentes', ['fecha_vencimiento' => '2030-01-15T20:00:00Z'] + $this->datosValidos())
+    #[DataProvider('vencimientosEscritos')]
+    public function test_soporte_puede_escribir_el_vencimiento_con_zona_horaria(string $vencimiento): void
+    {
+        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+
+        $this->conToken($token)->postJson('/api/v1/incidentes', ['fecha_vencimiento' => $vencimiento] + $this->datosValidos())
             ->assertCreated()
             ->assertJsonPath('data.fecha_vencimiento', '2030-01-15T20:00:00Z');
     }
 
-    public function test_acepta_prioridad_y_categoria_cuando_se_indican(): void
+    /**
+     * @return array<string, array{mixed}>
+     */
+    public static function vencimientosInvalidos(): array
+    {
+        return [
+            'nulo' => [null],
+            'sin zona horaria' => ['2030-01-15T10:00:00'],
+            'solo con fecha' => ['2030-01-15'],
+        ];
+    }
+
+    #[DataProvider('vencimientosInvalidos')]
+    public function test_rechaza_un_vencimiento_mal_escrito(mixed $vencimiento): void
+    {
+        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
+
+        $this->conToken($token)->postJson('/api/v1/incidentes', ['fecha_vencimiento' => $vencimiento] + $this->datosValidos())
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('fecha_vencimiento');
+    }
+
+    public function test_el_solicitante_elige_alta_media_o_baja_pero_no_critica_ni_el_vencimiento(): void
     {
         $token = $this->iniciarSesion($this->crearUsuario());
+
+        foreach (['alta', 'media', 'baja'] as $prioridad) {
+            $this->conToken($token)->postJson('/api/v1/incidentes', ['prioridad' => $prioridad] + $this->datosValidos())
+                ->assertCreated()
+                ->assertJsonPath('data.prioridad', $prioridad);
+        }
+
+        $this->conToken($token)->postJson('/api/v1/incidentes', ['prioridad' => 'critica'] + $this->datosValidos())->assertForbidden();
+        $this->conToken($token)->postJson('/api/v1/incidentes', ['fecha_vencimiento' => '2030-01-15T20:00:00Z'] + $this->datosValidos())->assertForbidden();
+
+        $this->assertSame(3, Incidente::count());
+    }
+
+    public function test_soporte_acepta_prioridad_critica_y_categoria(): void
+    {
+        $token = $this->iniciarSesion($this->crearUsuario('Soporte N1'));
 
         $this->conToken($token)->postJson('/api/v1/incidentes', ['prioridad' => 'critica', 'categoria' => 'red'] + $this->datosValidos())
             ->assertCreated()

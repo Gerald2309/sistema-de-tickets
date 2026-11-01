@@ -16,7 +16,6 @@ class HistorialDeIncidenteTest extends TestCase
         $id = $this->conToken($this->iniciarSesion($solicitante))->postJson('/api/v1/incidentes', [
             'titulo' => 'No imprime',
             'descripcion' => 'La impresora no responde.',
-            'fecha_vencimiento' => '2030-01-15T10:00:00Z',
         ])->json('data.id');
 
         $tokenDeSoporte = $this->iniciarSesion($soporte);

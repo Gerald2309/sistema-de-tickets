@@ -7,6 +7,7 @@ import { aIsoConDesfase } from '@/compartido/presentacion/fechas.js'
 import { useSesion } from '@/modulos/identidad/index.js'
 import { crearIncidente, obtenerCatalogos, obtenerPlazoPropuesto } from '../api/incidentes.js'
 import { claves } from '../api/claves.js'
+import { puedeMoverPlazos } from '../permisos.js'
 import { useInvalidacion } from './useInvalidacion.js'
 
 export const MAXIMO_TITULO = 255
@@ -29,9 +30,10 @@ const camposIniciales = () => ({
 
 /**
  * @param {Campos} campos
+ * @param {{ exigeVencimiento?: boolean }} [opciones] sin él, la fecha la calcula la API con el acuerdo de la empresa
  * @returns {Partial<Record<Campo, string>>} el primer error de cada campo
  */
-export function validarIncidente(campos) {
+export function validarIncidente(campos, { exigeVencimiento = true } = {}) {
   /** @type {Partial<Record<Campo, string>>} */
   const errores = {}
   if (!campos.titulo.trim()) {
@@ -43,6 +45,9 @@ export function validarIncidente(campos) {
     errores.descripcion = 'Describa qué ocurre.'
   } else if (campos.descripcion.length > MAXIMO_DESCRIPCION) {
     errores.descripcion = `Use como máximo ${MAXIMO_DESCRIPCION.toLocaleString('es-CO')} caracteres.`
+  }
+  if (!exigeVencimiento) {
+    return errores
   }
   if (!campos.vencimiento) {
     errores.vencimiento = 'Elija la fecha de vencimiento.'
@@ -76,9 +81,13 @@ export function useFormularioIncidente() {
     JSON.stringify({ ...campos, vencimiento: vencimientoEditado.value ? campos.vencimiento : null })
   const inicial = ref(instantanea())
 
+  // Crítica y el vencimiento mueven los plazos acordados: solo soporte los elige.
+  const mueveLosPlazos = computed(() => puedeMoverPlazos(sesion))
+
   const plazoPropuesto = useQuery({
     queryKey: computed(() => claves.plazoPropuesto(campos.prioridad)),
     queryFn: ({ signal }) => obtenerPlazoPropuesto(campos.prioridad, signal),
+    enabled: mueveLosPlazos,
   })
   watch(plazoPropuesto.data, (propuesto) => {
     if (propuesto && !vencimientoEditado.value) {
@@ -99,7 +108,7 @@ export function useFormularioIncidente() {
     fecha_vencimiento: 'vencimiento',
   })
   const tocados = reactive(new Set(/** @type {Campo[]} */ ([])))
-  const deCliente = computed(() => validarIncidente(campos))
+  const deCliente = computed(() => validarIncidente(campos, { exigeVencimiento: mueveLosPlazos.value }))
   /**
    * @param {Campo} campo
    * @returns {string[]}
@@ -165,6 +174,7 @@ export function useFormularioIncidente() {
     catalogos,
     campos,
     plazoPropuesto,
+    mueveLosPlazos,
     puedeAsignar,
     modificado,
     erroresDe,

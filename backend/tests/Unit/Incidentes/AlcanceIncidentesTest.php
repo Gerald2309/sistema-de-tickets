@@ -227,9 +227,12 @@ class AlcanceIncidentesTest extends TestCase
 
     public function test_cada_campo_exige_su_capacidad(): void
     {
-        $contenido = ['prioridad' => 'alta', 'categoria' => 'red', 'fecha_vencimiento' => 'c'];
+        $contenido = ['prioridad' => 'alta', 'categoria' => 'red'];
 
         $this->assertTrue($this->solicitante()->puedeModificar($contenido, self::mioLibre()));
+        $this->assertFalse($this->solicitante()->puedeModificar(['prioridad' => 'critica'], self::mioLibre()), 'Lo crítico lo decide soporte.');
+        $this->assertFalse($this->solicitante()->puedeModificar(['fecha_vencimiento' => 'c'], self::mioLibre()), 'El vencimiento lo decide soporte.');
+        $this->assertTrue($this->soporte()->puedeModificar(['prioridad' => 'critica', 'fecha_vencimiento' => 'c'], self::ajenoQueAtiendo()));
         $this->assertFalse($this->solicitante()->puedeModificar(['estado' => 'cerrado'], self::mioLibre()));
         $this->assertFalse($this->solicitante()->puedeModificar(['solucion' => 'x'], self::mioLibre()));
         $this->assertFalse($this->solicitante()->puedeModificar(['usuario_asignado_id' => self::YO], self::mioLibre()));

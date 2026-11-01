@@ -26,6 +26,15 @@ export const PRIORIDADES = Object.freeze({
   baja: { nombre: 'Baja', icono: iconos.prioridadBaja, color: 'var(--prioridad-baja)' },
 })
 
+/**
+ * Las prioridades que la persona puede elegir: crítica mueve los plazos acordados y la decide soporte.
+ * @param {boolean} mueveLosPlazos
+ * @returns {Record<string, PresentacionDePrioridad>}
+ */
+export function prioridadesElegibles(mueveLosPlazos) {
+  return Object.fromEntries(Object.entries(PRIORIDADES).filter(([valor]) => mueveLosPlazos || valor !== 'critica'))
+}
+
 /** @type {Readonly<Record<string, string>>} */
 export const CATEGORIAS = Object.freeze({
   red: 'Red',

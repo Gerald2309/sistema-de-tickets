@@ -10,7 +10,8 @@ use App\Identidad\Dominio\ConjuntoPermisos;
 //
 // Toda acción sobre un incidente exige poder verlo. Quien no tiene `ver_todos` solo ve los que creó.
 // Un incidente lo trabaja solo quien lo tiene asignado: primero se toma y después se modifica. El
-// solicitante corrige la clasificación del suyo mientras nadie lo ha tomado. El título y la descripción
+// solicitante corrige la clasificación del suyo mientras nadie lo ha tomado, salvo lo que mueve los plazos del
+// acuerdo de servicio: marcarlo como crítico o cambiar su vencimiento es de soporte. El título y la descripción
 // son las palabras de quien lo reportó: solo esa persona los corrige, y solo mientras nadie lo ha tomado; después
 // quedan fijos y lo que falte se pide en la conversación.
 final class AlcanceIncidentes
@@ -37,6 +38,19 @@ final class AlcanceIncidentes
     public function puedeAsignarAlCrear(): bool
     {
         return $this->permisos->tiene(ClavePermiso::Reasignar);
+    }
+
+    /**
+     * Marcar un incidente como crítico o cambiar su vencimiento mueve los plazos acordados: solo soporte.
+     *
+     * @param  array<string, mixed>  $cambios  campo => valor pedido
+     */
+    public function puedePedirEstosPlazos(array $cambios): bool
+    {
+        $muevePlazos = array_key_exists('fecha_vencimiento', $cambios)
+            || ($cambios['prioridad'] ?? null) === Prioridad::Critica->value;
+
+        return ! $muevePlazos || $this->permisos->tiene(ClavePermiso::EditarTodos);
     }
 
     public function puedeListar(): bool
@@ -205,6 +219,10 @@ final class AlcanceIncidentes
      */
     public function puedeModificar(array $cambios, Participantes $participantes): bool
     {
+        if (! $this->puedePedirEstosPlazos($cambios)) {
+            return false;
+        }
+
         $campos = array_keys($cambios);
 
         $grupos = [

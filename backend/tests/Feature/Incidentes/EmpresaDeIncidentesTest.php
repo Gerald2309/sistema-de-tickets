@@ -32,7 +32,6 @@ class EmpresaDeIncidentesTest extends TestCase
         return [
             'titulo' => 'Sin internet en el piso 3',
             'descripcion' => 'No hay conexión desde esta mañana.',
-            'fecha_vencimiento' => now()->addDay()->toIso8601String(),
         ];
     }
 

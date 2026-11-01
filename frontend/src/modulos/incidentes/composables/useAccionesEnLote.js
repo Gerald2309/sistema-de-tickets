@@ -6,6 +6,7 @@ import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js
 import { useSesion } from '@/modulos/identidad/index.js'
 import { actualizarEnLote, eliminarEnLote } from '../api/incidentes.js'
 import { useInvalidacion } from './useInvalidacion.js'
+import { puedeMoverPlazos } from '../permisos.js'
 
 export const MAXIMO_DEL_LOTE = 100
 
@@ -25,6 +26,7 @@ export function useAccionesEnLote(idsElegidos, alTerminar) {
     estado: sesion.tiene('cambiar_estado'),
     reasignar: sesion.tiene('reasignar'),
     clasificar: sesion.tieneAlguno('editar_todos', 'editar_propios'),
+    moverPlazos: puedeMoverPlazos(sesion),
     eliminar: sesion.tiene('borrar'),
   }))
 

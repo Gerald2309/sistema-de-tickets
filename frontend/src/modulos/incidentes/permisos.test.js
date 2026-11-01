@@ -20,6 +20,12 @@ describe('permisos por incidente (como AlcanceIncidentes del servidor)', () => {
     expect(partesEditables(sesion(['editar_propios']), ajenoLibre).clasificacion).toBe(false)
   })
 
+  it('el solicitante clasifica lo suyo, pero los plazos los mueve soporte', () => {
+    expect(partesEditables(sesion(['editar_propios']), propioLibre).plazos).toBe(false)
+    expect(partesEditables(sesion(soporte), ajenoQueAtiendo).plazos).toBe(true)
+    expect(partesEditables(sesion(soporte), ajenoLibre).plazos).toBe(false)
+  })
+
   it('el título y la descripción los corrige solo quien lo reportó, mientras nadie lo ha tomado', () => {
     expect(partesEditables(sesion(['editar_propios']), propioLibre).relato).toBe(true)
     expect(partesEditables(sesion(['editar_propios']), propioTomado).relato).toBe(false)
@@ -31,6 +37,7 @@ describe('permisos por incidente (como AlcanceIncidentes del servidor)', () => {
     expect(partesEditables(sesion(soporte), ajenoQueAtiendo)).toEqual({
       relato: false,
       clasificacion: true,
+      plazos: true,
       estado: true,
       asignacion: true,
     })

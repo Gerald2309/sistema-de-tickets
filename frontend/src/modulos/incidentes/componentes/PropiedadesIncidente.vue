@@ -4,7 +4,7 @@ import ListaPropiedades from '@/compartido/componentes/ListaPropiedades.vue'
 import SelectorFechaHora from '@/compartido/componentes/SelectorFechaHora.vue'
 import { iconos } from '@/compartido/iconos.js'
 import { aIsoConDesfase, fechaHora } from '@/compartido/presentacion/fechas.js'
-import { CATEGORIAS, PRIORIDADES, nombreDeCategoria } from '../presentacion.js'
+import { CATEGORIAS, nombreDeCategoria, prioridadesElegibles } from '../presentacion.js'
 import IndicadorDeVencimiento from './IndicadorDeVencimiento.vue'
 import InsigniaPrioridad from './InsigniaPrioridad.vue'
 import TemporizadorDePlazos from './TemporizadorDePlazos.vue'
@@ -27,6 +27,7 @@ const emit = defineEmits(['ajustar'])
 
 const fijandoVencimiento = ref(false)
 const vencimiento = ref(/** @type {Date | null} */ (null))
+const prioridades = computed(() => prioridadesElegibles(props.partes.plazos))
 const sinResolver = computed(() => props.incidente.estado === 'abierto' || props.incidente.estado === 'en_progreso')
 
 const propiedades = computed(() => [
@@ -74,7 +75,7 @@ function guardarVencimiento() {
             </template>
             <v-list min-width="180">
               <v-list-item
-                v-for="(prioridad, valor) in PRIORIDADES"
+                v-for="(prioridad, valor) in prioridades"
                 :key="valor"
                 :title="prioridad.nombre"
                 :active="valor === incidente.prioridad"
@@ -112,7 +113,7 @@ function guardarVencimiento() {
         </template>
 
         <template #valor-4>
-          <v-menu v-if="partes.clasificacion" v-model="fijandoVencimiento" :close-on-content-click="false">
+          <v-menu v-if="partes.plazos" v-model="fijandoVencimiento" :close-on-content-click="false">
             <template #activator="{ props: activador }">
               <button v-bind="activador" type="button" class="filtro valor-editable" :disabled="pendiente">
                 <template v-if="vistaDelSolicitante">{{ fechaHora(incidente.fechaVencimiento) }}</template>

@@ -133,15 +133,15 @@ class AcuerdosDeServicioTest extends TestCase
         $empresa = Cliente::factory()->create();
         AcuerdoDeServicio::create(['cliente_id' => $empresa->id, 'horario_laboral' => true, 'plazos' => PlazosDeServicio::PREDETERMINADOS]);
 
-        $incidente = $this->crearIncidente($this->solicitanteDe($empresa), ['prioridad' => 'critica']);
+        $incidente = $this->crearIncidente($this->solicitanteDe($empresa), ['prioridad' => 'alta']);
 
-        // Queda una hora el viernes y otra el lunes desde las 8:00 de Bogotá (13:00 UTC).
-        $this->assertSame('2026-11-09 14:00:00', $incidente->fecha_vencimiento->copy()->utc()->format('Y-m-d H:i:s'));
+        // De 8 horas queda una el viernes y siete el lunes desde las 8:00 de Bogotá: las 15:00 (20:00 UTC).
+        $this->assertSame('2026-11-09 20:00:00', $incidente->fecha_vencimiento->copy()->utc()->format('Y-m-d H:i:s'));
     }
 
     public function test_sin_empresa_ni_prioridad_rigen_los_predeterminados_y_una_fecha_escrita_a_mano_gana(): void
     {
-        $interno = $this->crearUsuario('Soporte N1');
+        $interno = $this->crearUsuario('Soporte N1', ['cliente_id' => null]);
 
         $calculado = $this->crearIncidente($interno);
         $this->assertEquals(now()->addMinutes(240), $calculado->vence_respuesta_en);

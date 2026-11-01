@@ -9,7 +9,13 @@ import { iconos } from '@/compartido/iconos.js'
 import { fechaHora } from '@/compartido/presentacion/fechas.js'
 import { agruparPorRol, useBuscadorDePersonas } from '@/modulos/identidad/index.js'
 import { MAXIMO_DESCRIPCION, MAXIMO_TITULO, useFormularioIncidente } from '../composables/useFormularioIncidente.js'
-import { CATEGORIAS, PRIORIDADES, nombreDeCategoria, presentarPrioridad } from '../presentacion.js'
+import {
+  CATEGORIAS,
+  PRIORIDADES,
+  nombreDeCategoria,
+  prioridadesElegibles,
+  presentarPrioridad,
+} from '../presentacion.js'
 
 const formulario = useFormularioIncidente()
 const { campos, erroresDe, tocar, alEscribir } = formulario
@@ -25,7 +31,7 @@ const buscarPersona = (texto) => (personas.texto.value = texto ?? '')
 // Las opciones salen del catálogo de la API (API 4), en el orden de la interfaz; mientras llega, las conocidas.
 const prioridades = computed(() => {
   const validas = formulario.catalogos.data.value?.prioridades ?? Object.keys(PRIORIDADES)
-  return Object.keys(PRIORIDADES)
+  return Object.keys(prioridadesElegibles(formulario.mueveLosPlazos.value))
     .filter((valor) => validas.includes(valor))
     .map((valor) => ({ value: valor, title: presentarPrioridad(valor).nombre }))
 })
@@ -149,7 +155,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
           </div>
         </section>
 
-        <section class="seccion seccion--ultima">
+        <section
+          v-if="formulario.puedeAsignar.value || formulario.mueveLosPlazos.value"
+          class="seccion seccion--ultima"
+        >
           <div>
             <h2 class="seccion__titulo">Asignación y plazo</h2>
             <p class="seccion__ayuda">Quién lo atiende y hasta cuándo.</p>
@@ -176,7 +185,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
                 @update:model-value="alEscribir('asignadoId')"
               />
             </div>
-            <div data-campo="vencimiento">
+            <div v-if="formulario.mueveLosPlazos.value" data-campo="vencimiento">
               <SelectorFechaHora
                 v-model="campos.vencimiento"
                 etiqueta="Fecha de vencimiento *"
