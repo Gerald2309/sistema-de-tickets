@@ -166,8 +166,9 @@ watch(
             >{{ incidente.titulo }}
           </RouterLink>
           <span class="columna-titulo__datos">
-            {{ nombreDeCategoria(incidente.categoria)
-            }}<template v-if="incidente.cliente"> · {{ incidente.cliente.nombre }}</template>
+            {{ incidente.creador.nombre
+            }}<template v-if="incidente.cliente"> · {{ incidente.cliente.nombre }}</template> ·
+            {{ nombreDeCategoria(incidente.categoria) }}
           </span>
         </td>
         <td><InsigniaEstado :estado="incidente.estado" /></td>

@@ -89,6 +89,23 @@ describe('incidentes', { timeout: 20_000 }, () => {
     await vi.waitFor(() => expect(listados.at(-1)).toMatchObject({ ordenar_por: 'prioridad', direccion: 'desc' }))
   })
 
+  it('cada fila del listado dice quién reportó el incidente y de qué empresa', async () => {
+    const reportado = {
+      ...incidente(5),
+      creador: { id: 30, name: 'Úrsula Apodaca' },
+      cliente: { id: 3, nombre: 'Banco Aliado' },
+    }
+    servidor.use(manejador.get(api('incidentes'), () => HttpResponse.json(pagina([reportado]))))
+    montada = await montarAplicacion('/incidentes')
+
+    await vi.waitFor(() => expect(montada.envoltorio.find('.columna-titulo__datos').exists()).toBe(true), {
+      timeout: 8000,
+    })
+    expect(montada.envoltorio.find('.columna-titulo__datos').text().replace(/\s+/g, ' ')).toBe(
+      'Úrsula Apodaca · Banco Aliado · Red',
+    )
+  })
+
   it('seleccionar filas despliega la barra de lote con las acciones permitidas', async () => {
     montada = await montarAplicacion('/incidentes')
     await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('Incidente 2'), { timeout: 8000 })
