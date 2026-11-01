@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import BotonEnvio from '@/compartido/componentes/BotonEnvio.vue'
 import InterruptorCompacto from '@/compartido/componentes/InterruptorCompacto.vue'
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
@@ -44,12 +44,14 @@ const datos = reactive({
   contrasena: '',
   activo: true,
 })
+const contrasenaTocada = ref(false)
 
 watch(abierto, (valor) => {
   if (!valor) {
     return
   }
   servidor.limpiar()
+  contrasenaTocada.value = false
   Object.assign(datos, {
     nombre: props.usuario?.nombre ?? '',
     correo: props.usuario?.correo ?? '',
@@ -80,6 +82,15 @@ const completo = computed(
     datos.rolId > 0 &&
     (props.usuario !== null || datos.contrasena.length >= LONGITUD_MINIMA),
 )
+
+/** Al salir del campo, dice cuánto falta: el botón deshabilitado por sí solo no explica por qué. */
+const errorDeContrasena = computed(() => {
+  const faltan = LONGITUD_MINIMA - datos.contrasena.length
+  if (!contrasenaTocada.value || faltan <= 0) {
+    return servidor.errores.contrasena
+  }
+  return [`Faltan ${faltan} ${faltan === 1 ? 'carácter' : 'caracteres'}: mínimo ${LONGITUD_MINIMA}.`]
+})
 
 async function guardar() {
   if (!completo.value) {
@@ -159,8 +170,9 @@ async function guardar() {
         :maxlength="LONGITUD_MAXIMA"
         :hint="`Mínimo ${LONGITUD_MINIMA} caracteres. La persona puede cambiarla en Mi cuenta.`"
         persistent-hint
-        :error-messages="servidor.errores.contrasena"
+        :error-messages="errorDeContrasena"
         @update:model-value="servidor.limpiarCampo('contrasena')"
+        @blur="contrasenaTocada = true"
       />
       <label v-else class="panel-usuario__activo">
         <b>Puede iniciar sesión</b>

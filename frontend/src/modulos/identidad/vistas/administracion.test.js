@@ -132,6 +132,24 @@ describe('administración', { timeout: 20_000 }, () => {
     await vi.waitFor(() => expect(document.body.textContent).toContain('Usuario creado'))
   })
 
+  it('usuarios: una contraseña corta se marca al salir del campo y dice cuánto falta', async () => {
+    const envoltorio = await abrir('/administracion/usuarios', 'Luis Pardo')
+    await envoltorio
+      .findAll('button')
+      .find((boton) => boton.text() === 'Nuevo usuario')
+      ?.trigger('click')
+    await esperarPintado()
+    const contrasena = envoltorio.find('#formulario-usuario input[type="password"]')
+
+    await contrasena.setValue('corta123')
+    expect(envoltorio.find('#formulario-usuario').text()).not.toContain('Faltan')
+    await contrasena.trigger('blur')
+
+    await vi.waitFor(() => expect(envoltorio.find('#formulario-usuario').text()).toContain('Faltan 7 caracteres: mínimo 15.'))
+    await contrasena.setValue('ya es bastante larga')
+    await vi.waitFor(() => expect(envoltorio.find('#formulario-usuario').text()).not.toContain('Faltan'))
+  })
+
   it('usuarios: el error de la API queda bajo su campo', async () => {
     servidor.use(
       manejador.post(api('usuarios'), () =>
