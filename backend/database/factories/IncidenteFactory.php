@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Identidad\Models\User;
 use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\PlazosDeServicio;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Models\Incidente;
 use Carbon\CarbonInterface;
@@ -93,26 +94,28 @@ class IncidenteFactory extends Factory
             'usuario_creador_id' => User::factory(),
             'usuario_asignado_id' => null,
             'fecha_vencimiento' => $creado->copy()->addHours(self::PLAZO_HORAS[$prioridad->value]),
-            'resuelto_en' => self::resueltoEn($estado, $creado, $actualizado),
+            'resuelto_en' => self::momentoDelPaso(Estado::Resuelto, $estado, $creado, $actualizado),
+            'vence_respuesta_en' => $creado->copy()->addMinutes(PlazosDeServicio::PREDETERMINADOS[$prioridad->value]['respuesta_minutos']),
+            'primera_respuesta_en' => self::momentoDelPaso(Estado::EnProgreso, $estado, $creado, $actualizado),
             'created_at' => $creado,
             'updated_at' => $actualizado,
         ];
     }
 
     /**
-     * El paso a resuelto, en el mismo punto donde el seeder lo deja en el historial: los pasos del ciclo se
-     * reparten en partes iguales entre la creación y la última actualización.
+     * Cuándo dio ese paso del ciclo, en el mismo punto donde el seeder lo deja en el historial: los pasos se
+     * reparten en partes iguales entre la creación y la última actualización. Null si aún no llegó a él.
      */
-    private static function resueltoEn(Estado $estado, CarbonInterface $creado, CarbonInterface $actualizado): ?CarbonInterface
+    private static function momentoDelPaso(Estado $paso, Estado $estado, CarbonInterface $creado, CarbonInterface $actualizado): ?CarbonInterface
     {
         $pasos = (int) array_search($estado, Estado::cases(), true);
-        $pasoResuelto = (int) array_search(Estado::Resuelto, Estado::cases(), true);
+        $numero = (int) array_search($paso, Estado::cases(), true);
 
-        if ($pasos < $pasoResuelto || $pasos === 0) {
+        if ($pasos < $numero || $pasos === 0) {
             return null;
         }
 
-        return $creado->copy()->addSeconds((int) ($creado->diffInSeconds($actualizado, true) * $pasoResuelto / $pasos));
+        return $creado->copy()->addSeconds((int) ($creado->diffInSeconds($actualizado, true) * $numero / $pasos));
     }
 
     private static function estadoAlAzar(): string

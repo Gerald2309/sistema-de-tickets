@@ -39,6 +39,8 @@ export const claves = Object.freeze({
   /** @param {string} hoy */
   notas: (hoy) => ['incidentes', 'mi-dia', 'notas', hoy],
   ultimoTrabajado: ['incidentes', 'mi-dia', 'ultimo'],
+  /** @param {string} prioridad */
+  plazoPropuesto: (prioridad) => ['plazo-propuesto', prioridad],
   panel: ['panel'],
   // Dentro de 'panel': «Actualizar» y el tiempo real lo refrescan junto con el resumen.
   indicadores: ['panel', 'indicadores'],

@@ -16,6 +16,11 @@ return [
         'maximo_textos' => 200,
     ],
 
+    // Los plazos en horario laboral se cuentan en la zona horaria de la operación.
+    'acuerdos' => [
+        'zona_horaria' => env('ACUERDOS_ZONA_HORARIA', 'America/Bogota'),
+    ],
+
     // Máximo de incidentes por descarga (CSV o Excel). Con más, hay que acotar los filtros.
     'exportacion' => [
         'maximo' => (int) env('EXPORTACION_MAXIMA', 100_000),

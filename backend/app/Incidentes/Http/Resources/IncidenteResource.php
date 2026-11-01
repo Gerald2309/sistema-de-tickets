@@ -38,6 +38,10 @@ class IncidenteResource extends JsonResource
             'mensajes_sin_leer' => $this->whenHas('mensajes_sin_leer', fn () => (int) $incidente->getAttribute('mensajes_sin_leer')),
             'vencido' => Vencimiento::estaVencido($incidente->fecha_vencimiento, $incidente->estado, Date::now()),
             'fecha_vencimiento' => $incidente->fecha_vencimiento->copy()->utc()->toIso8601ZuluString(),
+            // Solo en el detalle: ListarIncidentes no los consulta.
+            'vence_respuesta_en' => $this->whenHas('vence_respuesta_en', fn () => $incidente->vence_respuesta_en?->copy()->utc()->toIso8601ZuluString()),
+            'primera_respuesta_en' => $this->whenHas('primera_respuesta_en', fn () => $incidente->primera_respuesta_en?->copy()->utc()->toIso8601ZuluString()),
+            'resuelto_en' => $this->whenHas('resuelto_en', fn () => $incidente->resuelto_en?->copy()->utc()->toIso8601ZuluString()),
             'creador' => ['id' => $incidente->creador->id, 'name' => $incidente->creador->name],
             'asignado' => $incidente->asignado
                 ? ['id' => $incidente->asignado->id, 'name' => $incidente->asignado->name]

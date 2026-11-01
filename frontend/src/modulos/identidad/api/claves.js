@@ -9,6 +9,8 @@ export const clavesDeIdentidad = Object.freeze({
   clientes: () => ['clientes'],
   /** @param {object} criterio */
   listaDeClientes: (criterio) => ['clientes', criterio],
+  /** @param {number} id */
+  acuerdoDeServicio: (id) => ['clientes', id, 'acuerdo-de-servicio'],
   usuarios: () => ['usuarios'],
   /** @param {object} filtros */
   listaDeUsuarios: (filtros) => ['usuarios', filtros],

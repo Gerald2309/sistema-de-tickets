@@ -8,6 +8,7 @@ use App\Incidentes\Dominio\TipoDeCambio;
 use App\Incidentes\Models\Incidente;
 use App\Incidentes\Models\MensajeIncidente;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
@@ -38,6 +39,7 @@ class EscribirMensaje
         try {
             return DB::transaction(function () use ($autor, $incidente, $cuerpo, $interno, $imagenes, &$guardadas) {
                 $mensaje = $incidente->mensajes()->create(['usuario_id' => $autor->id, 'cuerpo' => $cuerpo, 'interno' => $interno]);
+                $this->anotarPrimeraRespuesta($autor, $incidente, $interno);
 
                 foreach ($imagenes as $imagen) {
                     $ruta = $imagen->store("incidentes/{$incidente->id}", self::DISCO) ?: throw new RuntimeException('No se pudo guardar la imagen.');
@@ -59,6 +61,15 @@ class EscribirMensaje
             Storage::disk(self::DISCO)->delete($guardadas);
 
             throw $error;
+        }
+    }
+
+    // Responde quien le escribe al solicitante: ni sus propios mensajes ni las notas internas cuentan.
+    private function anotarPrimeraRespuesta(User $autor, Incidente $incidente, bool $interno): void
+    {
+        if (! $interno && $autor->id !== $incidente->usuario_creador_id && $incidente->primera_respuesta_en === null) {
+            $incidente->primera_respuesta_en = Date::now();
+            $incidente->save();
         }
     }
 }

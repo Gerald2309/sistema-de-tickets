@@ -233,6 +233,17 @@ export async function exportarIncidentes(filtros, formato, alProgresar) {
 }
 
 /**
+ * `GET plazo-propuesto`: los límites que tendría un incidente creado ahora, según el acuerdo de la empresa.
+ * @param {string} prioridad
+ * @param {AbortSignal} [senal]
+ * @returns {Promise<{ venceRespuestaEn: string, fechaVencimiento: string }>}
+ */
+export async function obtenerPlazoPropuesto(prioridad, senal) {
+  const { data } = await http.get('plazo-propuesto', { params: { prioridad }, signal: senal })
+  return { venceRespuestaEn: data.data.vence_respuesta_en, fechaVencimiento: data.data.fecha_vencimiento }
+}
+
+/**
  * `GET dashboard` (API 11).
  * @param {AbortSignal} [senal]
  * @returns {Promise<import('../tipos.js').ResumenPanel>}

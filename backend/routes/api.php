@@ -8,6 +8,7 @@ use App\Identidad\Http\Controllers\PermisoController;
 use App\Identidad\Http\Controllers\PersonaController;
 use App\Identidad\Http\Controllers\RolController;
 use App\Identidad\Http\Controllers\UsuarioController;
+use App\Incidentes\Http\Controllers\AcuerdoDeServicioController;
 use App\Incidentes\Http\Controllers\AdjuntoController;
 use App\Incidentes\Http\Controllers\AvisosController;
 use App\Incidentes\Http\Controllers\BloqueoController;
@@ -23,6 +24,7 @@ use App\Incidentes\Http\Controllers\LecturaController;
 use App\Incidentes\Http\Controllers\MensajeController;
 use App\Incidentes\Http\Controllers\NotaPersonalController;
 use App\Incidentes\Http\Controllers\PlanController;
+use App\Incidentes\Http\Controllers\PlazoPropuestoController;
 use App\Incidentes\Http\Controllers\PorPlanearController;
 use App\Incidentes\Http\Controllers\SimilaresController;
 use App\Incidentes\Http\Controllers\SugerenciaDelDiaController;
@@ -52,6 +54,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('incidentes', [IncidenteController::class, 'index'])->can('listar', Incidente::class);
         Route::post('incidentes', [IncidenteController::class, 'store'])->can('crear', Incidente::class);
+        Route::get('plazo-propuesto', PlazoPropuestoController::class)->can('crear', Incidente::class);
         // Las rutas de «exportar» y de lote van antes de las de un incidente: no son un id.
         Route::get('incidentes/exportar', ExportacionController::class)->can('listar', Incidente::class);
         Route::patch('incidentes/lote', [IncidenteLoteController::class, 'actualizar'])->can('actualizarEnLote', Incidente::class);
@@ -117,6 +120,8 @@ Route::prefix('v1')->group(function () {
         Route::get('clientes', [ClienteController::class, 'index'])->can('consultar_clientes');
         Route::post('clientes', [ClienteController::class, 'store'])->can('administrar_usuarios');
         Route::patch('clientes/{cliente}', [ClienteController::class, 'update'])->can('administrar_usuarios');
+        Route::get('clientes/{cliente}/acuerdo-de-servicio', [AcuerdoDeServicioController::class, 'show'])->can('administrar_usuarios');
+        Route::put('clientes/{cliente}/acuerdo-de-servicio', [AcuerdoDeServicioController::class, 'update'])->can('administrar_usuarios');
 
         // Personas para asignar o filtrar (solo id, nombre y si está activa).
         Route::get('personas', PersonaController::class)->can('consultar_personas');

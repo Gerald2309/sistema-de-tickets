@@ -39,12 +39,15 @@ El enunciado invita a proponer mejoras sobre el stack mínimo sin alterar lo sol
 
 ## 6. Áreas de soporte y acuerdos de nivel de servicio
 
-- **Hoy:** quedaron fuera de alcance por decisión de producto; los roles y permisos configurables ya dejan el camino abierto.
+- **Hoy:** cada empresa tiene plazos de primera respuesta y de resolución por prioridad, en horas corridas o en horario laboral; el incidente muestra su cuenta regresiva. Las áreas de soporte quedaron fuera de alcance por decisión de producto.
 - **Propuesta:**
-  - áreas (Redes, Aplicaciones…) con su cola de trabajo;
-  - asignación automática por categoría;
-  - tiempos objetivo por prioridad, con aviso antes de vencer y escalamiento.
-- **Costo:** alto: requiere definición de negocio antes que código.
+  - estados «Esperando al cliente» y «Esperando proveedor», que pausan el plazo y lo reanudan al responder;
+  - festivos en el horario laboral, y un horario propio por empresa;
+  - aviso cuando falta el 20 % del tiempo y escalamiento automático a un nivel superior si se incumple;
+  - cierre automático de lo resuelto tras 3 a 5 días sin respuesta;
+  - fusión de incidentes duplicados, sin contar el plazo del secundario;
+  - áreas (Redes, Aplicaciones…) con su cola de trabajo y asignación automática por categoría.
+- **Costo:** alto: los avisos, el escalamiento y el cierre requieren tareas programadas, y los estados nuevos tocan el ciclo de vida completo.
 
 ## 7. Observabilidad
 

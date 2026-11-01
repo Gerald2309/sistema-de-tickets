@@ -41,6 +41,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
     'cliente_id',
     'clave_de_idempotencia',
     'fecha_vencimiento',
+    'vence_respuesta_en',
 ])]
 #[UseFactory(IncidenteFactory::class)]
 class Incidente extends Model
@@ -173,6 +174,8 @@ class Incidente extends Model
             'categoria' => Categoria::class,
             'fecha_vencimiento' => 'datetime',
             'resuelto_en' => 'datetime',
+            'vence_respuesta_en' => 'datetime',
+            'primera_respuesta_en' => 'datetime',
             'calificacion' => 'integer',
         ];
     }

@@ -9,4 +9,7 @@ enum Prioridad: string
     case Media = 'media';
     case Alta = 'alta';
     case Critica = 'critica';
+
+    // La misma que asigna la base de datos cuando la petición no la indica.
+    public const PREDETERMINADA = self::Media;
 }

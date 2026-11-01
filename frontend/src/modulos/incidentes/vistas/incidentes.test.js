@@ -298,6 +298,54 @@ describe('incidentes', { timeout: 20_000 }, () => {
     expect(claves[1]).toBe(claves[0])
   })
 
+  it('el formulario propone el plazo del acuerdo y, si no se cambia, deja que la API lo calcule', async () => {
+    /** @type {Record<string, unknown> | undefined} */
+    let recibido
+    servidor.use(
+      manejador.get(api('plazo-propuesto'), () =>
+        HttpResponse.json({
+          data: { vence_respuesta_en: '2030-01-01T09:00:00Z', fecha_vencimiento: '2030-01-02T09:00:00Z' },
+        }),
+      ),
+      manejador.post(api('incidentes'), async ({ request }) => {
+        recibido = /** @type {Record<string, unknown>} */ (await request.json())
+        return HttpResponse.json({ data: incidente(9) }, { status: 201 })
+      }),
+      manejador.get(api('incidentes/:id'), () => HttpResponse.json({ data: incidente(9) })),
+    )
+    montada = await montarAplicacion('/incidentes/nuevo')
+    await vi.waitFor(() => expect(montada.envoltorio.text()).toContain('Según el acuerdo de servicio'), {
+      timeout: 8000,
+    })
+
+    const [titulo] = montada.envoltorio.findAll('input')
+    await titulo.setValue('Sin internet')
+    await montada.envoltorio.find('textarea').setValue('No hay conexión.')
+    await montada.envoltorio.find('form').trigger('submit')
+
+    await vi.waitFor(() => expect(recibido).toBeDefined(), { timeout: 8000 })
+    expect(recibido).not.toHaveProperty('fecha_vencimiento')
+  })
+
+  it('el detalle muestra a soporte la cuenta regresiva de la primera respuesta y de la resolución', async () => {
+    const conPlazos = {
+      ...incidente(4),
+      creador: { id: 30, name: 'Úrsula Apodaca' },
+      vence_respuesta_en: '2020-01-01T13:00:00Z',
+      primera_respuesta_en: null,
+      resuelto_en: null,
+    }
+    servidor.use(manejador.get(api('incidentes/:id'), () => HttpResponse.json({ data: conPlazos })))
+    montada = await montarAplicacion('/incidentes/4')
+
+    await vi.waitFor(() => expect(montada.envoltorio.find('.plazos').exists()).toBe(true), { timeout: 8000 })
+    const [respuesta, resolucion] = montada.envoltorio.findAll('.plazo')
+    expect(respuesta.text()).toContain('Primera respuesta')
+    expect(respuesta.text()).toContain('Vencido hace')
+    expect(respuesta.classes()).toContain('plazo--incumplido')
+    expect(resolucion.text()).toContain('Quedan')
+  })
+
   it('asignar ofrece a las personas agrupadas por nivel, con el nombre de cada grupo', async () => {
     servidor.use(
       manejador.get(api('personas'), () =>

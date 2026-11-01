@@ -8,6 +8,7 @@ import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
 import PieDeTabla from '@/compartido/componentes/PieDeTabla.vue'
 import { useConfirmacion } from '@/compartido/composables/useConfirmacion.js'
 import { iconos } from '@/compartido/iconos.js'
+import PanelAcuerdoDeServicio from '../componentes/PanelAcuerdoDeServicio.vue'
 import { useEmpresasAdmin } from '../composables/useEmpresasAdmin.js'
 
 /** @typedef {import('../tipos.js').Cliente} Cliente */
@@ -20,6 +21,14 @@ const editada = ref(/** @type {Cliente | null} */ (null))
 const dialogoAbierto = ref(false)
 const errorDelDialogo = ref('')
 const creando = computed(() => editada.value === null)
+const empresaConPlazos = ref(/** @type {Cliente | null} */ (null))
+const plazosAbiertos = ref(false)
+
+/** @param {Cliente} empresa */
+function abrirPlazos(empresa) {
+  empresaConPlazos.value = empresa
+  plazosAbiertos.value = true
+}
 
 /** @param {Cliente | null} empresa */
 function abrir(empresa) {
@@ -144,6 +153,11 @@ async function cambiarActiva(empresa) {
                 <v-list min-width="200">
                   <v-list-item :prepend-icon="iconos.editar" title="Renombrar" @click="abrir(empresa)" />
                   <v-list-item
+                    :prepend-icon="iconos.porVencer"
+                    title="Plazos de servicio"
+                    @click="abrirPlazos(empresa)"
+                  />
+                  <v-list-item
                     :prepend-icon="empresa.activo ? iconos.usuarioDesactivado : iconos.usuarioReactivado"
                     :title="empresa.activo ? 'Desactivar' : 'Reactivar'"
                     :base-color="empresa.activo ? 'error' : undefined"
@@ -178,6 +192,7 @@ async function cambiarActiva(empresa) {
       :error="errorDelDialogo"
       @confirmar="confirmarNombre"
     />
+    <PanelAcuerdoDeServicio v-model="plazosAbiertos" :empresa="empresaConPlazos" />
   </div>
 </template>
 

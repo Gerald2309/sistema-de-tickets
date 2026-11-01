@@ -11,7 +11,9 @@ use App\Incidentes\Dominio\CampoHistorial;
 use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\EventoHistorial;
+use App\Incidentes\Dominio\PlazosDeServicio;
 use App\Incidentes\Dominio\Prioridad;
+use App\Incidentes\Models\AcuerdoDeServicio;
 use App\Incidentes\Models\HistorialIncidente;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Database\Seeder;
@@ -43,6 +45,7 @@ class DatosDemoSeeder extends Seeder
         $administrador = User::where('email', config('seguridad.administrador.email'))->firstOrFail();
 
         $empresas = $this->empresas($administrador);
+        $this->acuerdoDeServicio($empresas->firstOrFail());
         $solicitantes = $this->usuarios('Solicitante', 12, $administrador, $empresas);
         $soporte = $this->usuarios('Soporte N1', 2, $administrador)
             ->concat($this->usuarios('Soporte N2', 2, $administrador))
@@ -67,6 +70,19 @@ class DatosDemoSeeder extends Seeder
         }
 
         $this->reportesDeUnaCaidaDeRed($solicitantes);
+    }
+
+    // Una empresa con plazos más exigentes y en horario laboral, para ver la diferencia con los predeterminados.
+    private function acuerdoDeServicio(Cliente $empresa): void
+    {
+        AcuerdoDeServicio::create([
+            'cliente_id' => $empresa->id,
+            'horario_laboral' => true,
+            'plazos' => array_map(fn (array $plazo) => [
+                'respuesta_minutos' => intdiv($plazo['respuesta_minutos'], 2),
+                'resolucion_minutos' => intdiv($plazo['resolucion_minutos'], 2),
+            ], PlazosDeServicio::PREDETERMINADOS),
+        ]);
     }
 
     /**

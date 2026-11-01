@@ -281,6 +281,48 @@ describe('administración', { timeout: 20_000 }, () => {
     expect(eliminar?.attributes('disabled')).toBeDefined()
   })
 
+  it('empresas: los plazos se editan en minutos y horas, se guardan en minutos y el error queda bajo su campo', async () => {
+    const plazo = { respuesta_minutos: 15, resolucion_minutos: 120 }
+    const envios = []
+    servidor.use(
+      manejador.get(api('clientes/:id/acuerdo-de-servicio'), () =>
+        HttpResponse.json({
+          data: { horario_laboral: false, plazos: { critica: plazo, alta: plazo, media: plazo, baja: plazo } },
+        }),
+      ),
+      manejador.put(api('clientes/:id/acuerdo-de-servicio'), async ({ request }) => {
+        envios.push(await request.json())
+        return envios.length === 1
+          ? HttpResponse.json(
+              {
+                status: 422,
+                detail: 'Los datos no son válidos.',
+                errors: { 'plazos.critica.respuesta_minutos': ['La primera respuesta no puede tardar más.'] },
+              },
+              { status: 422 },
+            )
+          : HttpResponse.json({ data: envios[1] })
+      }),
+    )
+    const envoltorio = await abrir('/administracion/empresas', 'Andina Seguros')
+
+    await elegirEnFila(envoltorio, 'Andina Seguros', 'Plazos de servicio')
+    await vi.waitFor(() => expect(envoltorio.find('#formulario-acuerdo').exists()).toBe(true), { timeout: 8000 })
+    const formulario = envoltorio.find('#formulario-acuerdo')
+    const [respuesta, resolucion] = formulario.findAll('input[type="number"]')
+    expect(/** @type {HTMLInputElement} */ (resolucion.element).value).toBe('2')
+    await respuesta.setValue('30')
+    await resolucion.setValue('1.5')
+    await formulario.trigger('submit')
+
+    await vi.waitFor(() => expect(formulario.text()).toContain('La primera respuesta no puede tardar más.'))
+    expect(envios[0].plazos.critica).toEqual({ respuesta_minutos: 30, resolucion_minutos: 90 })
+    expect(envios[0].plazos.alta).toEqual(plazo)
+
+    await formulario.trigger('submit')
+    await vi.waitFor(() => expect(document.body.textContent).toContain('Plazos guardados'))
+  })
+
   it('empresas: crear una empresa envía solo su nombre', async () => {
     servidor.use(
       manejador.post(api('clientes'), async ({ request }) => {

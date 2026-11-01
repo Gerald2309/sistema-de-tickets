@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/vue-query'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useErroresDeFormulario } from '@/compartido/composables/useErroresDeFormulario.js'
 import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js'
 import { aIsoConDesfase } from '@/compartido/presentacion/fechas.js'
 import { useSesion } from '@/modulos/identidad/index.js'
-import { crearIncidente, obtenerCatalogos } from '../api/incidentes.js'
+import { crearIncidente, obtenerCatalogos, obtenerPlazoPropuesto } from '../api/incidentes.js'
 import { claves } from '../api/claves.js'
 import { useInvalidacion } from './useInvalidacion.js'
 
@@ -69,10 +69,25 @@ export function useFormularioIncidente() {
   })
 
   const campos = reactive(camposIniciales())
-  const inicial = ref(JSON.stringify(campos))
+  // La fecha la propone el acuerdo de servicio de la empresa hasta que la persona la cambie; mientras tanto, ni
+  // cuenta como cambio sin guardar ni viaja a la API, que la calcula al crear.
+  const vencimientoEditado = ref(false)
+  const instantanea = () =>
+    JSON.stringify({ ...campos, vencimiento: vencimientoEditado.value ? campos.vencimiento : null })
+  const inicial = ref(instantanea())
+
+  const plazoPropuesto = useQuery({
+    queryKey: computed(() => claves.plazoPropuesto(campos.prioridad)),
+    queryFn: ({ signal }) => obtenerPlazoPropuesto(campos.prioridad, signal),
+  })
+  watch(plazoPropuesto.data, (propuesto) => {
+    if (propuesto && !vencimientoEditado.value) {
+      campos.vencimiento = new Date(propuesto.fechaVencimiento)
+    }
+  })
   // Elegir a quién se asigna un incidente nuevo es repartir trabajo: solo quien reasigna.
   const puedeAsignar = computed(() => sesion.tiene('reasignar'))
-  const modificado = computed(() => JSON.stringify(campos) !== inicial.value)
+  const modificado = computed(() => instantanea() !== inicial.value)
 
   // Errores: los del cliente aparecen al salir del campo o al enviar; los del servidor, tras enviar.
   const servidor = useErroresDeFormulario({
@@ -96,14 +111,17 @@ export function useFormularioIncidente() {
   /** @param {Campo} campo */
   const tocar = (campo) => tocados.add(campo)
   /** @param {Campo} campo */
-  const alEscribir = (campo) => servidor.limpiarCampo(campo)
+  const alEscribir = (campo) => {
+    servidor.limpiarCampo(campo)
+    vencimientoEditado.value ||= campo === 'vencimiento'
+  }
 
   /** @returns {Record<string, unknown>} lo que viaja a la API */
   function cuerpo() {
     const { vencimiento, asignadoId, ...resto } = campos
     return {
       ...resto,
-      fechaVencimiento: vencimiento ? aIsoConDesfase(vencimiento) : undefined,
+      ...(vencimientoEditado.value && vencimiento ? { fechaVencimiento: aIsoConDesfase(vencimiento) } : {}),
       ...(puedeAsignar.value && asignadoId !== null ? { asignadoId } : {}),
     }
   }
@@ -127,7 +145,7 @@ export function useFormularioIncidente() {
     servidor.limpiar()
     try {
       const incidente = await guardado.mutateAsync(cuerpo())
-      inicial.value = JSON.stringify(campos)
+      inicial.value = instantanea()
       notificaciones.exito(`${incidente.codigo} creado`, incidente.titulo)
       await trasCambiarIncidentes([incidente.id])
       await enrutador.push({ name: 'incidente', params: { id: incidente.id } })
@@ -140,12 +158,13 @@ export function useFormularioIncidente() {
 
   /** @returns {void} la persona aceptó perder lo escrito: salir ya no vuelve a preguntar */
   function descartar() {
-    inicial.value = JSON.stringify(campos)
+    inicial.value = instantanea()
   }
 
   return {
     catalogos,
     campos,
+    plazoPropuesto,
     puedeAsignar,
     modificado,
     erroresDe,

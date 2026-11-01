@@ -3,11 +3,14 @@
 namespace App\Incidentes\Acciones;
 
 use App\Identidad\Models\User;
+use App\Incidentes\Consultas\PlazosDeLaEmpresa;
 use App\Incidentes\Dominio\EntradaHistorial;
 use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Dominio\TipoDeCambio;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 class CrearIncidente
@@ -15,11 +18,13 @@ class CrearIncidente
     public function __construct(
         private readonly RegistrarHistorial $registrarHistorial,
         private readonly AvisarCambios $avisarCambios,
+        private readonly PlazosDeLaEmpresa $plazosDeLaEmpresa,
     ) {}
 
     /**
      * El creador, su empresa y el estado inicial no vienen de la petición: son el usuario autenticado, la
-     * empresa a la que pertenece en este momento (F-10) y "abierto".
+     * empresa a la que pertenece en este momento (F-10) y "abierto". Los límites salen del acuerdo de servicio de
+     * esa empresa; una fecha de vencimiento escrita a mano reemplaza a la calculada.
      *
      * Con clave de idempotencia, repetir la petición devuelve el incidente ya creado en vez de otro igual
      * (`wasRecentlyCreated` dice cuál de los dos casos fue).
@@ -35,7 +40,15 @@ class CrearIncidente
 
         try {
             return DB::transaction(function () use ($creador, $datos, $claveDeIdempotencia) {
+                $limites = $this->plazosDeLaEmpresa->limites(
+                    $creador->cliente_id,
+                    Prioridad::tryFrom($datos['prioridad'] ?? '') ?? Prioridad::PREDETERMINADA,
+                    Date::now()->toImmutable(),
+                );
+
                 $incidente = Incidente::create($datos + [
+                    'fecha_vencimiento' => $limites['resolucion'],
+                    'vence_respuesta_en' => $limites['respuesta'],
                     'usuario_creador_id' => $creador->id,
                     'cliente_id' => $creador->cliente_id,
                     'estado' => Estado::Abierto,

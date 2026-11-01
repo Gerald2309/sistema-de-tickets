@@ -75,6 +75,8 @@ trait AyudasDePrueba
             'solucion' => null,
             'fecha_vencimiento' => now()->addDays(3),
             'resuelto_en' => null,
+            'vence_respuesta_en' => null,
+            'primera_respuesta_en' => null,
         ]);
     }
 

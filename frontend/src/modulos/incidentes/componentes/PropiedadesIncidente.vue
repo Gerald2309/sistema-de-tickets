@@ -7,6 +7,7 @@ import { aIsoConDesfase, fechaHora } from '@/compartido/presentacion/fechas.js'
 import { CATEGORIAS, PRIORIDADES, nombreDeCategoria } from '../presentacion.js'
 import IndicadorDeVencimiento from './IndicadorDeVencimiento.vue'
 import InsigniaPrioridad from './InsigniaPrioridad.vue'
+import TemporizadorDePlazos from './TemporizadorDePlazos.vue'
 
 /**
  * Propiedades del incidente (RF-F28). Quien lo atiende lo clasifica aquí mismo; el título y la descripción
@@ -144,6 +145,7 @@ function guardarVencimiento() {
           />
         </template>
       </ListaPropiedades>
+      <TemporizadorDePlazos v-if="!vistaDelSolicitante" :incidente="incidente" />
     </div>
   </section>
 </template>

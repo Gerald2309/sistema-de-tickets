@@ -18,6 +18,9 @@
  * @property {number} mensajesSinLeer de la conversación, para quien pregunta (0 si la respuesta no lo trae)
  * @property {boolean} vencido
  * @property {string} fechaVencimiento
+ * @property {string | null} venceRespuestaEn límite de la primera respuesta; null en el listado
+ * @property {string | null} primeraRespuestaEn null en el listado
+ * @property {string | null} resueltoEn null en el listado
  * @property {Referencia} creador
  * @property {Referencia | null} asignado
  * @property {Referencia | null} cliente empresa del solicitante al reportar

@@ -154,7 +154,7 @@ class ListarIncidentesTest extends TestCase
         $this->assertStringContainsString('per_page=5', $respuesta->json('links.next'), 'Los enlaces conservan los filtros.');
     }
 
-    public function test_cada_elemento_trae_los_mismos_datos_que_el_detalle_salvo_los_textos_largos(): void
+    public function test_cada_elemento_trae_los_mismos_datos_que_el_detalle_salvo_los_textos_largos_y_los_plazos(): void
     {
         $creador = $this->crearUsuario();
         $incidente = $this->incidenteDe($creador);
@@ -162,7 +162,7 @@ class ListarIncidentesTest extends TestCase
         $listado = $this->listar($this->iniciarSesion($creador))->json('data.0');
         $detalle = $this->conToken($this->iniciarSesion($creador))->getJson("/api/v1/incidentes/{$incidente->id}")->json('data');
 
-        $this->assertSame(array_diff_key($detalle, array_flip(['descripcion', 'solucion'])), $listado);
+        $this->assertSame(array_diff_key($detalle, array_flip(['descripcion', 'solucion', 'vence_respuesta_en', 'primera_respuesta_en', 'resuelto_en'])), $listado);
     }
 
     public function test_ordena_por_id_descendente_por_defecto(): void

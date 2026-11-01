@@ -84,12 +84,17 @@ class ActualizarIncidente
 
     /**
      * Resolver marca el momento; si el solicitante lo devuelve, deja de estar resuelto. Cerrar lo conserva:
-     * el tiempo de resolución se mide hasta la solución, no hasta la confirmación.
+     * el tiempo de resolución se mide hasta la solución, no hasta la confirmación. La solución también es una
+     * respuesta: cumple la primera respuesta si nadie había escrito.
      */
     private function anotarResolucion(Incidente $actual): void
     {
         if (! $actual->isDirty('estado')) {
             return;
+        }
+
+        if ($actual->estado === Estado::Resuelto) {
+            $actual->primera_respuesta_en ??= Date::now();
         }
 
         $actual->resuelto_en = match ($actual->estado) {

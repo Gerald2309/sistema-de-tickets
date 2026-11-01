@@ -53,3 +53,9 @@
 /** @typedef {{ id: number, nombre: string, activo: boolean, rol?: string }} Persona para asignar o filtrar (G-05); el rol solo al asignar */
 
 export {}
+
+/**
+ * @typedef {object} AcuerdoDeServicio plazos de una empresa, en minutos, por prioridad
+ * @property {boolean} horarioLaboral si corren solo en horario laboral
+ * @property {Record<string, { respuestaMinutos: number, resolucionMinutos: number }>} plazos
+ */

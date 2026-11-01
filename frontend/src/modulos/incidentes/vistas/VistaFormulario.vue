@@ -6,6 +6,7 @@ import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
 import SelectorFechaHora from '@/compartido/componentes/SelectorFechaHora.vue'
 import { useConfirmacion } from '@/compartido/composables/useConfirmacion.js'
 import { iconos } from '@/compartido/iconos.js'
+import { fechaHora } from '@/compartido/presentacion/fechas.js'
 import { agruparPorRol, useBuscadorDePersonas } from '@/modulos/identidad/index.js'
 import { MAXIMO_DESCRIPCION, MAXIMO_TITULO, useFormularioIncidente } from '../composables/useFormularioIncidente.js'
 import { CATEGORIAS, PRIORIDADES, nombreDeCategoria, presentarPrioridad } from '../presentacion.js'
@@ -183,6 +184,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
                 @blur="tocar('vencimiento')"
                 @update:model-value="alEscribir('vencimiento')"
               />
+              <p v-if="formulario.plazoPropuesto.data.value" class="nota formulario__plazo">
+                Según el acuerdo de servicio. Primera respuesta antes de
+                {{ fechaHora(formulario.plazoPropuesto.data.value.venceRespuestaEn) }}
+              </p>
             </div>
           </div>
         </section>
@@ -196,6 +201,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
 </template>
 
 <style scoped>
+.formulario__plazo {
+  margin: 4px 0 0;
+}
+
 .formulario__campos {
   display: flex;
   flex-direction: column;
