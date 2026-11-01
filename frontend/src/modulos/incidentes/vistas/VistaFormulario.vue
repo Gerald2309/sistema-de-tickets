@@ -155,7 +155,11 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', alSalirDelNaveg
           </div>
         </section>
 
-        <section v-if="!formulario.mueveLosPlazos.value" class="seccion" data-seccion="requerida">
+        <section
+          v-if="!formulario.mueveLosPlazos.value"
+          class="seccion"
+          :class="{ 'seccion--ultima': !formulario.puedeAsignar.value }"
+        >
           <div>
             <h2 class="seccion__titulo">¿Para cuándo lo necesita?</h2>
             <p class="seccion__ayuda">Opcional. Ayuda a soporte a organizar el trabajo.</p>
