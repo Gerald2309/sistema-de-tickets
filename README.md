@@ -92,7 +92,7 @@ docker compose exec app php artisan db:seed --class=VolumenSeeder
 
 ## Credenciales de prueba
 
-Todas las cuentas usan la contraseña de demostración **`Mesa-De-Ayuda-Demo`**
+Todas las cuentas usan la contraseña de demostración **`Psicol-Mesa-De-Ayuda`**
 (`ADMIN_PASSWORD` y `DEMO_PASSWORD` de `.env.example`).
 
 | Perfil | Correo | Qué puede hacer |
