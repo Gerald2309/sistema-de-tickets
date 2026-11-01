@@ -7,6 +7,7 @@ use App\Auditoria\Models\Auditoria;
 use App\Identidad\Models\Cliente;
 use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
+use App\Incidentes\Consultas\PlazosDeLaEmpresa;
 use App\Incidentes\Dominio\CampoHistorial;
 use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
@@ -16,16 +17,26 @@ use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Models\AcuerdoDeServicio;
 use App\Incidentes\Models\HistorialIncidente;
 use App\Incidentes\Models\Incidente;
+use Carbon\CarbonImmutable;
+use Database\Factories\IncidenteFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
 // Datos de demostración: empresas cliente, usuarios con nombres reales y una mesa de soporte con
-// incidentes en todos los estados, con su historial y la auditoría de las altas. Las cuentas llevan
+// incidentes que siguen los plazos de su empresa (VidaDeUnIncidente), con su historial y la auditoría de las altas. Las cuentas llevan
 // contraseñas aleatorias, salvo una de prueba por perfil (CUENTAS_DE_PRUEBA), con DEMO_PASSWORD. Los solicitantes se reparten entre las empresas; el personal de soporte no tiene.
 
 class DatosDemoSeeder extends Seeder
 {
     private const INCIDENTES = 750;
+
+    // Días hacia atrás que abarca la demostración, y la parte de los incidentes que entró en la última semana.
+    private const DIAS_DE_HISTORIA = 60;
+
+    private const PROBABILIDAD_ESTA_SEMANA = 35;
+
+    // Fuera de la jornada también entran incidentes, pero pocos.
+    private const PROBABILIDAD_FUERA_DE_HORARIO = 10;
 
     private const IP_ADMINISTRADOR = '192.168.10.5';
 
@@ -54,22 +65,61 @@ class DatosDemoSeeder extends Seeder
         $this->registrarInicioDeSesionFallido($solicitantes);
 
         for ($i = 0; $i < self::INCIDENTES; $i++) {
-            $creador = $solicitantes->random();
-            $incidente = Incidente::factory()
-                ->state(fn (array $atributos) => [
-                    'usuario_creador_id' => $creador->id,
-                    'cliente_id' => $creador->cliente_id,
-                    // Un incidente sin atender (abierto) puede no tener todavía asignado.
-                    'usuario_asignado_id' => $atributos['estado'] === Estado::Abierto && fake()->boolean(50)
-                        ? null
-                        : $soporte->random()->id,
-                ])
-                ->create();
-
-            $this->registrarHistorial($incidente);
+            $this->incidente($solicitantes->random(), $soporte);
         }
 
         $this->reportesDeUnaCaidaDeRed($solicitantes);
+    }
+
+    /**
+     * @param  Collection<int, User>  $soporte
+     */
+    private function incidente(User $creador, Collection $soporte): void
+    {
+        [$titulo, $descripcion, $categoria, $prioridades, $solucion] = fake()->randomElement(IncidenteFactory::SITUACIONES);
+        $prioridad = Prioridad::from(fake()->randomElement($prioridades));
+        $creado = $this->momentoDeCreacion();
+        $limites = app(PlazosDeLaEmpresa::class)->limites($creador->cliente_id, $prioridad, $creado);
+        $vida = VidaDeUnIncidente::simular($creado, $limites, now()->toImmutable());
+
+        $incidente = Incidente::factory()->create([
+            'titulo' => $titulo,
+            'descripcion' => $descripcion,
+            'categoria' => Categoria::from($categoria),
+            'prioridad' => $prioridad,
+            'estado' => $vida->estado(),
+            'solucion' => $vida->resuelto() === null ? null : $solucion,
+            'usuario_creador_id' => $creador->id,
+            'cliente_id' => $creador->cliente_id,
+            // Un incidente sin atender (abierto) puede no tener todavía asignado.
+            'usuario_asignado_id' => $vida->estado() === Estado::Abierto && fake()->boolean(50) ? null : $soporte->random()->id,
+            'fecha_vencimiento' => $limites['resolucion'],
+            'vence_respuesta_en' => $limites['respuesta'],
+            'primera_respuesta_en' => $vida->primeraRespuesta(),
+            'resuelto_en' => $vida->resuelto(),
+            'created_at' => $creado,
+            'updated_at' => $vida->actualizado(),
+        ]);
+
+        $this->registrarHistorial($incidente, $vida->pasos);
+    }
+
+    // Casi siempre entre semana y en horario de oficina, en la zona horaria de la operación; nunca en el futuro.
+    private function momentoDeCreacion(): CarbonImmutable
+    {
+        $ahora = now()->toImmutable()->setTimezone((string) config('incidentes.acuerdos.zona_horaria'));
+        $dias = fake()->boolean(self::PROBABILIDAD_ESTA_SEMANA) ? random_int(0, 6) : random_int(7, self::DIAS_DE_HISTORIA);
+        $momento = $ahora->subDays($dias)->setTime(random_int(8, 17), random_int(0, 59));
+
+        if (! fake()->boolean(self::PROBABILIDAD_FUERA_DE_HORARIO)) {
+            while ($momento->isWeekend()) {
+                $momento = $momento->subDay();
+            }
+        } else {
+            $momento = $momento->setTime(random_int(0, 23), random_int(0, 59));
+        }
+
+        return ($momento < $ahora ? $momento : $ahora->subMinutes(random_int(5, 120)))->utc();
     }
 
     // Una empresa con plazos más exigentes y en horario laboral, para ver la diferencia con los predeterminados.
@@ -102,9 +152,10 @@ class DatosDemoSeeder extends Seeder
         ];
 
         foreach ($reportes as $i => [$titulo, $descripcion]) {
-            $momento = now()->subMinutes(10 + $i * 15);
+            $momento = now()->toImmutable()->subMinutes(10 + $i * 15);
             /** @var User $creador hay más de cuatro solicitantes */
             $creador = $solicitantes[$i % 4];
+            $limites = app(PlazosDeLaEmpresa::class)->limites($creador->cliente_id, Prioridad::Alta, $momento);
 
             $incidente = Incidente::factory()->create([
                 'titulo' => $titulo,
@@ -116,6 +167,10 @@ class DatosDemoSeeder extends Seeder
                 'usuario_creador_id' => $creador->id,
                 'cliente_id' => $creador->cliente_id,
                 'usuario_asignado_id' => null,
+                'fecha_vencimiento' => $limites['resolucion'],
+                'vence_respuesta_en' => $limites['respuesta'],
+                'primera_respuesta_en' => null,
+                'resuelto_en' => null,
                 'created_at' => $momento,
                 'updated_at' => $momento,
             ]);
@@ -203,11 +258,13 @@ class DatosDemoSeeder extends Seeder
         }
     }
 
-    // Creación y cada paso de estado hasta el actual, repartidos entre la creación y la última actualización.
-    private function registrarHistorial(Incidente $incidente): void
+    /**
+     * La creación y cada paso de estado. Soporte resuelve; quien lo reportó confirma o devuelve la solución.
+     *
+     * @param  list<array{momento: CarbonImmutable, de: Estado, a: Estado}>  $pasos
+     */
+    private function registrarHistorial(Incidente $incidente, array $pasos = []): void
     {
-        assert($incidente->created_at !== null);
-
         $filas = [[
             'incidente_id' => $incidente->id,
             'usuario_id' => $incidente->usuario_creador_id,
@@ -218,20 +275,15 @@ class DatosDemoSeeder extends Seeder
             'created_at' => $incidente->created_at,
         ]];
 
-        $ciclo = Estado::cases();
-        $pasos = array_search($incidente->estado, $ciclo, true);
-
-        for ($paso = 1; $paso <= $pasos; $paso++) {
+        foreach ($pasos as $paso) {
             $filas[] = [
                 'incidente_id' => $incidente->id,
-                'usuario_id' => $incidente->usuario_asignado_id ?? $incidente->usuario_creador_id,
+                'usuario_id' => $paso['de'] === Estado::Resuelto ? $incidente->usuario_creador_id : $incidente->usuario_asignado_id,
                 'evento' => EventoHistorial::Modificacion->value,
                 'campo' => CampoHistorial::Estado->value,
-                'valor_anterior' => $ciclo[$paso - 1]->value,
-                'valor_nuevo' => $ciclo[$paso]->value,
-                'created_at' => $incidente->created_at->copy()->addSeconds(
-                    (int) ($incidente->created_at->diffInSeconds($incidente->updated_at, true) * $paso / $pasos),
-                ),
+                'valor_anterior' => $paso['de']->value,
+                'valor_nuevo' => $paso['a']->value,
+                'created_at' => $paso['momento'],
             ];
         }
 
