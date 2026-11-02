@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Incidentes;
 
+use App\Auditoria\Dominio\AccionAuditoria;
+use App\Auditoria\Models\Auditoria;
 use App\Identidad\Dominio\ClavePermiso;
 use App\Identidad\Models\Cliente;
 use App\Identidad\Models\User;
@@ -81,6 +83,23 @@ class AcuerdosDeServicioTest extends TestCase
             ->assertJsonPath('data.plazos.alta.resolucion_minutos', 90);
 
         $this->assertSame(1, AcuerdoDeServicio::where('cliente_id', $empresa->id)->count());
+    }
+
+    public function test_cada_cambio_del_acuerdo_queda_en_la_auditoria_con_el_valor_anterior(): void
+    {
+        $empresa = Cliente::factory()->create(['nombre' => 'Ferretería Andina']);
+        $plazos = PlazosDeServicio::PREDETERMINADOS;
+        $plazos['critica'] = ['respuesta_minutos' => 30, 'resolucion_minutos' => 90];
+
+        $this->guardar($empresa, ['horario_laboral' => true, 'plazos' => $plazos])->assertOk();
+        $this->guardar($empresa, ['horario_laboral' => true, 'plazos' => $plazos])->assertOk();
+
+        $registros = Auditoria::where('accion', AccionAuditoria::AcuerdoDeServicioModificado)->orderBy('id')->get();
+        $this->assertSame([
+            'SLA de «Ferretería Andina», horario: continuo (24/7) → laboral (lun-vie 8-18)',
+            'SLA de «Ferretería Andina», prioridad crítica: respuesta 15 min → 30 min, resolución 2 h → 1 h 30 min',
+        ], $registros->pluck('detalle')->all(), 'Guardar lo mismo otra vez no deja registros.');
+        $this->assertNotNull($registros->first()?->usuario_id);
     }
 
     public function test_exige_todos_los_plazos_y_que_la_respuesta_no_tarde_mas_que_la_resolucion(): void

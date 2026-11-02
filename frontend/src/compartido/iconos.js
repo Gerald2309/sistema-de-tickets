@@ -33,6 +33,7 @@ import {
   mdiCircleOutline,
   mdiClipboardTextClockOutline,
   mdiClockAlertOutline,
+  mdiClockEditOutline,
   mdiClockOutline,
   mdiClose,
   mdiDotsHorizontal,
@@ -181,4 +182,5 @@ export const iconos = Object.freeze({
   rolAsignado: mdiAccountKeyOutline,
   empresaCreada: mdiOfficeBuildingPlusOutline,
   empresaModificada: mdiOfficeBuildingCogOutline,
+  acuerdoModificado: mdiClockEditOutline,
 })

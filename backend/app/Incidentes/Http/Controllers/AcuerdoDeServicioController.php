@@ -18,7 +18,7 @@ class AcuerdoDeServicioController extends Controller
 
     public function update(AcuerdoDeServicioRequest $request, Cliente $cliente, GuardarAcuerdoDeServicio $guardar): AcuerdoDeServicioResource
     {
-        $acuerdo = $guardar->ejecutar($request->user(), $cliente, $request->boolean('horario_laboral'), $request->plazos());
+        $acuerdo = $guardar->ejecutar($request->user(), $cliente, $request->boolean('horario_laboral'), $request->plazos(), $request->ip());
 
         return new AcuerdoDeServicioResource($acuerdo->aPlazos());
     }

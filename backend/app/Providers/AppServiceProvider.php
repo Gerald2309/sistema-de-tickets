@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Auditoria\Acciones\RegistrarAuditoria;
+use App\Auditoria\Dominio\AccionAuditoria;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Errores\DocumentarProblemas;
 use App\Incidentes\Acciones\AvisarCambios;
 use App\Incidentes\Consultas\CacheDelPanel;
+use App\Incidentes\Eventos\AcuerdoDeServicioCambiado;
 use App\Incidentes\Eventos\IncidentesCambiados;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -70,6 +73,14 @@ class AppServiceProvider extends ServiceProvider
 
         // Un incidente que cambia deja atrás los cálculos guardados del panel.
         Event::listen(IncidentesCambiados::class, fn () => app(CacheDelPanel::class)->olvidar());
+        // Incidentes y Auditoría no se conocen: el cambio de un SLA se une aquí con su registro.
+        Event::listen(AcuerdoDeServicioCambiado::class, function (AcuerdoDeServicioCambiado $cambio): void {
+            foreach ($cambio->cambios as $detalle) {
+                app(RegistrarAuditoria::class)->ejecutar(
+                    AccionAuditoria::AcuerdoDeServicioModificado, $cambio->autorId, null, "SLA de «{$cambio->empresa}», {$detalle}", $cambio->ip,
+                );
+            }
+        });
     }
 
     private function vigilarConsultasLentas(): void
