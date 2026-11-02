@@ -11,6 +11,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SimilaresController extends Controller
 {
+    /**
+     * Incidentes similares
+     */
     public function __invoke(Request $request, Incidente $incidente, IncidentesSimilares $incidentesSimilares): AnonymousResourceCollection
     {
         return SimilarResource::collection($incidentesSimilares->ejecutar($request->user(), $incidente));

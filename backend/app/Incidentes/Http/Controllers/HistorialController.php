@@ -10,6 +10,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class HistorialController extends Controller
 {
+    /**
+     * Historial de cambios de un incidente
+     */
     public function __invoke(Incidente $incidente, HistorialDeIncidente $historialDeIncidente): AnonymousResourceCollection
     {
         return HistorialResource::collection($historialDeIncidente->ejecutar($incidente));

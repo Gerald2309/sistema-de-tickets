@@ -10,6 +10,9 @@ use App\Incidentes\Models\Incidente;
 
 class ConfirmarSolucionController extends Controller
 {
+    /**
+     * Confirmar o rechazar la solución
+     */
     public function __invoke(ConfirmarSolucionRequest $request, Incidente $incidente, ConfirmarSolucion $confirmarSolucion): IncidenteResource
     {
         return new IncidenteResource($confirmarSolucion->ejecutar(

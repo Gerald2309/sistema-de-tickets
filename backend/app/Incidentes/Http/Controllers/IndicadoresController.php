@@ -15,6 +15,9 @@ class IndicadoresController extends Controller
     // Cinco minutos: miran semanas hacia atrás, y un cambio en un incidente los renueva antes.
     private const SEGUNDOS = 300;
 
+    /**
+     * Indicadores: tiempos y tendencia
+     */
     public function __invoke(IndicadoresRequest $request, MedirIndicadores $medirIndicadores, CacheDelPanel $cache): IndicadoresResource
     {
         $alcance = IncidentePolicy::alcanceDe($request->user());

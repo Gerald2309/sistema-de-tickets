@@ -14,6 +14,9 @@ use Illuminate\Http\Response;
 
 class IncidenteLoteController extends Controller
 {
+    /**
+     * Actualizar varios incidentes
+     */
     public function actualizar(
         ActualizarIncidentesEnLoteRequest $request,
         IncidentesDelLote $incidentesDelLote,
@@ -24,6 +27,9 @@ class IncidenteLoteController extends Controller
         return IncidenteResource::collection($actualizarIncidentesEnLote->ejecutar($request->user(), $incidentes, $request->cambios()));
     }
 
+    /**
+     * Eliminar varios incidentes
+     */
     public function eliminar(
         EliminarIncidentesEnLoteRequest $request,
         IncidentesDelLote $incidentesDelLote,

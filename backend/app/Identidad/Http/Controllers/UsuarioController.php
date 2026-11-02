@@ -19,11 +19,17 @@ use Illuminate\Http\Response;
 
 class UsuarioController extends Controller
 {
+    /**
+     * Listar usuarios
+     */
     public function index(ListarUsuariosRequest $request, ListarUsuarios $listarUsuarios): AnonymousResourceCollection
     {
         return UsuarioResource::collection($listarUsuarios->ejecutar($request->filtros(), $request->porPagina()));
     }
 
+    /**
+     * Crear un usuario
+     */
     public function store(CrearUsuarioRequest $request, CrearUsuario $crearUsuario): JsonResponse
     {
         $usuario = $crearUsuario->ejecutar($request->user(), $request->datos(), $request->ip());
@@ -31,16 +37,25 @@ class UsuarioController extends Controller
         return (new UsuarioResource($usuario))->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
+    /**
+     * Ver un usuario
+     */
     public function show(User $usuario): UsuarioResource
     {
         return new UsuarioResource($usuario->load(['rol', 'cliente']));
     }
 
+    /**
+     * Modificar o desactivar un usuario
+     */
     public function update(ModificarUsuarioRequest $request, User $usuario, ModificarUsuario $modificarUsuario): UsuarioResource
     {
         return new UsuarioResource($modificarUsuario->ejecutar($request->user(), $usuario, $request->cambios(), $request->ip()));
     }
 
+    /**
+     * Cambiar el rol de un usuario
+     */
     public function asignarRol(AsignarRolRequest $request, User $usuario, AsignarRolAUsuario $asignarRolAUsuario): UsuarioResource
     {
         return new UsuarioResource($asignarRolAUsuario->ejecutar($request->user(), $usuario, $request->integer('rol_id'), $request->ip()));

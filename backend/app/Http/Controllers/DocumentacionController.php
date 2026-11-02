@@ -26,9 +26,14 @@ class DocumentacionController extends Controller
 
     public function visor(Generator $generador): View
     {
-        return view('scramble::docs', [
+        $configuracion = Scramble::getGeneratorConfig(Scramble::DEFAULT_API);
+
+        /** @var view-string $vista la del visor elegido en config/scramble.php */
+        $vista = $configuracion->renderer()->view;
+
+        return view($vista, [
             'spec' => $this->documento($generador),
-            'config' => Scramble::getGeneratorConfig(Scramble::DEFAULT_API),
+            'config' => $configuracion,
         ]);
     }
 

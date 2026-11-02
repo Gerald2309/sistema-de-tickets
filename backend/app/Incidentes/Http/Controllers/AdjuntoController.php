@@ -13,6 +13,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class AdjuntoController extends Controller
 {
     // El tipo es el que se comprobó al recibir la imagen; se entrega para mostrarla, no para descargarla.
+    /**
+     * Descargar una imagen adjunta
+     */
     public function __invoke(Incidente $incidente, MensajeIncidente $mensaje, AdjuntoMensaje $adjunto): StreamedResponse
     {
         return Storage::disk(EscribirMensaje::DISCO)->response($adjunto->ruta, $adjunto->nombre, ['Content-Type' => $adjunto->tipo]);

@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 
 class TomarIncidenteController extends Controller
 {
+    /**
+     * Tomar un incidente
+     */
     public function __invoke(Request $request, Incidente $incidente, TomarIncidente $tomarIncidente): IncidenteResource
     {
         return new IncidenteResource($tomarIncidente->ejecutar($request->user(), $incidente));

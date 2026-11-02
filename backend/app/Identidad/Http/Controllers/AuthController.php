@@ -33,6 +33,9 @@ class AuthController extends Controller
         return new TokenResource($token);
     }
 
+    /**
+     * Cerrar sesión
+     */
     public function logout(Request $request, CerrarSesion $cerrarSesion): Response
     {
         $cerrarSesion->ejecutar($request->user());

@@ -24,15 +24,14 @@ return [
     'info' => [
         'version' => env('API_VERSION', '1.0.0'),
         'description' => <<<'MD'
-            API de la mesa de ayuda de Psicol: incidentes, su conversación e historial, usuarios, roles, empresas,
-            acuerdos de servicio, panel y auditoría.
+            API de la mesa de ayuda de Psicol. Busque cualquier endpoint con **Ctrl + K**.
 
-            **Autenticación.** `POST /auth/login` entrega un token; se envía en cada petición como
-            `Authorization: Bearer {token}`. Expira según `SANCTUM_EXPIRATION`.
-
-            **Errores.** Todos salen como `application/problem+json` (RFC 9457): `type`, `title`, `status` y `detail`.
-            Los de validación (422) agregan `errors`, con los mensajes de cada campo. Un recurso que la persona no
-            puede ver responde 404, no 403, para no revelar que existe.
+            - **Autenticación:** `POST /auth/login` entrega un token. Envíelo en cada petición como `Authorization: Bearer {token}`.
+            - **Permisos:** cada endpoint dice qué exige. Lo que la persona no puede ver responde 404, no 403.
+            - **Errores:** `application/problem+json` (RFC 9457). Los 422 agregan `errors`, con el mensaje de cada campo.
+            - **Listados:** paginados con `page` y `per_page`.
+            - **Límite:** 300 peticiones por minuto por persona (configurable). Al pasarlo, 429 con `Retry-After`.
+            - **Reintentos:** crear un incidente o un mensaje acepta `Idempotency-Key` (UUID); repetirla no duplica nada.
             MD,
     ],
 
@@ -44,18 +43,24 @@ return [
         'enabled' => false,
     ],
 
-    'renderer' => 'elements',
+    // Scalar: buscador (Ctrl + K), secciones plegables y prueba de peticiones. Versión fija con SRI en la vista
+    // (resources/views/vendor/scramble/scalar.blade.php); sin fuentes, proxy ni servicios externos de Scalar.
+    'renderer' => 'scalar',
 
     'renderers' => [
-        'elements' => [
-            'view' => 'scramble::docs',
-            'theme' => 'light',
-            'hideTryIt' => false,
-            'hideSchemas' => false,
-            'logo' => '',
-            'tryItCredentialsPolicy' => 'same-origin',
-            'layout' => 'responsive',
-            'router' => 'hash',
+        'scalar' => [
+            'view' => 'scramble::scalar',
+            'layout' => 'modern',
+            'theme' => 'default',
+            'withDefaultFonts' => false,
+            'hideModels' => true,
+            'hideClientButton' => true,
+            'hideDownloadButton' => false,
+            'documentDownloadType' => 'json',
+            'showDeveloperTools' => 'never',
+            'agent' => ['disabled' => true],
+            'defaultOpenAllTags' => false,
+            'expandAllResponses' => false,
         ],
     ],
 

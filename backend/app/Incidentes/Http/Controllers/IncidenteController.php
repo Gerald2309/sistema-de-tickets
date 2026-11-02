@@ -20,11 +20,17 @@ use Illuminate\Http\Response;
 
 class IncidenteController extends Controller
 {
+    /**
+     * Listar y filtrar incidentes
+     */
     public function index(ListarIncidentesRequest $request, ListarIncidentes $listarIncidentes): AnonymousResourceCollection
     {
         return IncidenteResource::collection($listarIncidentes->ejecutar($request->user(), $request->filtros()));
     }
 
+    /**
+     * Crear un incidente
+     */
     public function store(CrearIncidenteRequest $request, CrearIncidente $crearIncidente): JsonResponse
     {
         $incidente = $crearIncidente->ejecutar($request->user(), $request->datos(), $request->claveDeIdempotencia());
@@ -36,6 +42,9 @@ class IncidenteController extends Controller
             : $respuesta->header('Idempotent-Replayed', 'true');
     }
 
+    /**
+     * Ver un incidente
+     */
     public function show(Request $request, Incidente $incidente): IncidenteResource
     {
         $lector = $request->user();
@@ -43,11 +52,17 @@ class IncidenteController extends Controller
         return new IncidenteResource($incidente->loadCount(Incidente::conteoDeMensajesSinLeer($lector->id, IncidentePolicy::alcanceDe($lector))));
     }
 
+    /**
+     * Actualizar un incidente
+     */
     public function update(ActualizarIncidenteRequest $request, Incidente $incidente, ActualizarIncidente $actualizarIncidente): IncidenteResource
     {
         return new IncidenteResource($actualizarIncidente->ejecutar($request->user(), $incidente, $request->datos()));
     }
 
+    /**
+     * Eliminar un incidente
+     */
     public function destroy(Request $request, Incidente $incidente, EliminarIncidente $eliminarIncidente): Response
     {
         $eliminarIncidente->ejecutar($request->user(), $incidente);

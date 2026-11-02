@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 
 class PerfilController extends Controller
 {
+    /**
+     * Mi perfil y permisos
+     */
     public function mostrar(Request $request): PerfilResource
     {
         /** @var User $usuario la ruta exige sesión (auth:sanctum) */
@@ -20,6 +23,9 @@ class PerfilController extends Controller
         return new PerfilResource($usuario->loadMissing('cliente'));
     }
 
+    /**
+     * Cambiar mi contraseña
+     */
     public function cambiarContrasena(CambiarContrasenaRequest $request, CambiarContrasena $cambiarContrasena): JsonResponse
     {
         $cambiarContrasena->ejecutar(

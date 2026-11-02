@@ -10,6 +10,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AuditoriaController extends Controller
 {
+    /**
+     * Consultar la auditoría
+     */
     public function __invoke(ListarAuditoriaRequest $request, ListarAuditoria $listarAuditoria): AnonymousResourceCollection
     {
         return AuditoriaResource::collection($listarAuditoria->ejecutar($request->filtros(), $request->porPagina()));

@@ -13,6 +13,9 @@ use Illuminate\Http\Response;
 // Las sesiones abiertas de quien pregunta. Solo las propias: la consulta parte siempre de su usuario.
 class SesionController extends Controller
 {
+    /**
+     * Mis sesiones abiertas
+     */
     public function index(Request $request): AnonymousResourceCollection
     {
         /** @var User $usuario la ruta exige sesión (auth:sanctum) */
@@ -21,6 +24,9 @@ class SesionController extends Controller
         return SesionResource::collection($usuario->tokens()->latest('last_used_at')->latest('id')->get());
     }
 
+    /**
+     * Cerrar una de mis sesiones
+     */
     public function destroy(Request $request, int $sesion, CerrarSesionesPropias $cerrarSesiones): Response
     {
         $cerrarSesiones->una($request->user(), $sesion);
@@ -28,6 +34,9 @@ class SesionController extends Controller
         return response()->noContent();
     }
 
+    /**
+     * Cerrar mis demás sesiones
+     */
     public function destroyLasDemas(Request $request, CerrarSesionesPropias $cerrarSesiones): Response
     {
         $cerrarSesiones->lasDemas($request->user());

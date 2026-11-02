@@ -9,6 +9,9 @@ use Illuminate\Http\JsonResponse;
 class PermisoController extends Controller
 {
     // El catálogo es fijo y sale del enum: no hace falta consultar la base de datos.
+    /**
+     * Catálogo de permisos
+     */
     public function __invoke(): JsonResponse
     {
         return response()->json(['data' => array_map(

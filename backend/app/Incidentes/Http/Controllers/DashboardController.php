@@ -15,6 +15,9 @@ class DashboardController extends Controller
     // Un minuto: lo único que cambia sin que cambie un incidente son los vencidos, con el reloj.
     private const SEGUNDOS = 60;
 
+    /**
+     * Resumen del panel
+     */
     public function __invoke(Request $request, ResumirIncidentes $resumirIncidentes, CacheDelPanel $cache): DashboardResource
     {
         $alcance = IncidentePolicy::alcanceDe($request->user());

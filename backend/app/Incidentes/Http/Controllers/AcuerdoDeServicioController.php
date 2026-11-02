@@ -11,11 +11,17 @@ use App\Incidentes\Http\Resources\AcuerdoDeServicioResource;
 
 class AcuerdoDeServicioController extends Controller
 {
+    /**
+     * Ver el SLA de una empresa
+     */
     public function show(Cliente $cliente, PlazosDeLaEmpresa $plazosDeLaEmpresa): AcuerdoDeServicioResource
     {
         return new AcuerdoDeServicioResource($plazosDeLaEmpresa->de($cliente->id));
     }
 
+    /**
+     * Cambiar el SLA de una empresa
+     */
     public function update(AcuerdoDeServicioRequest $request, Cliente $cliente, GuardarAcuerdoDeServicio $guardar): AcuerdoDeServicioResource
     {
         $acuerdo = $guardar->ejecutar($request->user(), $cliente, $request->boolean('horario_laboral'), $request->plazos(), $request->ip());

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auditoria\Acciones\RegistrarAuditoria;
 use App\Auditoria\Dominio\AccionAuditoria;
 use App\Http\Controllers\DocumentacionController;
+use App\Http\Documentacion\SeccionesDeLaApi;
 use App\Http\Errores\DocumentarProblemas;
 use App\Incidentes\Acciones\AvisarCambios;
 use App\Incidentes\Consultas\CacheDelPanel;
@@ -97,14 +98,17 @@ class AppServiceProvider extends ServiceProvider
         // Sin sesión, como cualquiera que abra el enlace: Gate solo consulta a invitados si el usuario admite null.
         Gate::define('viewApiDocs', fn (?Authenticatable $persona = null) => (bool) config('scramble.publica'));
 
-        Scramble::configure()->withDocumentTransformers([
-            fn (OpenApi $openApi) => $openApi->secure(SecurityScheme::http('bearer')),
-            DocumentarProblemas::class,
-        ]);
+        Scramble::configure()
+            ->withDocumentTransformers([
+                fn (OpenApi $openApi) => $openApi->secure(SecurityScheme::http('bearer')),
+                DocumentarProblemas::class,
+                SeccionesDeLaApi::ordenar(...),
+            ])
+            ->withOperationTransformers(SeccionesDeLaApi::ubicar(...));
 
-        // La documentación no se lista a sí misma.
+        // Solo lo que se publica (SeccionesDeLaApi); la documentación no se lista a sí misma.
         Scramble::configure()->routes(fn (RutaDeLaApi $ruta) => str_starts_with($ruta->uri, 'api/v1/')
-            && ! in_array($ruta->uri, ['api/v1/documentacion', 'api/v1/openapi.json'], true));
+            && SeccionesDeLaApi::publica($ruta));
 
         Route::prefix('api/v1')->middleware(config('scramble.middleware'))->group(function (): void {
             Route::get('documentacion', [DocumentacionController::class, 'visor']);

@@ -11,6 +11,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportacionController extends Controller
 {
+    /**
+     * Exportar incidentes a CSV
+     */
     public function __invoke(
         ExportarIncidentesRequest $request,
         IncidentesParaExportar $incidentesParaExportar,

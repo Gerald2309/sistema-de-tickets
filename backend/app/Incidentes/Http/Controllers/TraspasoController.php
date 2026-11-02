@@ -13,11 +13,17 @@ class TraspasoController extends Controller
 {
     public function __construct(private readonly TraspasarIncidentesAbiertos $traspasar) {}
 
+    /**
+     * Incidentes abiertos de un usuario
+     */
     public function show(User $usuario): JsonResponse
     {
         return response()->json(['data' => ['total' => $this->traspasar->contar($usuario)]]);
     }
 
+    /**
+     * Traspasar los incidentes abiertos de un usuario
+     */
     public function store(TraspasoRequest $request, User $usuario): JsonResponse
     {
         return response()->json(['data' => [

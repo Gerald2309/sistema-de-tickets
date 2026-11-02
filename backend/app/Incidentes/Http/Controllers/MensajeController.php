@@ -15,11 +15,17 @@ use Illuminate\Http\Response;
 
 class MensajeController extends Controller
 {
+    /**
+     * Leer la conversación
+     */
     public function index(Request $request, Incidente $incidente, ConversacionDeIncidente $conversacion): AnonymousResourceCollection
     {
         return MensajeResource::collection($conversacion->ejecutar($request->user(), $incidente));
     }
 
+    /**
+     * Escribir un mensaje
+     */
     public function store(EscribirMensajeRequest $request, Incidente $incidente, EscribirMensaje $escribirMensaje): JsonResponse
     {
         $mensaje = $escribirMensaje->ejecutar(

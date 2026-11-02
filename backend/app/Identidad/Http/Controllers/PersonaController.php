@@ -10,6 +10,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PersonaController extends Controller
 {
+    /**
+     * Buscar personas
+     */
     public function __invoke(BuscarPersonasRequest $request, BuscarPersonas $buscarPersonas): AnonymousResourceCollection
     {
         return PersonaResource::collection($buscarPersonas->ejecutar(

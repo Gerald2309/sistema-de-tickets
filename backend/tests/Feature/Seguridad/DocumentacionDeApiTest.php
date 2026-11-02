@@ -46,6 +46,21 @@ class DocumentacionDeApiTest extends TestCase
         $this->assertSame([], $contrato['paths']['/auth/login']['post']['security'], 'Iniciar sesión no pide token.');
     }
 
+    public function test_agrupa_por_recurso_dice_que_exige_y_no_publica_lo_interno_de_la_interfaz(): void
+    {
+        $contrato = $this->contrato();
+
+        $this->assertSame(
+            ['Autenticación y cuenta', 'Incidentes', 'Conversación', 'Panel', 'Usuarios y roles', 'Empresas y SLA', 'Auditoría'],
+            array_column($contrato['tags'], 'name'),
+        );
+        $this->assertSame(['Incidentes'], $contrato['paths']['/incidentes']['get']['tags']);
+        $this->assertStringContainsString('**Requiere:** permiso `ver_auditoria`.', $contrato['paths']['/auditoria']['get']['description']);
+        foreach (['/avisos', '/mi-dia/plan', '/broadcasting/auth', '/documentacion'] as $interna) {
+            $this->assertArrayNotHasKey($interna, $contrato['paths'], "{$interna} es de uso interno.");
+        }
+    }
+
     public function test_describe_los_errores_como_los_entrega_la_api(): void
     {
         $respuestas = $this->contrato()['components']['responses'];
@@ -60,7 +75,7 @@ class DocumentacionDeApiTest extends TestCase
     {
         $respuesta = $this->get('/api/v1/documentacion')->assertOk();
 
-        $this->assertMatchesRegularExpression('/<script src="https:\/\/unpkg\.com\/[^"]+" integrity="sha384-[^"]+"/', $respuesta->getContent());
+        $this->assertMatchesRegularExpression('/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@scalar\/api-reference@[\d.]+\/[^"]+"\s+integrity="sha384-[^"]+"/', $respuesta->getContent());
         $politica = (string) $respuesta->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("frame-ancestors 'none'", $politica);
         $this->assertStringContainsString("form-action 'none'", $politica);

@@ -19,16 +19,25 @@ use Illuminate\Http\Response;
 
 class RolController extends Controller
 {
+    /**
+     * Listar roles
+     */
     public function index(ListarRoles $listarRoles): AnonymousResourceCollection
     {
         return RolResource::collection($listarRoles->ejecutar());
     }
 
+    /**
+     * Ver un rol
+     */
     public function show(Rol $rol): RolResource
     {
         return new RolResource($rol->load('permisos')->loadCount('usuarios'));
     }
 
+    /**
+     * Crear un rol
+     */
     public function store(NombreDeRolRequest $request, CrearRol $crearRol): JsonResponse
     {
         $rol = $crearRol->ejecutar($request->user(), $request->validated('nombre'), $request->ip());
@@ -36,11 +45,17 @@ class RolController extends Controller
         return (new RolResource($rol))->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
+    /**
+     * Renombrar un rol
+     */
     public function update(NombreDeRolRequest $request, Rol $rol, RenombrarRol $renombrarRol): RolResource
     {
         return new RolResource($renombrarRol->ejecutar($request->user(), $rol, $request->validated('nombre'), $request->ip()));
     }
 
+    /**
+     * Eliminar un rol
+     */
     public function destroy(Request $request, Rol $rol, EliminarRol $eliminarRol): Response
     {
         $eliminarRol->ejecutar($request->user(), $rol, $request->ip());
@@ -48,6 +63,9 @@ class RolController extends Controller
         return response()->noContent();
     }
 
+    /**
+     * Asignar permisos a un rol
+     */
     public function asignarPermisos(AsignarPermisosRequest $request, Rol $rol, AsignarPermisosARol $asignarPermisosARol): RolResource
     {
         return new RolResource($asignarPermisosARol->ejecutar($request->user(), $rol, $request->claves(), $request->ip()));
