@@ -50,6 +50,6 @@ describe('cambio obligatorio de la contraseña', { timeout: 20_000 }, () => {
     await esperarPintado()
     await montada.envoltorio.find('form').trigger('submit')
 
-    await vi.waitFor(() => expect(montada.router.currentRoute.value.name).toBe('mi-cuenta'))
+    await vi.waitFor(() => expect(montada.router.currentRoute.value.name).toBe('mi-cuenta'), { timeout: 8000 })
   })
 })

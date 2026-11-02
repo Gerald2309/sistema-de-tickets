@@ -52,6 +52,21 @@ body {
   outline: none;
 }
 
+/* Lo que rellena el navegador (contraseñas guardadas) se ve como lo escrito, sin el fondo propio del navegador
+   cubriendo solo una parte del campo. La animación vacía avisa a useAutollenado de que el campo se rellenó. */
+.v-field input:-webkit-autofill {
+  animation: autollenado 1ms;
+  -webkit-text-fill-color: var(--texto);
+  box-shadow: 0 0 0 1000px var(--superficie) inset;
+  caret-color: var(--texto);
+}
+
+@keyframes autollenado {
+  from {
+    opacity: 1;
+  }
+}
+
 .salto-al-contenido {
   position: absolute;
   top: -40px;

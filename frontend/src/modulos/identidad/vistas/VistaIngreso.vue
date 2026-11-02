@@ -1,14 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import logoPsicol from '@/compartido/recursos/psicol-logo.png'
 import BotonEnvio from '@/compartido/componentes/BotonEnvio.vue'
 import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
+import { useAutollenado } from '@/compartido/composables/useAutollenado.js'
 import { iconos } from '@/compartido/iconos.js'
 import { useIngreso } from '../composables/useIngreso.js'
 
 const { correo, contrasena, pendiente, error, segundosDeEspera, ingresar, motivoDeSalida } = useIngreso()
 const verContrasena = ref(false)
-const formulario = ref(/** @type {{ validate: () => Promise<{ valid: boolean }> } | null} */ (null))
+const formulario = ref(/** @type {{ validate: () => Promise<{ valid: boolean }>, $el: HTMLElement } | null} */ (null))
+const { rellenados, alAnimar, leer } = useAutollenado()
+// Desde que el valor pasa por Vue (escrito, o vaciado tras un error), la etiqueta se comporta como siempre.
+watch(correo, () => rellenados.delete('correo'))
+watch(contrasena, () => rellenados.delete('contrasena'))
 
 const reglasCorreo = [
   (/** @type {string} */ valor) => !!valor.trim() || 'Escriba su correo.',
@@ -17,6 +22,9 @@ const reglasCorreo = [
 const reglasContrasena = [(/** @type {string} */ valor) => !!valor || 'Escriba su contraseña.']
 
 async function enviar() {
+  // Lo que rellenó el navegador ya se puede leer: enviar es la interacción que lo libera.
+  correo.value ||= leer(formulario.value?.$el, 'correo')
+  contrasena.value ||= leer(formulario.value?.$el, 'contrasena')
   const { valid } = (await formulario.value?.validate()) ?? { valid: false }
   if (valid) {
     await ingresar()
@@ -71,10 +79,12 @@ async function enviar() {
             </MensajeEnPagina>
           </Transition>
 
-          <v-form ref="formulario" validate-on="blur" @submit.prevent="enviar">
+          <v-form ref="formulario" validate-on="blur" @submit.prevent="enviar" @animationstart="alAnimar">
             <div class="entra ingreso__campo" style="--i: 4">
               <v-text-field
                 v-model="correo"
+                name="correo"
+                :active="rellenados.has('correo') || undefined"
                 label="Correo electrónico"
                 type="email"
                 autocomplete="username"
@@ -86,6 +96,8 @@ async function enviar() {
             <div class="entra ingreso__campo" style="--i: 5">
               <v-text-field
                 v-model="contrasena"
+                name="contrasena"
+                :active="rellenados.has('contrasena') || undefined"
                 label="Contraseña"
                 :type="verContrasena ? 'text' : 'password'"
                 autocomplete="current-password"
