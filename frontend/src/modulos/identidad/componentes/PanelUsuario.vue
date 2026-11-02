@@ -167,7 +167,7 @@ async function guardar() {
         autocomplete="new-password"
         :counter="LONGITUD_MAXIMA"
         :maxlength="LONGITUD_MAXIMA"
-        hint="La persona puede cambiarla en Mi cuenta."
+        hint="La persona deberá cambiarla al entrar."
         persistent-hint
         :error-messages="errorDeContrasena"
         @update:model-value="servidor.limpiarCampo('contrasena')"

@@ -58,6 +58,7 @@ export const useSesion = defineStore('sesion', () => {
 
   const permisos = computed(() => new Set(perfil.value?.permisos ?? []))
   const autenticada = computed(() => token.value !== null && perfil.value !== null)
+  const debeCambiarContrasena = computed(() => perfil.value?.debeCambiarContrasena ?? false)
 
   /**
    * @param {Permiso} permiso
@@ -169,6 +170,7 @@ export const useSesion = defineStore('sesion', () => {
     perfil,
     motivoDeSalida,
     autenticada,
+    debeCambiarContrasena,
     permisos,
     tiene,
     tieneAlguno,

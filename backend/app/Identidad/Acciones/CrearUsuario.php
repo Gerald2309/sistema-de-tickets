@@ -17,7 +17,8 @@ class CrearUsuario
     public function ejecutar(User $administrador, array $datos, ?string $ip): User
     {
         return DB::transaction(function () use ($administrador, $datos, $ip) {
-            $usuario = User::create($datos)->refresh()->load(['rol', 'cliente']);
+            // La contraseña la puso el administrador: la persona la cambia al entrar por primera vez.
+            $usuario = User::create($datos + ['debe_cambiar_contrasena' => true])->refresh()->load(['rol', 'cliente']);
 
             $empresa = $usuario->cliente ? " · Empresa «{$usuario->cliente->nombre}»" : '';
             $this->registrarAuditoria->ejecutar(AccionAuditoria::UsuarioCreado, $administrador->id, $usuario->id, "Rol «{$usuario->rol->nombre}»{$empresa}", $ip);

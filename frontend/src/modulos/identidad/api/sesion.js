@@ -3,6 +3,7 @@ import { aReferencia } from '@/compartido/api/paginacion.js'
 
 /** @typedef {import('../tipos.js').Perfil} Perfil */
 /** @typedef {import('../tipos.js').CredencialDeSesion} CredencialDeSesion */
+/** @typedef {import('../tipos.js').Sesion} Sesion */
 
 /**
  * @param {any} dto `PerfilResource`
@@ -16,6 +17,23 @@ export function aPerfil(dto) {
     rol: /** @type {import('../tipos.js').Referencia} */ (aReferencia(dto.rol)),
     cliente: aReferencia(dto.cliente),
     permisos: dto.permisos ?? [],
+    debeCambiarContrasena: dto.debe_cambiar_contrasena ?? false,
+    inicioAnterior: dto.inicio_anterior ?? null,
+  }
+}
+
+/**
+ * @param {any} dto `SesionResource`
+ * @returns {Sesion}
+ */
+function aSesion(dto) {
+  return {
+    id: dto.id,
+    ip: dto.ip,
+    agente: dto.agente,
+    iniciadaEn: dto.iniciada_en,
+    ultimoUsoEn: dto.ultimo_uso_en,
+    actual: dto.actual,
   }
 }
 
@@ -55,4 +73,31 @@ export async function cerrarSesion() {
  */
 export async function cambiarContrasena(actual, nueva) {
   await http.put('perfil/contrasena', { password_actual: actual, password: nueva })
+}
+
+/**
+ * `GET perfil/sesiones`: las sesiones abiertas de la persona, la más reciente primero.
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<Sesion[]>}
+ */
+export async function listarSesiones(signal) {
+  const { data } = await http.get('perfil/sesiones', { signal })
+  return data.data.map(aSesion)
+}
+
+/**
+ * `DELETE perfil/sesiones/{id}`: cierra una sesión propia en otro equipo.
+ * @param {number} id
+ * @returns {Promise<void>}
+ */
+export async function cerrarOtraSesion(id) {
+  await http.delete(`perfil/sesiones/${id}`)
+}
+
+/**
+ * `DELETE perfil/sesiones`: cierra todas las sesiones propias menos la actual.
+ * @returns {Promise<void>}
+ */
+export async function cerrarLasDemasSesiones() {
+  await http.delete('perfil/sesiones')
 }

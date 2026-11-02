@@ -88,6 +88,9 @@ export function crearEnrutador(historial = createWebHistory()) {
       if (decision.tipo === 'inicio') {
         return { name: 'inicio' }
       }
+      if (decision.tipo === 'cambiar-contrasena') {
+        return { name: 'cambiar-contrasena', query: destino.fullPath === '/' ? {} : { destino: destino.fullPath } }
+      }
       if (decision.tipo === 'sin-permiso') {
         return { name: 'sin-permiso', replace: true }
       }

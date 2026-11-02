@@ -40,7 +40,8 @@ async function restablecer() {
         <v-card-title class="restablecer__titulo">Restablecer la contraseña de {{ usuario.nombre }}</v-card-title>
         <v-card-text>
           <p class="restablecer__ayuda">
-            Comuníquele la nueva contraseña por un canal seguro. Se cerrarán todas sus sesiones.
+            Comuníquele la nueva contraseña por un canal seguro. Se cerrarán todas sus sesiones y deberá cambiarla al
+            entrar.
           </p>
           <v-text-field
             v-model="contrasena"

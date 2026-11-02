@@ -18,7 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read Rol $rol todo usuario tiene rol (rol_id no admite nulos)
  * @property-read Cliente|null $cliente empresa cliente; nula para el personal de Psicol
  */
-#[Fillable(['name', 'email', 'password', 'activo', 'rol_id', 'cliente_id'])]
+#[Fillable(['name', 'email', 'password', 'activo', 'rol_id', 'cliente_id', 'debe_cambiar_contrasena'])]
 #[Hidden(['password'])]
 #[UseFactory(UserFactory::class)]
 class User extends Authenticatable
@@ -72,6 +72,9 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'activo' => 'boolean',
+            'debe_cambiar_contrasena' => 'boolean',
+            'ultimo_inicio_en' => 'immutable_datetime',
+            'inicio_anterior_en' => 'immutable_datetime',
         ];
     }
 }

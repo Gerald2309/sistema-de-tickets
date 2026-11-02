@@ -12,6 +12,8 @@ const persona = {
   correo: `${EJECUCION}@empresa-ejemplo.com`,
   // Al azar en cada ejecución, con lo que exige la regla de contraseñas.
   clave: `Aa1-${randomBytes(18).toString('base64url')}`,
+  // La que elige al entrar: la inicial la puso el administrador.
+  propia: `Bb2-${randomBytes(18).toString('base64url')}`,
 }
 /** @type {number | undefined} */
 let idPersona
@@ -52,9 +54,24 @@ test('crear un usuario desde el panel lateral', async ({ abrirComo }) => {
   idPersona = datos.data[0].id
 })
 
-test('un solicitante no ve la administración ni la alcanza por URL', async ({ abrirComo }) => {
+test('con la contraseña inicial, la persona primero elige la suya', async ({ abrirComo }) => {
   tokenPersona = await iniciarSesionPorApi({ correo: persona.correo, clave: persona.clave })
   const page = await abrirComo(tokenPersona, '/incidentes')
+
+  await expect(page).toHaveURL(/\/cambiar-contrasena/)
+  // Mientras no la cambie, la API tampoco atiende lo demás.
+  expect((await api('incidentes', { token: tokenPersona })).estado).toBe(403)
+
+  await page.getByLabel('Contraseña actual *', { exact: true }).fill(persona.clave)
+  await page.getByLabel('Nueva contraseña *', { exact: true }).fill(persona.propia)
+  await page.getByLabel('Repita la nueva contraseña *').fill(persona.propia)
+  await page.getByRole('button', { name: 'Cambiar contraseña' }).click()
+
+  await expect(page).toHaveURL(/\/incidentes$/)
+})
+
+test('un solicitante no ve la administración ni la alcanza por URL', async ({ abrirComo }) => {
+  const page = await abrirComo(/** @type {string} */ (tokenPersona), '/incidentes')
 
   await expect(page.getByRole('heading', { name: 'Incidentes', level: 1 })).toBeVisible()
   const menu = page.getByRole('navigation', { name: 'Secciones' })

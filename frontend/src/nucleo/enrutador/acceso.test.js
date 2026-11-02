@@ -24,6 +24,16 @@ describe('decidirAcceso', () => {
     expect(decidirAcceso('ver_auditoria', conPermisos('ver_todos'))).toEqual({ tipo: 'sin-permiso' })
   })
 
+  it('quien debe cambiar la contraseña solo abre esa pantalla, y nadie más la abre', () => {
+    const debeCambiarla = { ...conPermisos('ver_todos'), debeCambiarContrasena: true }
+
+    expect(decidirAcceso('cambio-de-contrasena', debeCambiarla)).toEqual({ tipo: 'permitir' })
+    expect(decidirAcceso('autenticado', debeCambiarla)).toEqual({ tipo: 'cambiar-contrasena' })
+    expect(decidirAcceso('ver_todos', debeCambiarla)).toEqual({ tipo: 'cambiar-contrasena' })
+    expect(decidirAcceso('cambio-de-contrasena', conPermisos('ver_todos'))).toEqual({ tipo: 'inicio' })
+    expect(decidirAcceso('cambio-de-contrasena', sinSesion)).toEqual({ tipo: 'ingresar' })
+  })
+
   it('una ruta sin permiso declarado se rechaza aunque haya sesión (denegar por defecto)', () => {
     expect(decidirAcceso(undefined, conPermisos('ver_todos'))).toEqual({ tipo: 'sin-permiso' })
     expect(decidirAcceso([], conPermisos('ver_todos'))).toEqual({ tipo: 'sin-permiso' })

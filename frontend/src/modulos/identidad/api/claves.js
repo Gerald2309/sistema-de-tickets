@@ -18,4 +18,5 @@ export const clavesDeIdentidad = Object.freeze({
   incidentesAbiertos: (id) => ['usuarios', id, 'incidentes-abiertos'],
   roles: () => ['roles'],
   permisos: () => ['permisos'],
+  sesiones: () => ['sesiones'],
 })

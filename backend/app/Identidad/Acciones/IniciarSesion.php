@@ -9,6 +9,7 @@ use App\Identidad\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\NewAccessToken;
 
@@ -26,11 +27,11 @@ class IniciarSesion
     /**
      * @throws ValidationException con el mismo mensaje para cualquier fallo, sin revelar la causa.
      */
-    public function ejecutar(string $email, string $password, ?string $ip, Carbon $ahora): NewAccessToken
+    public function ejecutar(string $email, string $password, ?string $ip, ?string $agente, Carbon $ahora): NewAccessToken
     {
         // El usuario se bloquea mientras se decide: un login simultáneo con una desactivación
         // no deja un token vivo para una cuenta inactiva.
-        [$token, $usuarioId] = DB::transaction(function () use ($email, $password, $ahora) {
+        [$token, $usuarioId] = DB::transaction(function () use ($email, $password, $ip, $agente, $ahora) {
             $usuario = User::where('email', $email)->lockForUpdate()->first();
             $coincide = Hash::check($password, $usuario->password ?? self::HASH_FICTICIO);
 
@@ -39,7 +40,10 @@ class IniciarSesion
             }
 
             $token = $usuario->createToken('api', ['*'], $ahora->copy()->addMinutes((int) config('sanctum.expiration')));
+            // Desde dónde se abrió: lo ve la persona en su lista de sesiones.
+            $token->accessToken->forceFill(['ip' => $ip, 'agente' => $agente === null ? null : Str::limit($agente, 250, '')])->save();
             $this->cerrarSesionesSobrantes($usuario);
+            $this->recordarInicio($usuario, $ip, $ahora);
 
             return [$token, $usuario->id];
         });
@@ -53,6 +57,17 @@ class IniciarSesion
         }
 
         return $token;
+    }
+
+    // El inicio que era el último pasa a ser el anterior: es el que la persona ve para notar uno que no hizo.
+    private function recordarInicio(User $usuario, ?string $ip, Carbon $ahora): void
+    {
+        $usuario->forceFill([
+            'inicio_anterior_en' => $usuario->ultimo_inicio_en,
+            'inicio_anterior_ip' => $usuario->ultimo_inicio_ip,
+            'ultimo_inicio_en' => $ahora,
+            'ultimo_inicio_ip' => $ip,
+        ])->save();
     }
 
     // Quedan las sesiones más recientes (incluida la nueva); las más antiguas se cierran.

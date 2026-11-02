@@ -10,6 +10,12 @@ export const rutasPublicas = [
     component: () => import('./vistas/VistaIngreso.vue'),
     meta: { permiso: 'publica', titulo: 'Iniciar sesión' },
   },
+  {
+    path: '/cambiar-contrasena',
+    name: 'cambiar-contrasena',
+    component: () => import('./vistas/VistaCambioDeContrasena.vue'),
+    meta: { permiso: 'cambio-de-contrasena', titulo: 'Cambiar la contraseña' },
+  },
 ]
 
 /** @type {import('vue-router').RouteRecordRaw[]} dentro de la estructura de la aplicación */

@@ -10,11 +10,63 @@ const PERFIL = {
   rol: { id: 3, nombre: 'Soporte N2' },
   cliente: null,
   permisos: [],
+  debe_cambiar_contrasena: false,
+  inicio_anterior: { en: '2026-11-01T14:20:00Z', ip: '190.24.10.5' },
 }
+const SESIONES = [
+  {
+    id: 41,
+    ip: '181.50.3.9',
+    agente: 'Mozilla/5.0 (Windows NT 10.0) Chrome/130.0 Safari/537.36',
+    iniciada_en: '2026-11-02T13:00:00Z',
+    ultimo_uso_en: '2026-11-02T15:00:00Z',
+    actual: true,
+  },
+  {
+    id: 40,
+    ip: '190.24.10.5',
+    agente: 'Mozilla/5.0 (Linux; Android 14) Chrome/130.0 Mobile Safari/537.36',
+    iniciada_en: '2026-11-01T14:20:00Z',
+    ultimo_uso_en: null,
+    actual: false,
+  },
+]
 
 beforeEach(() => {
   sessionStorage.setItem('mesa-de-ayuda.sesion', JSON.stringify({ token: '1|abc', expiraEn: null }))
-  servidor.use(manejador.get(api('me'), () => HttpResponse.json({ data: PERFIL })))
+  servidor.use(
+    manejador.get(api('me'), () => HttpResponse.json({ data: PERFIL })),
+    manejador.get(api('perfil/sesiones'), () => HttpResponse.json({ data: SESIONES })),
+  )
+})
+
+describe('mi cuenta: ingreso anterior y sesiones', { timeout: 20_000 }, () => {
+  let montada
+  afterEach(() => {
+    montada?.envoltorio.unmount()
+    sessionStorage.clear()
+  })
+
+  it('muestra desde dónde entró antes y cierra una sesión de otro equipo, no la actual', async () => {
+    /** @type {string | undefined} */
+    let cerrada
+    servidor.use(
+      manejador.delete(api('perfil/sesiones/:id'), ({ params }) => {
+        cerrada = String(params.id)
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    montada = await montarAplicacion('/mi-cuenta')
+
+    await vi.waitFor(() => expect(document.body.textContent).toContain('Chrome en Android'), { timeout: 8000 })
+    expect(document.body.textContent).toContain('IP 190.24.10.5')
+    const filas = montada.envoltorio.findAll('.sesiones__fila')
+    expect(filas[0].text()).toContain('Esta sesión')
+    expect(filas[0].find('button').exists()).toBe(false)
+
+    await filas[1].find('button').trigger('click')
+    await vi.waitFor(() => expect(cerrada).toBe('40'))
+  })
 })
 
 describe('mi cuenta: cambio de contraseña', { timeout: 20_000 }, () => {

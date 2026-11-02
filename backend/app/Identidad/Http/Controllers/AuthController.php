@@ -26,6 +26,7 @@ class AuthController extends Controller
             $request->validated('email'),
             $request->validated('password'),
             $request->ip(),
+            $request->userAgent(),
             Date::now(),
         );
 

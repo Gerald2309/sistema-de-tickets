@@ -113,3 +113,7 @@ Todas las cuentas usan la contraseña de demostración **`Psicol-Mesa-De-Ayuda-2
 | Solicitante | `ursula.apodaca@empresa-ejemplo.com` | Reporta incidentes, sigue los suyos en «Mis solicitudes», conversa con soporte y confirma la solución |
 
 El resto de usuarios de la demostración tiene contraseñas aleatorias.
+
+Una persona que cree un administrador, o a la que le restablezca la contraseña, debe elegir la suya al entrar:
+hasta entonces la aplicación solo le muestra ese cambio. En «Mi cuenta» cada persona ve su ingreso anterior y sus
+sesiones abiertas, y puede cerrar las que no reconozca.

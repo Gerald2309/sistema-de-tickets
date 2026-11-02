@@ -7,6 +7,7 @@ use App\Identidad\Http\Controllers\PerfilController;
 use App\Identidad\Http\Controllers\PermisoController;
 use App\Identidad\Http\Controllers\PersonaController;
 use App\Identidad\Http\Controllers\RolController;
+use App\Identidad\Http\Controllers\SesionController;
 use App\Identidad\Http\Controllers\UsuarioController;
 use App\Incidentes\Http\Controllers\AcuerdoDeServicioController;
 use App\Incidentes\Http\Controllers\AdjuntoController;
@@ -43,6 +44,9 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout'])->can('autenticado');
         Route::get('me', [PerfilController::class, 'mostrar'])->can('autenticado');
         Route::put('perfil/contrasena', [PerfilController::class, 'cambiarContrasena'])->can('autenticado');
+        Route::get('perfil/sesiones', [SesionController::class, 'index'])->can('autenticado');
+        Route::delete('perfil/sesiones', [SesionController::class, 'destroyLasDemas'])->can('autenticado');
+        Route::delete('perfil/sesiones/{sesion}', [SesionController::class, 'destroy'])->whereNumber('sesion')->can('autenticado');
 
         Route::get('avisos', AvisosController::class)->can('verAvisos', Incidente::class);
         Route::get('dashboard', DashboardController::class)->can('verDashboard', Incidente::class);

@@ -19,7 +19,7 @@ class CambiarContrasenaRequest extends FormRequest
     {
         return [
             'password_actual' => ['required', 'string', 'max:256'],
-            'password' => ['required', 'string', Password::defaults()],
+            'password' => ['required', 'string', 'different:password_actual', Password::defaults()],
         ];
     }
 }

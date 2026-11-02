@@ -11,10 +11,14 @@ use Illuminate\Validation\ValidationException;
 
 class CambiarContrasena
 {
-    public function __construct(private readonly RegistrarAuditoria $registrarAuditoria) {}
+    public function __construct(
+        private readonly RegistrarAuditoria $registrarAuditoria,
+        private readonly CerrarSesionesPropias $cerrarSesiones,
+    ) {}
 
     /**
-     * Cambia la contraseña propia y cierra el resto de sesiones del usuario (no la actual).
+     * Cambia la contraseña propia y cierra el resto de sesiones del usuario (no la actual). Con ella cumple el
+     * cambio que se le exige tras recibir una contraseña de un administrador.
      *
      * @throws ValidationException si la contraseña actual no coincide.
      */
@@ -25,8 +29,8 @@ class CambiarContrasena
         }
 
         DB::transaction(function () use ($usuario, $nueva, $ip) {
-            $usuario->update(['password' => $nueva]);
-            $usuario->tokens()->where('id', '!=', $usuario->currentAccessToken()->id)->delete();
+            $usuario->update(['password' => $nueva, 'debe_cambiar_contrasena' => false]);
+            $this->cerrarSesiones->lasDemas($usuario);
 
             $this->registrarAuditoria->ejecutar(AccionAuditoria::ContrasenaCambiada, $usuario->id, $usuario->id, null, $ip);
         });

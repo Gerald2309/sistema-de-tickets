@@ -92,7 +92,11 @@ export async function conectarTiempoReal({ queryClient, alTerminarLaSesion }) {
   }
 
   watch(
-    () => (sesion.perfil ? { id: sesion.perfil.id, veTodo: sesion.tiene('ver_todos') } : null),
+    // Mientras deba cambiar la contraseña no ve incidentes: no hay avisos que escuchar hasta que la cambie.
+    () =>
+      sesion.perfil && !sesion.debeCambiarContrasena
+        ? { id: sesion.perfil.id, veTodo: sesion.tiene('ver_todos') }
+        : null,
     (persona, anterior) => {
       if (!persona) {
         desconectar()

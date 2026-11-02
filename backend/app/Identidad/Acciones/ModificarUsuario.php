@@ -17,7 +17,7 @@ class ModificarUsuario
 
     /**
      * Modifica nombre, correo, empresa, estado activo o, para restablecerla, la contraseña. Desactivar a alguien
-     * o restablecerle la contraseña cierra sus sesiones.
+     * o restablecerle la contraseña cierra sus sesiones, y con una contraseña restablecida debe cambiarla al entrar.
      *
      * @param  array{name?: string, email?: string, activo?: bool, password?: string, cliente_id?: int|null}  $cambios
      *
@@ -29,6 +29,11 @@ class ModificarUsuario
             // Solo el estado activo puede dejar al sistema sin administradores.
             if (array_key_exists('activo', $cambios)) {
                 $this->bloqueo->adquirir();
+            }
+
+            // Una contraseña restablecida la conoce el administrador: la persona debe cambiarla al entrar.
+            if (array_key_exists('password', $cambios)) {
+                $cambios['debe_cambiar_contrasena'] = true;
             }
 
             $usuario = User::findOrFail($usuario->id)->fill($cambios);

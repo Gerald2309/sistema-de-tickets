@@ -19,6 +19,18 @@
  * @property {Referencia} rol
  * @property {Referencia | null} cliente empresa cliente; nula para el personal de Psicol
  * @property {Permiso[]} permisos
+ * @property {boolean} debeCambiarContrasena recibió una contraseña de un administrador: solo puede cambiarla
+ * @property {{ en: string, ip: string | null } | null} inicioAnterior el inicio de sesión previo al de esta sesión
+ */
+
+/**
+ * @typedef {object} Sesion una sesión abierta de la persona (`GET perfil/sesiones`)
+ * @property {number} id
+ * @property {string | null} ip
+ * @property {string | null} agente navegador y sistema, tal como los envió
+ * @property {string | null} iniciadaEn ISO 8601 en UTC
+ * @property {string | null} ultimoUsoEn ISO 8601 en UTC
+ * @property {boolean} actual la de esta pestaña
  */
 
 /**

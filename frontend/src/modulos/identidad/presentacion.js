@@ -66,3 +66,39 @@ export function nombreDePermiso(clave) {
     GRUPOS_DE_PERMISOS.flatMap((grupo) => grupo.permisos).find((permiso) => permiso.clave === clave)?.nombre ?? clave
   )
 }
+
+/** @type {ReadonlyArray<[string, RegExp]>} */
+const NAVEGADORES = [
+  ['Edge', /Edg(e|A|iOS)?\//],
+  ['Opera', /OPR\//],
+  ['Firefox', /Firefox\/|FxiOS\//],
+  ['Chrome', /Chrome\/|CriOS\//],
+  ['Safari', /Safari\//],
+]
+/** @type {ReadonlyArray<[string, RegExp]>} */
+const SISTEMAS = [
+  ['Android', /Android/],
+  ['iPhone', /iPhone/],
+  ['iPad', /iPad/],
+  ['Windows', /Windows/],
+  ['macOS', /Mac OS X|Macintosh/],
+  ['Linux', /Linux/],
+]
+
+/**
+ * «Chrome en Windows» a partir del agente que envió el navegador, para reconocer una sesión en la lista.
+ * El orden importa: Edge y Opera también dicen «Chrome», y Chrome también dice «Safari».
+ * @param {string | null} agente
+ * @returns {string}
+ */
+export function describirDispositivo(agente) {
+  if (!agente) {
+    return 'Dispositivo desconocido'
+  }
+  const navegador = NAVEGADORES.find(([, patron]) => patron.test(agente))?.[0]
+  const sistema = SISTEMAS.find(([, patron]) => patron.test(agente))?.[0]
+  if (navegador && sistema) {
+    return `${navegador} en ${sistema}`
+  }
+  return navegador ?? sistema ?? 'Otro dispositivo'
+}

@@ -4,8 +4,11 @@ import { useNotificaciones } from '@/compartido/composables/useNotificaciones.js
 import { cambiarContrasena } from '../api/sesion.js'
 import { cumpleRequisitos } from '../contrasena.js'
 
-/** Cambio de la propia contraseña (RF-F08). Tras el éxito, el servidor cierra las demás sesiones. */
-export function useCambioDeContrasena() {
+/**
+ * Cambio de la propia contraseña (RF-F08). Tras el éxito, el servidor cierra las demás sesiones.
+ * @param {{ alCambiar?: () => void }} [opciones]
+ */
+export function useCambioDeContrasena({ alCambiar } = {}) {
   const notificaciones = useNotificaciones()
   const actual = ref('')
   const nueva = ref('')
@@ -33,6 +36,7 @@ export function useCambioDeContrasena() {
       exito.value = true
       setTimeout(() => (exito.value = false), 1500)
       notificaciones.exito('Contraseña actualizada', 'Se cerraron sus demás sesiones.')
+      alCambiar?.()
     } catch (causa) {
       aplicar(causa)
     } finally {

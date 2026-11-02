@@ -2,22 +2,25 @@
  * Qué puede abrir cada persona (RF-F05). Cada ruta declara en `meta.permiso`:
  *   - 'publica'      solo sin sesión (el inicio de sesión);
  *   - 'autenticado'  cualquier persona con sesión;
+ *   - 'cambio-de-contrasena' solo quien debe cambiar la contraseña que le puso un administrador; mientras deba
+ *                    hacerlo, ninguna otra ruta con sesión se abre (la API tampoco la atiende);
  *   - una clave o una lista de claves: basta con tener una.
  * Una ruta sin `meta.permiso` se rechaza: denegar por defecto, como `ExigirAutorizacionDeclarada` del backend.
  * La autorización real la aplica la API; esto evita mostrar pantallas que van a fallar.
  */
 
 /** @typedef {import('@/modulos/identidad/index.js').Permiso} Permiso */
-/** @typedef {'publica' | 'autenticado' | Permiso | Permiso[]} PermisoDeRuta */
+/** @typedef {'publica' | 'autenticado' | 'cambio-de-contrasena' | Permiso | Permiso[]} PermisoDeRuta */
 
 /**
  * @typedef {object} EstadoDeSesion
  * @property {boolean} autenticada
  * @property {(...permisos: Permiso[]) => boolean} tieneAlguno
+ * @property {boolean} [debeCambiarContrasena]
  */
 
 /**
- * @typedef {{ tipo: 'permitir' } | { tipo: 'ingresar' } | { tipo: 'inicio' } | { tipo: 'sin-permiso' }} Decision
+ * @typedef {{ tipo: 'permitir' } | { tipo: 'ingresar' } | { tipo: 'inicio' } | { tipo: 'sin-permiso' } | { tipo: 'cambiar-contrasena' }} Decision
  */
 
 /**
@@ -31,6 +34,12 @@ export function decidirAcceso(permiso, sesion) {
   }
   if (!sesion.autenticada) {
     return { tipo: 'ingresar' }
+  }
+  if (permiso === 'cambio-de-contrasena') {
+    return sesion.debeCambiarContrasena ? { tipo: 'permitir' } : { tipo: 'inicio' }
+  }
+  if (sesion.debeCambiarContrasena) {
+    return { tipo: 'cambiar-contrasena' }
   }
   if (permiso === 'autenticado') {
     return { tipo: 'permitir' }

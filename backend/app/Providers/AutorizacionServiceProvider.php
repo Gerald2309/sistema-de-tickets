@@ -16,6 +16,10 @@ class AutorizacionServiceProvider extends ServiceProvider
     {
         Gate::policy(Incidente::class, IncidentePolicy::class);
 
+        // Con una contraseña puesta por un administrador, solo lo que pide haber iniciado sesión (su perfil, cambiar
+        // la contraseña, cerrar sesiones) hasta que la cambie. Se niega aquí, antes de cualquier permiso o política.
+        Gate::before(fn (?User $usuario, string $habilidad) => $usuario?->debe_cambiar_contrasena && $habilidad !== 'autenticado' ? false : null);
+
         // Para las rutas que solo exigen haber iniciado sesión.
         Gate::define('autenticado', fn (User $usuario) => true);
 

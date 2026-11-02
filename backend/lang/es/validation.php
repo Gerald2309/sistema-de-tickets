@@ -18,6 +18,7 @@ return [
     'mimes' => 'El archivo :attribute debe ser de tipo: :values.',
     'uploaded' => 'No se pudo recibir el archivo :attribute.',
     'date_format' => 'El campo :attribute debe tener el formato AAAA-MM-DDThh:mm:ss con zona horaria (ISO 8601), por ejemplo 2026-10-30T15:00:00-05:00.',
+    'different' => 'La nueva :attribute debe ser distinta de la actual.',
     'max' => [
         'string' => 'El campo :attribute no puede superar los :max caracteres.',
         'file' => 'El archivo :attribute no puede superar los :max kilobytes.',

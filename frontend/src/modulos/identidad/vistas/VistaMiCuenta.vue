@@ -1,19 +1,21 @@
 <script setup>
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
-import BotonEnvio from '@/compartido/componentes/BotonEnvio.vue'
+import { computed } from 'vue'
 import ListaPropiedades from '@/compartido/componentes/ListaPropiedades.vue'
-import MensajeEnPagina from '@/compartido/componentes/MensajeEnPagina.vue'
-import { iconos } from '@/compartido/iconos.js'
-import RequisitosDeContrasena from '../componentes/RequisitosDeContrasena.vue'
-import { useCambioDeContrasena } from '../composables/useCambioDeContrasena.js'
-import { LONGITUD_MAXIMA } from '../contrasena.js'
+import { fechaHora } from '@/compartido/presentacion/fechas.js'
+import FormularioDeContrasena from '../componentes/FormularioDeContrasena.vue'
+import ListaDeSesiones from '../componentes/ListaDeSesiones.vue'
 import { useSesion } from '../tienda/sesion.js'
 
 const { perfil } = storeToRefs(useSesion())
-const { actual, nueva, repetida, pendiente, exito, errores, general, coincide, listo, guardar, limpiarCampo } =
-  useCambioDeContrasena()
-const verNueva = ref(false)
+
+// El inicio anterior al de esta sesión: si no lo reconoce, puede cerrar sesiones y cambiar la contraseña.
+const inicioAnterior = computed(() => {
+  const anterior = perfil.value?.inicioAnterior
+  return anterior
+    ? `${fechaHora(anterior.en)}${anterior.ip ? ` · IP ${anterior.ip}` : ''}`
+    : 'Este es su primer ingreso'
+})
 </script>
 
 <template>
@@ -21,7 +23,9 @@ const verNueva = ref(false)
     <header class="cabecera">
       <div>
         <h1 v-revelar class="titulo-pagina">Mi cuenta</h1>
-        <p class="subtitulo entra" style="--i: 2">Sus datos los administra Psicol; aquí puede cambiar su contraseña.</p>
+        <p class="subtitulo entra" style="--i: 2">
+          Sus datos los administra Psicol; aquí puede revisar sus sesiones y cambiar su contraseña.
+        </p>
       </div>
     </header>
 
@@ -38,8 +42,17 @@ const verNueva = ref(false)
               { etiqueta: 'Correo', valor: perfil.correo },
               { etiqueta: 'Rol', valor: perfil.rol.nombre },
               { etiqueta: 'Empresa', valor: perfil.cliente?.nombre ?? 'Personal de Psicol', tenue: !perfil.cliente },
+              { etiqueta: 'Ingreso anterior', valor: inicioAnterior, tenue: !perfil.inicioAnterior },
             ]"
           />
+        </section>
+
+        <section class="seccion">
+          <div>
+            <h2 class="seccion__titulo">Sesiones abiertas</h2>
+            <p class="seccion__ayuda">Si no reconoce alguna, ciérrela y cambie su contraseña.</p>
+          </div>
+          <ListaDeSesiones />
         </section>
 
         <section class="seccion seccion--ultima">
@@ -47,60 +60,9 @@ const verNueva = ref(false)
             <h2 class="seccion__titulo">Contraseña</h2>
             <p class="seccion__ayuda">Al cambiarla se cerrarán sus demás sesiones abiertas.</p>
           </div>
-          <form novalidate @submit.prevent="guardar">
-            <MensajeEnPagina v-if="general" tipo="error" titulo="No se pudo cambiar la contraseña" class="mb-4">
-              {{ general }}
-            </MensajeEnPagina>
-            <v-text-field
-              v-model="actual"
-              label="Contraseña actual *"
-              type="password"
-              autocomplete="current-password"
-              :error-messages="errores.actual"
-              @update:model-value="limpiarCampo('actual')"
-            />
-            <v-text-field
-              v-model="nueva"
-              label="Nueva contraseña *"
-              :type="verNueva ? 'text' : 'password'"
-              autocomplete="new-password"
-              :counter="LONGITUD_MAXIMA"
-              :maxlength="LONGITUD_MAXIMA"
-              :error-messages="errores.nueva"
-              aria-describedby="requisito-contrasena"
-              @update:model-value="limpiarCampo('nueva')"
-            >
-              <template #append-inner>
-                <v-btn
-                  :icon="verNueva ? iconos.ocultar : iconos.ver"
-                  variant="text"
-                  size="small"
-                  :aria-label="verNueva ? 'Ocultar la contraseña' : 'Mostrar la contraseña'"
-                  :aria-pressed="verNueva"
-                  @click="verNueva = !verNueva"
-                />
-              </template>
-            </v-text-field>
-            <RequisitosDeContrasena id="requisito-contrasena" :contrasena="nueva" class="mi-cuenta__requisitos" />
-            <v-text-field
-              v-model="repetida"
-              label="Repita la nueva contraseña *"
-              type="password"
-              autocomplete="new-password"
-              :error-messages="coincide ? [] : ['No coincide con la nueva contraseña.']"
-            />
-            <div class="formulario-por-secciones__pie">
-              <BotonEnvio texto="Cambiar contraseña" :pendiente="pendiente" :exito="exito" :deshabilitado="!listo" />
-            </div>
-          </form>
+          <FormularioDeContrasena />
         </section>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.mi-cuenta__requisitos {
-  margin: -6px 0 14px;
-}
-</style>
