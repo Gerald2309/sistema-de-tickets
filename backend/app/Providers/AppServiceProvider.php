@@ -2,12 +2,21 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\DocumentacionController;
+use App\Http\Errores\DocumentarProblemas;
 use App\Incidentes\Acciones\AvisarCambios;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route as RutaDeLaApi;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -18,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Una instancia por petición: junta los avisos de tiempo real de esa petición (F-12).
         $this->app->scoped(AvisarCambios::class);
+
+        // Sus rutas van dentro de /api/v1 (las registra documentarLaApi): así llegan por la misma entrada que la API.
+        Scramble::ignoreDefaultRoutes();
     }
 
     public function boot(): void
@@ -47,6 +59,27 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->definirLimitesDePeticiones();
+        $this->documentarLaApi();
+    }
+
+    private function documentarLaApi(): void
+    {
+        // Sin sesión, como cualquiera que abra el enlace: Gate solo consulta a invitados si el usuario admite null.
+        Gate::define('viewApiDocs', fn (?Authenticatable $persona = null) => (bool) config('scramble.publica'));
+
+        Scramble::configure()->withDocumentTransformers([
+            fn (OpenApi $openApi) => $openApi->secure(SecurityScheme::http('bearer')),
+            DocumentarProblemas::class,
+        ]);
+
+        // La documentación no se lista a sí misma.
+        Scramble::configure()->routes(fn (RutaDeLaApi $ruta) => str_starts_with($ruta->uri, 'api/v1/')
+            && ! in_array($ruta->uri, ['api/v1/documentacion', 'api/v1/openapi.json'], true));
+
+        Route::prefix('api/v1')->middleware(config('scramble.middleware'))->group(function (): void {
+            Route::get('documentacion', [DocumentacionController::class, 'visor']);
+            Route::get('openapi.json', [DocumentacionController::class, 'contrato']);
+        });
     }
 
     private function definirLimitesDePeticiones(): void

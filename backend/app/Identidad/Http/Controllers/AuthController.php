@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\Date;
 
 class AuthController extends Controller
 {
+    /**
+     * Iniciar sesión
+     *
+     * Entrega el token con que se autentican las demás peticiones.
+     *
+     * @unauthenticated
+     */
     public function login(LoginRequest $request, IniciarSesion $iniciarSesion): TokenResource
     {
         $token = $iniciarSesion->ejecutar(

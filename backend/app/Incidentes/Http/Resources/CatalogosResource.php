@@ -9,7 +9,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 // Valores válidos de estado, prioridad y categoría, y los pasos permitidos desde cada estado,
-// para que el frontend no los repita.
+// para que el frontend no los repita. No envuelve un modelo: se crea sin datos, y la anotación se lo dice a la
+// documentación (Scramble), que si no busca un modelo con su nombre.
+/**
+ * @mixin \stdClass
+ *
+ * @phpstan-ignore mixin.nonObject
+ */
 class CatalogosResource extends JsonResource
 {
     /**

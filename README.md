@@ -19,6 +19,7 @@ de la aplicación (`backend/storage/app.key`), ejecuta las migraciones y, si la 
   primero por IPv6 y cada conexión espera unos 200 ms antes de usar IPv4.
 - API: `http://localhost:8000/api/v1` (o directa en `http://localhost:8080/api/v1`)
 - Comprobación de salud: `GET http://localhost:8080/up` responde 200
+- Documentación de la API (OpenAPI): **http://localhost:8000/api/v1/documentacion** y el contrato en `/api/v1/openapi.json`
 
 | Servicio | Qué es |
 |---|---|
@@ -49,6 +50,7 @@ uso, copie el archivo a `.env` y cambie las contraseñas y los secretos.
 | `SESIONES_MAXIMAS` | Sesiones abiertas por persona; al pasarse se cierran las más antiguas | `5` |
 | `LIMITE_API_POR_MINUTO` | Peticiones por minuto a la API | `300` |
 | `LIMITE_LOGIN_POR_EMAIL` / `LIMITE_LOGIN_POR_IP` | Intentos de inicio de sesión por minuto | `5` / `30` |
+| `DOCUMENTACION_API_PUBLICA` | Publicar la documentación de la API (OpenAPI) | `true` |
 | `CONTRASENAS_COMPROBAR_FILTRADAS` | Rechazar contraseñas nuevas que aparezcan en filtraciones | `true` |
 | `ACUERDOS_ZONA_HORARIA` | Zona horaria en que se cuentan los plazos en horario laboral | `America/Bogota` |
 | `ALERTA_VENTANA_MINUTOS` / `ALERTA_FALLIDOS_POR_CUENTA` / `ALERTA_FALLIDOS_POR_IP` | Inicios fallidos que disparan una alerta de seguridad en la auditoría | `15` / `10` / `20` |

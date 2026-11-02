@@ -3,6 +3,7 @@
 namespace Tests\Feature\Seguridad;
 
 use App\Http\Middleware\CabecerasDeApi;
+use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
 use Illuminate\Routing\Route as RutaDeLaApi;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -13,6 +14,9 @@ use Tests\TestCase;
 class ContratoDeApiTest extends TestCase
 {
     private const SESION_O_CSRF = ['EnsureFrontendRequestsAreStateful', 'PreventRequestForgery', 'StartSession'];
+
+    // Públicas a propósito, como el login: el contrato de la API no es un secreto. Llevan límite y se pueden cerrar.
+    private const DOCUMENTACION = ['api/v1/documentacion', 'api/v1/openapi.json'];
 
     public function test_toda_ruta_de_la_api_salvo_el_login_exige_token_limite_y_permiso_declarado(): void
     {
@@ -26,6 +30,13 @@ class ContratoDeApiTest extends TestCase
             if ($ruta->uri() === 'api/v1/auth/login') {
                 $this->assertContains('throttle:login', $middleware);
                 $this->assertNotContains('auth:sanctum', $middleware);
+
+                continue;
+            }
+
+            if (in_array($ruta->uri(), self::DOCUMENTACION, true)) {
+                $this->assertContains('throttle:api', $middleware);
+                $this->assertContains(RestrictedDocsAccess::class, $middleware);
 
                 continue;
             }
