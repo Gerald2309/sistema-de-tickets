@@ -151,9 +151,10 @@ export async function marcarConversacionLeida(id) {
  * `POST incidentes/{id}/mensajes`: en formulario multiparte, porque lleva imágenes.
  * @param {number} id
  * @param {{ cuerpo: string, interno: boolean, imagenes: File[] }} mensaje
+ * @param {string} claveDeIdempotencia UUID, uno por borrador: un reintento del mismo borrador no lo duplica
  * @returns {Promise<import('../tipos.js').Mensaje>}
  */
-export async function escribirMensaje(id, { cuerpo, interno, imagenes }) {
+export async function escribirMensaje(id, { cuerpo, interno, imagenes }, claveDeIdempotencia) {
   const formulario = new FormData()
   if (cuerpo.trim()) {
     formulario.append('cuerpo', cuerpo)
@@ -162,7 +163,10 @@ export async function escribirMensaje(id, { cuerpo, interno, imagenes }) {
     formulario.append('interno', '1')
   }
   imagenes.forEach((imagen) => formulario.append('imagenes[]', imagen))
-  const { data } = await http.post(`incidentes/${id}/mensajes`, formulario, { timeout: 120_000 })
+  const { data } = await http.post(`incidentes/${id}/mensajes`, formulario, {
+    timeout: 120_000,
+    headers: { 'Idempotency-Key': claveDeIdempotencia },
+  })
   return aMensaje(data.data)
 }
 

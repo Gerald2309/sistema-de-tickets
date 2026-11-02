@@ -70,6 +70,10 @@ export function useConversacion(incidenteActual) {
     rechazos.value = []
   }
 
+  // Una clave por borrador: reintentar el mismo envío no lo duplica; si el borrador cambia, es otro mensaje.
+  let claveDelBorrador = crypto.randomUUID()
+  watch(borrador, () => (claveDelBorrador = crypto.randomUUID()), { deep: true })
+
   const listo = computed(
     () =>
       (borrador.cuerpo.trim() !== '' || borrador.imagenes.length > 0) &&
@@ -78,11 +82,15 @@ export function useConversacion(incidenteActual) {
 
   const envio = useMutation({
     mutationFn: () =>
-      escribirMensaje(id.value, {
-        cuerpo: borrador.cuerpo,
-        interno: borrador.interno && permisos.value.notaInterna,
-        imagenes: [...borrador.imagenes],
-      }),
+      escribirMensaje(
+        id.value,
+        {
+          cuerpo: borrador.cuerpo,
+          interno: borrador.interno && permisos.value.notaInterna,
+          imagenes: [...borrador.imagenes],
+        },
+        claveDelBorrador,
+      ),
     onSuccess: async () => {
       Object.assign(borrador, { cuerpo: '', interno: false, imagenes: [] })
       rechazos.value = []

@@ -2,14 +2,18 @@
 
 namespace App\Incidentes\Http\Requests;
 
+use App\Http\Requests\ConClaveDeIdempotencia;
 use App\Incidentes\Models\Incidente;
 use App\Incidentes\Policies\IncidentePolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\Validator;
 
 class EscribirMensajeRequest extends FormRequest
 {
+    use ConClaveDeIdempotencia;
+
     public const MAXIMO_CUERPO = 5000;
 
     public const MAXIMO_IMAGENES = 4;
@@ -41,6 +45,14 @@ class EscribirMensajeRequest extends FormRequest
             'imagenes' => ['sometimes', 'array', 'max:'.self::MAXIMO_IMAGENES],
             'imagenes.*' => [File::image()->types(self::FORMATOS)->max(self::MAXIMO_KB_POR_IMAGEN)],
         ];
+    }
+
+    /**
+     * @return list<callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [$this->validarClaveDeIdempotencia()];
     }
 
     public function cuerpo(): ?string

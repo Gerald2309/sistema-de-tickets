@@ -22,8 +22,14 @@ class MensajeController extends Controller
 
     public function store(EscribirMensajeRequest $request, Incidente $incidente, EscribirMensaje $escribirMensaje): JsonResponse
     {
-        $mensaje = $escribirMensaje->ejecutar($request->user(), $incidente, $request->cuerpo(), $request->interno(), $request->imagenes());
+        $mensaje = $escribirMensaje->ejecutar(
+            $request->user(), $incidente, $request->cuerpo(), $request->interno(), $request->imagenes(), $request->claveDeIdempotencia(),
+        );
+        $respuesta = (new MensajeResource($mensaje))->response();
 
-        return (new MensajeResource($mensaje))->response()->setStatusCode(Response::HTTP_CREATED);
+        // Un reintento con la misma clave recibe el mensaje que ya existía, marcado como repetición.
+        return $mensaje->wasRecentlyCreated
+            ? $respuesta->setStatusCode(Response::HTTP_CREATED)
+            : $respuesta->header('Idempotent-Replayed', 'true');
     }
 }

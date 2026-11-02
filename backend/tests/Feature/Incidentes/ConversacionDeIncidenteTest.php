@@ -54,7 +54,7 @@ class ConversacionDeIncidenteTest extends TestCase
         return new UploadedFile($ruta, $nombre, test: true);
     }
 
-    private static function png(string $nombre = 'captura.png', int $bytesDeRelleno = 0): UploadedFile
+    public static function png(string $nombre = 'captura.png', int $bytesDeRelleno = 0): UploadedFile
     {
         return self::archivo($nombre, base64_decode(self::PNG).str_repeat("\0", $bytesDeRelleno));
     }
