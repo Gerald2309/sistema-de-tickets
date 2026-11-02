@@ -10,6 +10,12 @@ map $http_upgrade $conexion {
 
 server {
     listen 80;
+
+    # Los servicios se buscan por nombre en el DNS de Docker cada vez, no solo al arrancar: si la API o Reverb se
+    # recrean (cambian de IP), la entrada los sigue encontrando en vez de responder 502.
+    resolver 127.0.0.11 valid=10s ipv6=off;
+    set $api http://api;
+    set $reverb http://reverb:8080;
     server_tokens off;
     access_log /var/log/nginx/access.log con_peticion;
     root /usr/share/nginx/html;
@@ -42,7 +48,7 @@ server {
     location /api/ {
         # Mensajes con imágenes: el mismo tope que la API.
         client_max_body_size 26m;
-        proxy_pass http://api;
+        proxy_pass $api;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -56,7 +62,7 @@ server {
     # Conexión WebSocket del navegador con Reverb. Solo /app: la API de publicación de Reverb (/apps) la usa
     # Laravel por la red interna y no se expone.
     location /app/ {
-        proxy_pass http://reverb:8080;
+        proxy_pass $reverb;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $conexion;

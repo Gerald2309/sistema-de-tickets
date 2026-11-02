@@ -18,10 +18,9 @@ El enunciado invita a proponer mejoras sobre el stack mínimo sin alterar lo sol
 
 ## 3. Colas para los avisos en tiempo real y las tareas pesadas
 
-- **Hoy:** el aviso por WebSocket se emite dentro de la petición (`ShouldBroadcastNow`, `QUEUE_CONNECTION=sync`). Si Reverb no responde, la operación igual se guarda y el frontend vuelve a su refresco periódico.
-- **Propuesta:** Redis como cola y Laravel Horizon para vigilarla.
-- **Por qué:** la petición no espera al WebSocket, y la cola permite sumar tareas en segundo plano, como avisos por correo o exportaciones muy grandes que se descargan al terminar.
-- **Costo:** bajo: un contenedor de Redis y un proceso `queue:work`.
+- **Hoy:** Redis como cola, con un worker (`cola`) que envía los avisos de tiempo real: la petición no espera a Reverb, y si Reverb no responde el aviso se reintenta. Un programador (`programador`) ejecuta las tareas periódicas.
+- **Propuesta:** Laravel Horizon para vigilar la cola, y mover a ella las exportaciones muy grandes o los avisos por correo cuando existan.
+- **Costo:** bajo: Horizon reemplaza al worker actual.
 
 ## 4. Caché del panel y conteos
 

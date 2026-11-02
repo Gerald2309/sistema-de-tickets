@@ -8,10 +8,12 @@ use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\TipoDeCambio;
 use App\Incidentes\Eventos\IncidentesCambiados;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
+use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 // Avisos de tiempo real (F-12): qué incidentes cambiaron, a quién, y que un fallo del WebSocket no tumbe la API.
@@ -102,6 +104,17 @@ class TiempoRealTest extends TestCase
         $this->conToken($this->token)->patchJson("/api/v1/incidentes/{$incidente->id}", ['estado' => 'cerrado'])->assertUnprocessable();
 
         Event::assertNotDispatched(IncidentesCambiados::class);
+    }
+
+    public function test_el_aviso_va_por_la_cola_y_la_peticion_no_espera_al_servidor_de_websockets(): void
+    {
+        Queue::fake();
+
+        $this->conToken($this->token)->postJson('/api/v1/incidentes', [
+            'titulo' => 'Sin internet', 'descripcion' => 'No hay conexión.',
+        ])->assertCreated();
+
+        Queue::assertPushed(BroadcastEvent::class, fn (BroadcastEvent $trabajo) => $trabajo->event instanceof IncidentesCambiados);
     }
 
     public function test_si_el_servidor_de_websockets_falla_el_cambio_se_guarda_y_el_error_se_registra(): void

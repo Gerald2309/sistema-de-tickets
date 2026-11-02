@@ -40,6 +40,20 @@ services:
       timeout: 3s
       retries: 30
 
+  # Cola de trabajos y caché. Guarda en disco (AOF): un trabajo encolado no se pierde si el contenedor se reinicia.
+  redis:
+    image: redis:7.4-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    container_name: incidentes-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
   app:
     build: ./backend/docker/php
     container_name: incidentes-app
@@ -52,6 +66,8 @@ services:
       - ./backend/docker/php/subidas.ini:/usr/local/etc/php/conf.d/subidas.ini:ro
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "test", "-f", "/tmp/lista"]
@@ -66,6 +82,35 @@ services:
     <<: *configuracion
     working_dir: /var/www/html
     command: ["sh", "docker/php/iniciar.sh", "php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    volumes:
+      - ./backend:/var/www/html
+      - vendor:/var/www/html/vendor
+    depends_on:
+      app:
+        condition: service_healthy
+
+  # Trabajos en segundo plano: los avisos de tiempo real, para que ninguna petición espere a Reverb. Se reinicia
+  # cada hora (--max-time) para soltar memoria; reintenta tres veces y lo que falle queda en failed_jobs.
+  cola:
+    build: ./backend/docker/php
+    container_name: incidentes-cola
+    <<: *configuracion
+    working_dir: /var/www/html
+    command: ["sh", "docker/php/iniciar.sh", "php", "artisan", "queue:work", "--tries=3", "--backoff=5", "--max-time=3600"]
+    volumes:
+      - ./backend:/var/www/html
+      - vendor:/var/www/html/vendor
+    depends_on:
+      app:
+        condition: service_healthy
+
+  # Tareas programadas (routes/console.php), como limpiar los tokens vencidos.
+  programador:
+    build: ./backend/docker/php
+    container_name: incidentes-programador
+    <<: *configuracion
+    working_dir: /var/www/html
+    command: ["sh", "docker/php/iniciar.sh", "php", "artisan", "schedule:work"]
     volumes:
       - ./backend:/var/www/html
       - vendor:/var/www/html/vendor
@@ -101,4 +146,5 @@ services:
 
 volumes:
   db_data:
+  redis_data:
   vendor:

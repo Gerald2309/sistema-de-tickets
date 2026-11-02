@@ -69,7 +69,8 @@ return [
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
-            'block_for' => null,
+            // El worker espera hasta 5 s por un trabajo en vez de consultar a Redis sin pausa: llega en cuanto se encola.
+            'block_for' => 5,
             'after_commit' => false,
         ],
 

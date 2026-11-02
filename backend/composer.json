@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "openspout/openspout": "^5.12",
+        "predis/predis": "^3.7",
         "sentry/sentry-laravel": "^4.29"
     },
     "require-dev": {

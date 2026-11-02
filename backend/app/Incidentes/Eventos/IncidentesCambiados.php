@@ -4,12 +4,12 @@ namespace App\Incidentes\Eventos;
 
 use App\Incidentes\Dominio\TipoDeCambio;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 // Aviso de tiempo real (F-12): solo dice qué incidentes cambiaron, nunca sus datos. Quien lo recibe los
-// vuelve a pedir a la API con su propio token, y la API decide qué puede ver. Se envía en el momento
-// (sin cola): el proyecto no tiene un trabajador de colas.
-final class IncidentesCambiados implements ShouldBroadcastNow
+// vuelve a pedir a la API con su propio token, y la API decide qué puede ver. Va por la cola: la petición
+// que cambió el incidente responde sin esperar a Reverb, y si Reverb no está, el aviso se reintenta.
+final class IncidentesCambiados implements ShouldBroadcast
 {
     /**
      * @param  list<int>  $ids

@@ -27,6 +27,9 @@ de la aplicación (`backend/storage/app.key`), ejecuta las migraciones y, si la 
 | `api` | Nginx delante de Laravel. |
 | `app` | PHP 8.5-FPM con Laravel. |
 | `reverb` | Laravel Reverb, para el tiempo real por WebSocket. |
+| `redis` | Cola de trabajos y caché. |
+| `cola` | Worker de la cola: envía los avisos de tiempo real en segundo plano. |
+| `programador` | Tareas programadas, como limpiar los tokens vencidos. |
 | `db` | MySQL 8.4, con las bases de desarrollo y de pruebas. |
 
 Para detenerlo, `docker compose down`. Para borrar también los datos, `docker compose down -v`.
