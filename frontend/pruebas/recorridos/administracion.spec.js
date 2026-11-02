@@ -58,7 +58,7 @@ test('con la contraseña inicial, la persona primero elige la suya', async ({ ab
   tokenPersona = await iniciarSesionPorApi({ correo: persona.correo, clave: persona.clave })
   const page = await abrirComo(tokenPersona, '/incidentes')
 
-  await expect(page).toHaveURL(/\/cambiar-contrasena/)
+  await expect(page).toHaveURL((url) => url.pathname === '/cambiar-contrasena')
   // Mientras no la cambie, la API tampoco atiende lo demás.
   expect((await api('incidentes', { token: tokenPersona })).estado).toBe(403)
 
@@ -67,7 +67,9 @@ test('con la contraseña inicial, la persona primero elige la suya', async ({ ab
   await page.getByLabel('Repita la nueva contraseña *').fill(persona.propia)
   await page.getByRole('button', { name: 'Cambiar contraseña' }).click()
 
-  await expect(page).toHaveURL(/\/incidentes$/)
+  // La pantalla de cambio lleva el destino en la dirección: se compara solo la ruta.
+  await expect(page).toHaveURL((url) => url.pathname === '/incidentes')
+  await expect(page.getByRole('heading', { name: 'Incidentes', level: 1 })).toBeVisible()
 })
 
 test('un solicitante no ve la administración ni la alcanza por URL', async ({ abrirComo }) => {
