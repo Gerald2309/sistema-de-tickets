@@ -54,6 +54,9 @@ uso, copie el archivo a `.env` y cambie las contraseñas y los secretos.
 | `CONTRASENAS_COMPROBAR_FILTRADAS` | Rechazar contraseñas nuevas que aparezcan en filtraciones | `true` |
 | `ACUERDOS_ZONA_HORARIA` | Zona horaria en que se cuentan los plazos en horario laboral | `America/Bogota` |
 | `ALERTA_VENTANA_MINUTOS` / `ALERTA_FALLIDOS_POR_CUENTA` / `ALERTA_FALLIDOS_POR_IP` | Inicios fallidos que disparan una alerta de seguridad en la auditoría | `15` / `10` / `20` |
+| `LOG_STACK` | Destino de los logs: `json` (una línea JSON por evento, en `docker compose logs app`) o `single` (archivo) | `json` |
+| `OBSERVABILIDAD_PETICION_LENTA_MS` / `OBSERVABILIDAD_CONSULTA_LENTA_MS` | Desde cuántos milisegundos una petición o una consulta se registra como lenta | `1000` / `300` |
+| `SENTRY_LARAVEL_DSN` | Envía los errores inesperados a Sentry. Vacío: desactivado | vacío |
 | `LOG_LEVEL` | Nivel del log de Laravel | `info` |
 | `AVISO_VENTANA_HORAS` / `AVISO_MINIMO_INCIDENTES` / `AVISO_MINIMO_PERSONAS` | Cuándo avisar de un posible incidente masivo | `2` / `5` / `3` |
 | `EXPORTACION_MAXIMA` | Máximo de filas por exportación a Excel o CSV | `100000` |

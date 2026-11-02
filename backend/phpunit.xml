@@ -18,6 +18,8 @@
         </include>
     </source>
     <php>
+        <!-- Generar la documentación de la API (Scramble) analiza todo el código: no cabe en los 128 MB de PHP. -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_DEBUG" value="false" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file" force="true"/>
@@ -28,6 +30,7 @@
         <env name="CACHE_STORE" value="array" force="true"/>
         <env name="DB_CONNECTION" value="mysql" force="true"/>
         <env name="DB_DATABASE" value="incidentes_test" force="true"/>
+        <env name="LOG_STACK" value="single" force="true"/>
         <env name="CONTRASENAS_COMPROBAR_FILTRADAS" value="false" force="true"/>
         <env name="DB_URL" value="" force="true"/>
         <env name="MAIL_MAILER" value="array" force="true"/>

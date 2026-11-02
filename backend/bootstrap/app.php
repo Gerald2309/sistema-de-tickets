@@ -4,10 +4,12 @@ use App\Http\Errores\ProblemaHttp;
 use App\Http\Middleware\CabecerasDeApi;
 use App\Http\Middleware\ExigirAutorizacionDeclarada;
 use App\Http\Middleware\IdentificarPeticion;
+use App\Http\Middleware\RegistrarPeticion;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,9 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => null);
         // Primeros de todos: también los rechazos por límite de peticiones o por credencial llevan su identificador
         // y las cabeceras de seguridad (las rutas inexistentes las reciben de ProblemaHttp).
-        $middleware->prependToGroup('api', [IdentificarPeticion::class, CabecerasDeApi::class]);
+        $middleware->prependToGroup('api', [IdentificarPeticion::class, RegistrarPeticion::class, CabecerasDeApi::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Los errores inesperados llegan a Sentry, si SENTRY_LARAVEL_DSN está configurado; sin él, no se envía nada.
+        Integration::handles($exceptions);
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

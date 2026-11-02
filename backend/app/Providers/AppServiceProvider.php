@@ -11,10 +11,13 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route as RutaDeLaApi;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -60,6 +63,16 @@ class AppServiceProvider extends ServiceProvider
 
         $this->definirLimitesDePeticiones();
         $this->documentarLaApi();
+        $this->vigilarConsultasLentas();
+    }
+
+    private function vigilarConsultasLentas(): void
+    {
+        DB::listen(function (QueryExecuted $consulta): void {
+            if ($consulta->time >= (int) config('observabilidad.consulta_lenta_ms')) {
+                Log::warning('Consulta lenta', ['sql' => $consulta->sql, 'ms' => round((float) $consulta->time, 1)]);
+            }
+        });
     }
 
     private function documentarLaApi(): void

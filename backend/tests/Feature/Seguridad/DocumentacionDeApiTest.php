@@ -2,21 +2,26 @@
 
 namespace Tests\Feature\Seguridad;
 
+use App\Http\Controllers\DocumentacionController;
 use App\Http\Errores\DocumentarProblemas;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DocumentacionDeApiTest extends TestCase
 {
-    /** @var array<string, mixed>|null generarlo tarda: una vez para toda la clase */
-    private static ?array $contrato = null;
+    /** Generarlo tarda y consume memoria: una vez para toda la clase. */
+    private static ?string $archivo = null;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // El archivo que exporta app:preparar no se toca: se genera en un disco aparte.
+        // El archivo que exporta app:preparar no se toca: las pruebas usan un disco aparte, con el documento ya
+        // generado para que cada prueba no lo vuelva a construir.
         Storage::fake('local');
+        if (self::$archivo !== null) {
+            Storage::disk('local')->put(DocumentacionController::ARCHIVO, self::$archivo);
+        }
     }
 
     /**
@@ -24,7 +29,10 @@ class DocumentacionDeApiTest extends TestCase
      */
     private function contrato(): array
     {
-        return self::$contrato ??= $this->getJson('/api/v1/openapi.json')->assertOk()->json();
+        $contrato = $this->getJson('/api/v1/openapi.json')->assertOk()->json();
+        self::$archivo ??= Storage::disk('local')->get(DocumentacionController::ARCHIVO);
+
+        return $contrato;
     }
 
     public function test_publica_el_contrato_de_la_api_con_autenticacion_por_token(): void

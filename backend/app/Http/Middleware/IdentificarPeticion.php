@@ -6,7 +6,10 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Str;
+use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Response;
+
+use function Sentry\configureScope;
 
 // Identificador de correlación: cada petición lleva uno, el que envía el proxy o uno nuevo. Acompaña a todos
 // sus registros de log (Context los agrega solo) y vuelve en la respuesta, para rastrear un error de punta a
@@ -24,6 +27,7 @@ class IdentificarPeticion
         $identificador = preg_match(self::FORMATO, $recibido) === 1 ? $recibido : (string) Str::uuid();
 
         Context::add('peticion', $identificador);
+        configureScope(fn (Scope $alcance) => $alcance->setTag('peticion', $identificador));
 
         $respuesta = $next($request);
         $respuesta->headers->set(self::CABECERA, $identificador);
