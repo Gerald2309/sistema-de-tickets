@@ -37,7 +37,7 @@ class IndicadoresResource extends JsonResource
                     'a_tiempo' => $datos['a_tiempo'],
                     'cantidad' => $datos['cantidad'],
                 ], $this->resource->porPrioridad),
-                'hasta_atender_segundos' => $this->resource->medianaHastaAtender,
+                'primera_respuesta_segundos' => $this->resource->medianaPrimeraRespuesta,
                 'respuesta_a_tiempo' => $this->resource->respuestaATiempo,
                 'devueltos' => $this->resource->devueltos,
             ],

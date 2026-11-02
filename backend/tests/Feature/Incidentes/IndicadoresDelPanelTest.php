@@ -119,12 +119,13 @@ class IndicadoresDelPanelTest extends TestCase
             ->assertJsonPath('data.resolucion.por_prioridad.baja', ['mediana_segundos' => null, 'plazo_segundos' => null, 'a_tiempo' => null, 'cantidad' => 0]);
     }
 
-    public function test_mide_cuanto_tarda_en_empezar_a_atenderse_y_que_parte_de_las_soluciones_se_devuelve(): void
+    public function test_mide_cuanto_tarda_la_primera_respuesta_y_que_parte_de_las_soluciones_se_devuelve(): void
     {
-        $rapido = $this->incidenteDe($this->creador, ['estado' => Estado::EnProgreso, 'created_at' => now()->subHours(10)]);
-        $this->cambioDeEstado($rapido, Estado::Abierto, Estado::EnProgreso, now()->subHours(9));
-        $lento = $this->incidenteDe($this->creador, ['estado' => Estado::EnProgreso, 'created_at' => now()->subHours(10)]);
-        $this->cambioDeEstado($lento, Estado::Abierto, Estado::EnProgreso, now()->subHours(7));
+        $this->incidenteDe($this->creador, ['estado' => Estado::EnProgreso, 'created_at' => now()->subHours(10), 'primera_respuesta_en' => now()->subHours(9)]);
+        $this->incidenteDe($this->creador, ['estado' => Estado::EnProgreso, 'created_at' => now()->subHours(10), 'primera_respuesta_en' => now()->subHours(7)]);
+        // Sin respuesta todavía, o de hace más de un mes: no cuenta.
+        $this->incidenteDe($this->creador, ['created_at' => now()->subHours(3)]);
+        $this->incidenteDe($this->creador, ['created_at' => now()->subDays(40), 'primera_respuesta_en' => now()->subDays(30)]);
 
         $devuelto = $this->resuelto(tardoHoras: 5);
         $this->cambioDeEstado($devuelto, Estado::Resuelto, Estado::EnProgreso, now()->subHours(20));
@@ -135,7 +136,7 @@ class IndicadoresDelPanelTest extends TestCase
         $this->cambioDeEstado($devuelto, Estado::Resuelto, Estado::EnProgreso, now()->subDays(40));
 
         $this->indicadores()->assertOk()
-            ->assertJsonPath('data.resolucion.hasta_atender_segundos', 2 * 3600)
+            ->assertJsonPath('data.resolucion.primera_respuesta_segundos', 2 * 3600)
             ->assertJsonPath('data.resolucion.devueltos', 0.25);
     }
 
@@ -157,7 +158,7 @@ class IndicadoresDelPanelTest extends TestCase
         $this->indicadores()->assertOk()
             ->assertJsonPath('data.resolucion.mediana_segundos', null)
             ->assertJsonPath('data.resolucion.a_tiempo', null)
-            ->assertJsonPath('data.resolucion.hasta_atender_segundos', null)
+            ->assertJsonPath('data.resolucion.primera_respuesta_segundos', null)
             ->assertJsonPath('data.resolucion.devueltos', null);
     }
 

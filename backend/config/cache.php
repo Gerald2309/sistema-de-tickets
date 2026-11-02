@@ -1,5 +1,7 @@
 <?php
 
+use App\Incidentes\Dominio\IndicadoresDelPanel;
+use App\Incidentes\Dominio\ResumenDeIncidentes;
 use Illuminate\Support\Str;
 
 return [
@@ -131,6 +133,10 @@ return [
     |
     */
 
-    'serializable_classes' => false,
+    // Solo estas clases se reconstruyen desde la caché (protección contra objetos inyectados): los cálculos del panel.
+    'serializable_classes' => [
+        ResumenDeIncidentes::class,
+        IndicadoresDelPanel::class,
+    ],
 
 ];

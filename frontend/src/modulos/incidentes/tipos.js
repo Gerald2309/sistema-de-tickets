@@ -53,7 +53,7 @@
  * @property {number | null} plazo mediana de lo acordado para esos mismos incidentes, según el acuerdo de cada empresa
  * @property {number | null} aTiempo de 0 a 1
  * @property {Record<string, { mediana: number | null, plazo: number | null, aTiempo: number | null, cantidad: number }>} porPrioridad
- * @property {number | null} hastaAtender desde que se reporta hasta que alguien empieza a atenderlo
+ * @property {number | null} primeraRespuesta mediana desde que se reporta hasta la primera respuesta
  * @property {number | null} respuestaATiempo parte de las primeras respuestas dentro de su límite, de 0 a 1
  * @property {number | null} devueltos parte de las soluciones que el solicitante devolvió, de 0 a 1
  */

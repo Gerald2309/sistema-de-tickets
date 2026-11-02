@@ -24,9 +24,8 @@ El enunciado invita a proponer mejoras sobre el stack mínimo sin alterar lo sol
 
 ## 4. Caché del panel y conteos
 
-- **Hoy:** el panel calcula sus totales en cada visita. La caché de Laravel usa la base de datos.
-- **Propuesta:** Redis como caché, con los totales del panel guardados unos segundos e invalidados con el mismo evento que ya avisa los cambios.
-- **Extra:** un endpoint que devuelva junto el resumen de una empresa en el detalle del incidente, que hoy se arma con tres conteos.
+- **Hoy:** el resumen y los indicadores del panel se guardan en Redis por alcance (todo, lo propio o nada): 1 y 5 minutos, y se renuevan apenas cambia un incidente. Con 200 000 incidentes, los indicadores pasaron de 9–13 s a cerca de 1 s sin caché (consultas ajustadas e índice nuevo) y a 0,1–0,4 s con caché.
+- **Propuesta:** un endpoint que devuelva junto el resumen de una empresa en el detalle del incidente, que hoy se arma con tres conteos.
 - **Costo:** bajo.
 
 ## 5. Búsqueda tolerante a errores de escritura

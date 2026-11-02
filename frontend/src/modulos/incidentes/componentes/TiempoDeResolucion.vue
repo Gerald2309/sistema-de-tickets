@@ -111,8 +111,10 @@ const prioridades = computed(() =>
       </div>
       <footer class="resolucion__pie">
         <span>
-          <b class="num">{{ resolucion.hastaAtender === null ? '—' : duracionAproximada(resolucion.hastaAtender) }}</b>
-          hasta que alguien empieza a atenderlo
+          <b class="num">{{
+            resolucion.primeraRespuesta === null ? '—' : duracionAproximada(resolucion.primeraRespuesta)
+          }}</b>
+          hasta la primera respuesta
         </span>
         <span>
           <b class="num">{{ porcentaje(resolucion.respuestaATiempo) }}</b> de las primeras respuestas dentro del SLA

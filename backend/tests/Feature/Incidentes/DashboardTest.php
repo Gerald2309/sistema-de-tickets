@@ -5,6 +5,7 @@ namespace Tests\Feature\Incidentes;
 use App\Identidad\Dominio\ClavePermiso;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -96,7 +97,9 @@ class DashboardTest extends TestCase
         $token = $this->iniciarSesion($this->usuarioConPermisos(ClavePermiso::VerDashboard, ClavePermiso::VerTodos));
         $this->dashboard($token);
 
+        // Mide el cálculo, no la caché del panel (CacheDelPanelTest): cada conteo empieza sin nada guardado.
         $contar = function () use ($token): int {
+            Cache::flush();
             DB::flushQueryLog();
             DB::enableQueryLog();
             $this->dashboard($token)->assertOk();

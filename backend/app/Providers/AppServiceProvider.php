@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Errores\DocumentarProblemas;
 use App\Incidentes\Acciones\AvisarCambios;
+use App\Incidentes\Consultas\CacheDelPanel;
+use App\Incidentes\Eventos\IncidentesCambiados;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -16,6 +18,7 @@ use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route as RutaDeLaApi;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -64,6 +67,9 @@ class AppServiceProvider extends ServiceProvider
         $this->definirLimitesDePeticiones();
         $this->documentarLaApi();
         $this->vigilarConsultasLentas();
+
+        // Un incidente que cambia deja atrás los cálculos guardados del panel.
+        Event::listen(IncidentesCambiados::class, fn () => app(CacheDelPanel::class)->olvidar());
     }
 
     private function vigilarConsultasLentas(): void

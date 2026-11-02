@@ -8,7 +8,6 @@ use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\IndicadoresDelPanel;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Dominio\Vencimiento;
-use App\Incidentes\Models\HistorialIncidente;
 use App\Incidentes\Models\Incidente;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -39,7 +38,7 @@ class MedirIndicadores
                 medianaDelPlazo: IndicadoresDelPanel::mediana(array_column($resueltos, 'plazo')),
                 aTiempo: IndicadoresDelPanel::proporcion(count(array_filter(array_column($resueltos, 'a_tiempo'))), count($resueltos)),
                 porPrioridad: $this->porPrioridad($resueltos),
-                medianaHastaAtender: $this->medianaHastaAtender($alcance, $desde),
+                medianaPrimeraRespuesta: $this->medianaPrimeraRespuesta($alcance, $desde),
                 respuestaATiempo: $this->respuestaATiempo($alcance, $desde),
                 devueltos: $this->devueltos($alcance, $desde),
             );
@@ -169,20 +168,13 @@ class MedirIndicadores
         return IndicadoresDelPanel::proporcion((int) ($respuestas->a_tiempo ?? 0), (int) ($respuestas->total ?? 0));
     }
 
-    // Desde que se reporta hasta que alguien empieza a atenderlo (su primer paso a «en progreso»).
-    private function medianaHastaAtender(AlcanceIncidentes $alcance, CarbonImmutable $desde): ?int
+    // Desde que se reporta hasta la primera respuesta, la misma que mide el acuerdo de servicio.
+    private function medianaPrimeraRespuesta(AlcanceIncidentes $alcance, CarbonImmutable $desde): ?int
     {
-        $primeraAtencion = HistorialIncidente::query()->toBase()
-            ->selectRaw('incidente_id, min(created_at) as momento')
-            ->where('campo', CampoHistorial::Estado->value)
-            ->where('valor_nuevo', Estado::EnProgreso->value)
-            ->where('valor_anterior', Estado::Abierto->value)
-            ->groupBy('incidente_id');
-
         $segundos = array_values($this->visibles($alcance)->toBase()
-            ->joinSub($primeraAtencion, 'atencion', 'atencion.incidente_id', '=', 'incidentes.id')
-            ->where('incidentes.created_at', '>=', $desde)
-            ->selectRaw('timestampdiff(second, incidentes.created_at, atencion.momento) as segundos')
+            ->where('created_at', '>=', $desde)
+            ->whereNotNull('primera_respuesta_en')
+            ->selectRaw('timestampdiff(second, created_at, primera_respuesta_en) as segundos')
             ->pluck('segundos')
             ->map(fn (mixed $valor) => (int) $valor)
             ->all());
@@ -190,15 +182,17 @@ class MedirIndicadores
         return IndicadoresDelPanel::mediana($segundos);
     }
 
-    // De las soluciones que el solicitante respondió en el periodo, qué parte devolvió por no estar resuelto.
+    // De las soluciones que el solicitante respondió en el periodo, qué parte devolvió por no estar resuelto. Se recorre
+    // primero el historial del periodo (índice por campo y fecha) y después sus incidentes: con IN, MySQL hacía lo
+    // contrario y leía todos los incidentes (1,5 s frente a 0,4 s con 200 000).
     private function devueltos(AlcanceIncidentes $alcance, CarbonImmutable $desde): ?float
     {
-        $respuestas = HistorialIncidente::query()->toBase()
-            ->where('campo', CampoHistorial::Estado->value)
-            ->where('valor_anterior', Estado::Resuelto->value)
-            ->where('created_at', '>=', $desde)
-            ->whereIn('incidente_id', $this->visibles($alcance)->select('id'))
-            ->selectRaw('count(*) as total, count(case when valor_nuevo = ? then 1 end) as devueltos', [Estado::EnProgreso->value])
+        $respuestas = $this->visibles($alcance)->toBase()
+            ->from(DB::raw('historial_incidentes STRAIGHT_JOIN incidentes ON incidentes.id = historial_incidentes.incidente_id'))
+            ->where('historial_incidentes.campo', CampoHistorial::Estado->value)
+            ->where('historial_incidentes.valor_anterior', Estado::Resuelto->value)
+            ->where('historial_incidentes.created_at', '>=', $desde)
+            ->selectRaw('count(*) as total, count(case when historial_incidentes.valor_nuevo = ? then 1 end) as devueltos', [Estado::EnProgreso->value])
             ->first();
 
         return IndicadoresDelPanel::proporcion((int) ($respuestas->devueltos ?? 0), (int) ($respuestas->total ?? 0));

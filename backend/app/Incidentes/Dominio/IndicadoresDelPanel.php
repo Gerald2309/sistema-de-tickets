@@ -27,7 +27,7 @@ final readonly class IndicadoresDelPanel
         public ?int $medianaDelPlazo,
         public ?float $aTiempo,
         public array $porPrioridad,
-        public ?int $medianaHastaAtender,
+        public ?int $medianaPrimeraRespuesta,
         public ?float $respuestaATiempo,
         public ?float $devueltos,
     ) {}

@@ -84,7 +84,7 @@ export function aIndicadoresPanel(dto) {
           },
         ]),
       ),
-      hastaAtender: resolucion.hasta_atender_segundos,
+      primeraRespuesta: resolucion.primera_respuesta_segundos,
       respuestaATiempo: resolucion.respuesta_a_tiempo,
       devueltos: resolucion.devueltos,
     },

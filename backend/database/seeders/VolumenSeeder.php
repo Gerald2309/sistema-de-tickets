@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Identidad\Models\Rol;
 use App\Incidentes\Dominio\Estado;
+use App\Incidentes\Dominio\PlazosDeServicio;
 use Database\Factories\IncidenteFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,7 @@ class VolumenSeeder extends Seeder
         // Cada incidente con la empresa de quien lo reportó (F-10).
         DB::statement('UPDATE incidentes i JOIN users u ON u.id = i.usuario_creador_id SET i.cliente_id = u.cliente_id');
         $this->crearHistorial();
+        $this->completarTiemposDeServicio();
     }
 
     /**
@@ -165,6 +167,29 @@ class VolumenSeeder extends Seeder
             UNION ALL
             SELECT id, usuario_creador_id, 'borrado', NULL, NULL, NULL, deleted_at FROM incidentes WHERE deleted_at IS NOT NULL
             SQL);
+    }
+
+    /**
+     * Lo que el panel mide del servicio sale del historial, igual que en las migraciones que lo agregaron: cuándo
+     * se resolvió, el límite de la primera respuesta (plazos predeterminados) y cuándo empezó a atenderse.
+     */
+    private function completarTiemposDeServicio(): void
+    {
+        $limiteDeRespuesta = 'CASE prioridad'.collect(PlazosDeServicio::PREDETERMINADOS)
+            ->map(fn (array $plazo, string $prioridad) => " WHEN '{$prioridad}' THEN {$plazo['respuesta_minutos']}")
+            ->implode('').' END';
+
+        DB::statement("UPDATE incidentes SET vence_respuesta_en = created_at + INTERVAL ({$limiteDeRespuesta}) MINUTE");
+
+        foreach (['resuelto_en' => [Estado::Resuelto, 'max'], 'primera_respuesta_en' => [Estado::EnProgreso, 'min']] as $columna => [$estado, $momento]) {
+            DB::statement(<<<SQL
+                UPDATE incidentes i
+                JOIN (SELECT incidente_id, {$momento}(created_at) AS momento FROM historial_incidentes
+                      WHERE campo = 'estado' AND valor_nuevo = '{$estado->value}' GROUP BY incidente_id) h
+                  ON h.incidente_id = i.id
+                SET i.{$columna} = h.momento
+                SQL);
+        }
     }
 
     private function crearTablaDeSituaciones(): void

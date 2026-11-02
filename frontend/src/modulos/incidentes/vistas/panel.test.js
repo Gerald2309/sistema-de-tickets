@@ -48,7 +48,7 @@ const INDICADORES = {
       media: { mediana_segundos: null, plazo_segundos: null, a_tiempo: null, cantidad: 0 },
       baja: { mediana_segundos: 4.2 * DIA, plazo_segundos: 5 * DIA, a_tiempo: 0.71, cantidad: 20 },
     },
-    hasta_atender_segundos: 3 * 3600,
+    primera_respuesta_segundos: 3 * 3600,
     respuesta_a_tiempo: 0.85,
     devueltos: 0.06,
   },
@@ -162,7 +162,7 @@ describe('panel', { timeout: 20_000 }, () => {
     expect(alta.find('.resolucion__excede').exists()).toBe(false)
     expect(texto).toContain('La mayoría lleva más de una semana')
     expect(texto).toContain('Entran más de los que se resuelven: la cola creció 12.')
-    expect(texto).toContain('3 h hasta que alguien empieza a atenderlo')
+    expect(texto).toContain('3 h hasta la primera respuesta')
     expect(texto).toContain('6 % de las soluciones devueltas')
     // Una prioridad sin resueltos no inventa una mediana.
     const media = montada.envoltorio.findAll('.resolucion__tabla tbody tr')[2].text()
