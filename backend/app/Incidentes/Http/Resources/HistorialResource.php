@@ -25,6 +25,8 @@ class HistorialResource extends JsonResource
             'valor_anterior' => $entrada->valor_anterior,
             'valor_nuevo' => $entrada->valor_nuevo,
             'autor' => ['id' => $entrada->autor->id, 'name' => $entrada->autor->name],
+            // El proceso que hizo el cambio a nombre del autor (una automatización), o null si lo hizo él.
+            'origen' => $entrada->origen,
             'created_at' => $entrada->created_at->copy()->utc()->toIso8601ZuluString(),
         ];
     }

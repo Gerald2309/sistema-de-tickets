@@ -53,6 +53,7 @@ class RolesSeeder extends Seeder
                 ClavePermiso::AdministrarRoles,
                 ClavePermiso::AdministrarUsuarios,
                 ClavePermiso::VerAuditoria,
+                ClavePermiso::AdministrarAutomatizaciones,
             ],
             // Quien reporta sigue sus propias solicitudes; las métricas del panel son para soporte.
             'Solicitante' => [

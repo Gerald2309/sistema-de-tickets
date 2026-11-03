@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property-read User $autor todo cambio tiene autor (usuario_id no admite nulos)
+ * @property string|null $origen el proceso que hizo el cambio a nombre del autor (una automatización)
  */
 #[Fillable(['incidente_id', 'usuario_id', 'origen', 'evento', 'campo', 'valor_anterior', 'valor_nuevo'])]
 class HistorialIncidente extends Model

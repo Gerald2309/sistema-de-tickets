@@ -1,7 +1,9 @@
 <?php
 
 use App\Auditoria\Http\Controllers\AuditoriaController;
+use App\Automatizaciones\Http\Controllers\AutomatizacionController;
 use App\Identidad\Http\Controllers\AuthController;
+use App\Identidad\Http\Controllers\AvisoPersonalController;
 use App\Identidad\Http\Controllers\ClienteController;
 use App\Identidad\Http\Controllers\PerfilController;
 use App\Identidad\Http\Controllers\PermisoController;
@@ -47,6 +49,9 @@ Route::prefix('v1')->group(function () {
         Route::get('perfil/sesiones', [SesionController::class, 'index'])->can('autenticado');
         Route::delete('perfil/sesiones', [SesionController::class, 'destroyLasDemas'])->can('autenticado');
         Route::delete('perfil/sesiones/{sesion}', [SesionController::class, 'destroy'])->whereNumber('sesion')->can('autenticado');
+        Route::get('perfil/avisos', [AvisoPersonalController::class, 'index'])->can('autenticado');
+        Route::post('perfil/avisos/leidos', [AvisoPersonalController::class, 'marcarTodos'])->can('autenticado');
+        Route::patch('perfil/avisos/{aviso}', [AvisoPersonalController::class, 'marcarLeido'])->whereUuid('aviso')->can('autenticado');
 
         Route::get('avisos', AvisosController::class)->can('verAvisos', Incidente::class);
         Route::get('dashboard', DashboardController::class)->can('verDashboard', Incidente::class);
@@ -131,6 +136,15 @@ Route::prefix('v1')->group(function () {
         Route::get('personas', PersonaController::class)->can('consultar_personas');
 
         Route::get('auditoria', AuditoriaController::class)->can('ver_auditoria');
+
+        // Automatizaciones: reglas que actúan sobre los incidentes a nombre de quien las guarda.
+        Route::get('automatizaciones', [AutomatizacionController::class, 'index'])->can('administrar_automatizaciones');
+        Route::post('automatizaciones', [AutomatizacionController::class, 'store'])->can('administrar_automatizaciones');
+        Route::post('automatizaciones/prueba', [AutomatizacionController::class, 'probar'])->can('administrar_automatizaciones');
+        Route::get('automatizaciones/{automatizacion}', [AutomatizacionController::class, 'show'])->whereNumber('automatizacion')->can('administrar_automatizaciones');
+        Route::put('automatizaciones/{automatizacion}', [AutomatizacionController::class, 'update'])->whereNumber('automatizacion')->can('administrar_automatizaciones');
+        Route::patch('automatizaciones/{automatizacion}/estado', [AutomatizacionController::class, 'cambiarEstado'])->whereNumber('automatizacion')->can('administrar_automatizaciones');
+        Route::delete('automatizaciones/{automatizacion}', [AutomatizacionController::class, 'destroy'])->whereNumber('automatizacion')->can('administrar_automatizaciones');
 
         // El historial de un incidente borrado sigue consultable (RF-08, RF-18).
         Route::get('incidentes/{incidente}/historial', HistorialController::class)

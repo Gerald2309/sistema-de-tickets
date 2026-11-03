@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read User $autor todo mensaje tiene autor (usuario_id no admite nulos)
+ * @property string|null $origen el proceso que lo escribió a nombre del autor (una automatización)
  */
 #[Fillable(['incidente_id', 'usuario_id', 'origen', 'cuerpo', 'interno', 'clave_de_idempotencia'])]
 class MensajeIncidente extends Model

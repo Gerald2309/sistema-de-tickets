@@ -22,6 +22,11 @@ enum AccionAuditoria: string
     case ClienteCreado = 'cliente_creado';
     case ClienteModificado = 'cliente_modificado';
     case AcuerdoDeServicioModificado = 'acuerdo_de_servicio_modificado';
+    case AutomatizacionCreada = 'automatizacion_creada';
+    case AutomatizacionModificada = 'automatizacion_modificada';
+    case AutomatizacionActivada = 'automatizacion_activada';
+    case AutomatizacionDesactivada = 'automatizacion_desactivada';
+    case AutomatizacionEliminada = 'automatizacion_eliminada';
     // Umbral de inicios fallidos superado: posible ataque de fuerza bruta o de rociado de contraseñas.
     case AlertaDeSeguridad = 'alerta_de_seguridad';
 }

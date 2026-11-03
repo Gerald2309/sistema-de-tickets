@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property string $nombre
@@ -60,6 +61,18 @@ class Automatizacion extends Model
     }
 
     /**
+     * Con su resumen de uso: cuántas veces se aplicó, cuántas se detuvo por un error y cuándo fue la última.
+     *
+     * @param  Builder<self>  $consulta
+     */
+    public function scopeConResumen(Builder $consulta): void
+    {
+        $consulta->with('autor:id,name')
+            ->withCount(['ejecuciones', 'ejecuciones as ejecuciones_con_error_count' => fn (Builder $ejecuciones) => $ejecuciones->whereNotNull('error')])
+            ->withMax('ejecuciones', 'created_at');
+    }
+
+    /**
      * Las encendidas que dependen del paso del tiempo: las revisa el programador de tareas.
      *
      * @param  Builder<self>  $consulta
@@ -75,6 +88,14 @@ class Automatizacion extends Model
     public function autor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'autor_id');
+    }
+
+    /**
+     * @return HasMany<EjecucionDeAutomatizacion, $this>
+     */
+    public function ejecuciones(): HasMany
+    {
+        return $this->hasMany(EjecucionDeAutomatizacion::class, 'automatizacion_id');
     }
 
     /**

@@ -80,7 +80,7 @@ class EjecutarAccion
             ->get();
 
         if ($aUnaPersona && $personas->isEmpty()) {
-            throw new AccionNoAplicable('La persona a la que avisa ya no está activa.');
+            throw new AccionNoAplicable(trans('automatizaciones.avisada_inactiva'));
         }
 
         $texto = sprintf('«%s»: %s · %s', $automatizacion->nombre, CodigoIncidente::deId($incidente->id), $incidente->titulo);
@@ -92,7 +92,7 @@ class EjecutarAccion
     {
         $puede = User::query()->whereKey($usuarioId)->where('activo', true)->atiendenIncidentes()->exists();
 
-        return $puede ? $usuarioId : throw new AccionNoAplicable('La persona a la que asigna ya no puede atender incidentes.');
+        return $puede ? $usuarioId : throw new AccionNoAplicable(trans('automatizaciones.ya_no_atiende'));
     }
 
     private function rellenar(string $plantilla, Incidente $incidente): string

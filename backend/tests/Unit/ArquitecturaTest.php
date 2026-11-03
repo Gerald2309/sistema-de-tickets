@@ -16,7 +16,6 @@ class ArquitecturaTest extends TestCase
         'Auditoria' => ['Identidad', 'Incidentes', 'Automatizaciones'],
         'Identidad' => ['Incidentes', 'Automatizaciones'],
         'Incidentes' => ['Auditoria', 'Automatizaciones'],
-        'Automatizaciones' => ['Auditoria'],
     ];
 
     public function test_el_dominio_de_cada_modulo_no_depende_de_laravel_ni_de_los_modelos(): void

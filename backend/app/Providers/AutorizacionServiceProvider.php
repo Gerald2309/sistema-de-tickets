@@ -23,19 +23,30 @@ class AutorizacionServiceProvider extends ServiceProvider
         // Para las rutas que solo exigen haber iniciado sesión.
         Gate::define('autenticado', fn (User $usuario) => true);
 
-        // Ver roles y permisos lo necesita quien administra roles y quien asigna roles a usuarios.
-        Gate::define('consultar_roles', fn (User $usuario) => $usuario->permisos()->alguno(ClavePermiso::AdministrarRoles, ClavePermiso::AdministrarUsuarios));
+        // Ver roles y permisos lo necesita quien administra roles, quien asigna roles a usuarios y quien arma
+        // automatizaciones (avisar a un rol).
+        Gate::define('consultar_roles', fn (User $usuario) => $usuario->permisos()->alguno(
+            ClavePermiso::AdministrarRoles,
+            ClavePermiso::AdministrarUsuarios,
+            ClavePermiso::AdministrarAutomatizaciones,
+        ));
 
-        // Las empresas las administra quien administra usuarios; las consulta también quien ve todos los incidentes (filtros).
-        Gate::define('consultar_clientes', fn (User $usuario) => $usuario->permisos()->alguno(ClavePermiso::AdministrarUsuarios, ClavePermiso::VerTodos));
+        // Las empresas las administra quien administra usuarios; las consultan también quien ve todos los incidentes
+        // (filtros) y quien arma automatizaciones (condición por empresa).
+        Gate::define('consultar_clientes', fn (User $usuario) => $usuario->permisos()->alguno(
+            ClavePermiso::AdministrarUsuarios,
+            ClavePermiso::VerTodos,
+            ClavePermiso::AdministrarAutomatizaciones,
+        ));
 
         // Elegir a una persona en un selector lo necesita quien asigna incidentes, quien filtra por persona
-        // (ve todo o audita) y quien administra usuarios.
+        // (ve todo o audita), quien administra usuarios y quien arma automatizaciones (asignar, avisar).
         Gate::define('consultar_personas', fn (User $usuario) => $usuario->permisos()->alguno(
             ClavePermiso::Reasignar,
             ClavePermiso::VerTodos,
             ClavePermiso::VerAuditoria,
             ClavePermiso::AdministrarUsuarios,
+            ClavePermiso::AdministrarAutomatizaciones,
         ));
 
         foreach (ClavePermiso::cases() as $permiso) {

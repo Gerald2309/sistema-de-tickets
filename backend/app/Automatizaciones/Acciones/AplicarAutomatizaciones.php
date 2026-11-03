@@ -2,8 +2,8 @@
 
 namespace App\Automatizaciones\Acciones;
 
+use App\Automatizaciones\Consultas\HechosDelIncidente;
 use App\Automatizaciones\Dominio\Disparador;
-use App\Automatizaciones\Dominio\Hechos;
 use App\Automatizaciones\Models\Automatizacion;
 use App\Automatizaciones\Models\EjecucionDeAutomatizacion;
 use App\Incidentes\Models\Incidente;
@@ -54,13 +54,13 @@ class AplicarAutomatizaciones
     private function hacerAcciones(Automatizacion $automatizacion, Incidente $incidente): array
     {
         if (! $automatizacion->autor->activo) {
-            return ['acciones_hechas' => 0, 'error' => 'Quien la guardó ya no está activo, y lo que hace queda a su nombre.'];
+            return ['acciones_hechas' => 0, 'error' => trans('automatizaciones.autor_inactivo')];
         }
 
         $hechas = 0;
 
         try {
-            foreach ($automatizacion->flujo()->accionesPara($this->hechosDe($incidente)) as $accion) {
+            foreach ($automatizacion->flujo()->accionesPara(HechosDelIncidente::de($incidente)) as $accion) {
                 $this->ejecutarAccion->ejecutar($accion, $incidente->refresh(), $automatizacion);
                 $hechas++;
             }
@@ -69,10 +69,5 @@ class AplicarAutomatizaciones
         }
 
         return ['acciones_hechas' => $hechas, 'error' => null];
-    }
-
-    private function hechosDe(Incidente $incidente): Hechos
-    {
-        return new Hechos($incidente->cliente_id, $incidente->categoria, $incidente->prioridad, "{$incidente->titulo}\n{$incidente->descripcion}");
     }
 }

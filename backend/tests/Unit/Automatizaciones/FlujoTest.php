@@ -3,6 +3,8 @@
 namespace Tests\Unit\Automatizaciones;
 
 use App\Automatizaciones\Dominio\Accion;
+use App\Automatizaciones\Dominio\CampoDeCondicion;
+use App\Automatizaciones\Dominio\Condicion;
 use App\Automatizaciones\Dominio\Flujo;
 use App\Automatizaciones\Dominio\Hechos;
 use App\Automatizaciones\Dominio\LectorDeFlujo;
@@ -104,5 +106,33 @@ class FlujoTest extends TestCase
     public function test_un_flujo_vacio_no_hace_nada(): void
     {
         $this->assertSame([], LectorDeFlujo::leer([])->accionesPara(self::hechos()));
+    }
+
+    public function test_sabe_si_hace_algo_en_alguno_de_sus_caminos(): void
+    {
+        $this->assertTrue(self::deRed()->tieneAcciones());
+        $this->assertTrue(LectorDeFlujo::leer([self::condicion('prioridad', ['alta'], no: [self::asignar(7)])])->tieneAcciones());
+        $this->assertFalse(LectorDeFlujo::leer([self::condicion('prioridad', ['alta'])])->tieneAcciones());
+        $this->assertFalse(LectorDeFlujo::leer([])->tieneAcciones());
+    }
+
+    public function test_el_recorrido_dice_que_respondio_cada_condicion(): void
+    {
+        $recorrido = self::deRed()->recorrer(self::hechos(empresa: self::OTRA_EMPRESA));
+
+        $this->assertSame(
+            [['campo' => CampoDeCondicion::Categoria, 'cumple' => true], ['campo' => CampoDeCondicion::Empresa, 'cumple' => false]],
+            $recorrido->decisiones,
+        );
+        $this->assertSame([self::asignar(8)], self::pasos($recorrido->acciones));
+    }
+
+    public function test_recorre_todos_los_pasos_con_su_ruta(): void
+    {
+        $pasos = iterator_to_array(self::deRed()->pasos());
+
+        $this->assertSame(['pasos.0', 'pasos.0.si.0', 'pasos.0.si.0.si.0', 'pasos.0.si.0.si.1', 'pasos.0.si.0.no.0', 'pasos.0.no.0'], array_keys($pasos));
+        $this->assertInstanceOf(Condicion::class, $pasos['pasos.0.si.0']);
+        $this->assertSame(self::avisarAlRol(2), $pasos['pasos.0.no.0']->aArreglo());
     }
 }

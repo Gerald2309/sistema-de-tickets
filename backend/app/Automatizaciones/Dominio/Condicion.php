@@ -2,7 +2,7 @@
 
 namespace App\Automatizaciones\Dominio;
 
-// Un paso «Si»: pregunta algo del incidente y lo manda por el camino «si» o por el camino «no».
+// Un paso «Si»: pregunta algo del incidente; si se cumple, sigue por el camino «si» y, si no, por el «no».
 final readonly class Condicion
 {
     /**
@@ -17,9 +17,9 @@ final readonly class Condicion
         public Flujo $no,
     ) {}
 
-    public function caminoPara(Hechos $hechos): Flujo
+    public function seCumple(Hechos $hechos): bool
     {
-        return $this->campo->coincide($hechos, $this->valores) !== $this->niega ? $this->si : $this->no;
+        return $this->campo->coincide($hechos, $this->valores) !== $this->niega;
     }
 
     /**

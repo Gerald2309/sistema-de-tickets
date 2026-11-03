@@ -3,6 +3,7 @@
 namespace App\Http\Documentacion;
 
 use App\Auditoria\Http\Controllers\AuditoriaController;
+use App\Automatizaciones\Http\Controllers\AutomatizacionController;
 use App\Identidad\Dominio\ClavePermiso;
 use App\Identidad\Http\Controllers\AuthController;
 use App\Identidad\Http\Controllers\ClienteController;
@@ -68,6 +69,10 @@ final class SeccionesDeLaApi
         'Empresas y SLA' => [
             'Empresas cliente y sus plazos de respuesta y resolución.',
             [ClienteController::class, AcuerdoDeServicioController::class],
+        ],
+        'Automatizaciones' => [
+            'Reglas que actúan sobre los incidentes al crearse o al pasar un tiempo, a nombre de quien las guarda.',
+            [AutomatizacionController::class],
         ],
         'Auditoría' => [
             'Registro de las acciones sensibles.',

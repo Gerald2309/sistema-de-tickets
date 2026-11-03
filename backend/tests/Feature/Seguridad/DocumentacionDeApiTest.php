@@ -51,12 +51,13 @@ class DocumentacionDeApiTest extends TestCase
         $contrato = $this->contrato();
 
         $this->assertSame(
-            ['Autenticación y cuenta', 'Incidentes', 'Conversación', 'Panel', 'Usuarios y roles', 'Empresas y SLA', 'Auditoría'],
+            ['Autenticación y cuenta', 'Incidentes', 'Conversación', 'Panel', 'Usuarios y roles', 'Empresas y SLA', 'Automatizaciones', 'Auditoría'],
             array_column($contrato['tags'], 'name'),
         );
         $this->assertSame(['Incidentes'], $contrato['paths']['/incidentes']['get']['tags']);
         $this->assertStringContainsString('**Requiere:** permiso `ver_auditoria`.', $contrato['paths']['/auditoria']['get']['description']);
-        foreach (['/avisos', '/mi-dia/plan', '/broadcasting/auth', '/documentacion'] as $interna) {
+        $this->assertStringContainsString('**Requiere:** permiso `administrar_automatizaciones`.', $contrato['paths']['/automatizaciones']['post']['description']);
+        foreach (['/avisos', '/perfil/avisos', '/mi-dia/plan', '/broadcasting/auth', '/documentacion'] as $interna) {
             $this->assertArrayNotHasKey($interna, $contrato['paths'], "{$interna} es de uso interno.");
         }
     }

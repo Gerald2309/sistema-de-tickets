@@ -88,6 +88,21 @@ class AplicarAlCrearseTest extends TestCase
         $this->assertSame([4, null], [$this->ejecucion($incidente)->acciones_hechas, $this->ejecucion($incidente)->error]);
     }
 
+    public function test_el_historial_y_la_conversacion_dicen_que_lo_hizo_la_automatizacion(): void
+    {
+        $this->automatizacion([self::asignar($this->diego->id), self::responder('Recibido.')]);
+        $incidente = $this->crearIncidente();
+        $token = $this->iniciarSesion($this->administrador);
+
+        $this->conToken($token)->getJson("/api/v1/incidentes/{$incidente->id}/historial")
+            ->assertOk()
+            ->assertJsonFragment(['autor' => ['id' => $this->administrador->id, 'name' => $this->administrador->name], 'origen' => self::NOMBRE]);
+        $this->conToken($token)->getJson("/api/v1/incidentes/{$incidente->id}/mensajes")
+            ->assertOk()
+            ->assertJsonPath('data.0.cuerpo', 'Recibido.')
+            ->assertJsonPath('data.0.origen', self::NOMBRE);
+    }
+
     public function test_si_no_cumple_la_condicion_sigue_el_camino_no(): void
     {
         $this->automatizacion([self::condicion('categoria', ['red'], si: [self::asignar($this->diego->id)], no: [

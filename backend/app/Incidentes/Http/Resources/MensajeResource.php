@@ -24,6 +24,8 @@ class MensajeResource extends JsonResource
             'cuerpo' => $mensaje->cuerpo,
             'interno' => $mensaje->interno,
             'autor' => ['id' => $mensaje->autor->id, 'name' => $mensaje->autor->name],
+            // El proceso que escribió a nombre del autor (una automatización), o null si lo escribió él.
+            'origen' => $mensaje->origen,
             'adjuntos' => $mensaje->adjuntos->map(fn (AdjuntoMensaje $adjunto) => [
                 'id' => $adjunto->id,
                 'nombre' => $adjunto->nombre,
