@@ -78,7 +78,9 @@ class DocumentacionDeApiTest extends TestCase
 
         $this->assertMatchesRegularExpression('/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@scalar\/api-reference@[\d.]+\/[^"]+"\s+integrity="sha384-[^"]+"/', $respuesta->getContent());
         $politica = (string) $respuesta->headers->get('Content-Security-Policy');
-        $this->assertStringContainsString("frame-ancestors 'none'", $politica);
+        // Solo la incrusta la documentación técnica del mismo sitio; ningún otro sitio puede enmarcarla.
+        $this->assertStringContainsString("frame-ancestors 'self'", $politica);
+        $this->assertSame('SAMEORIGIN', $respuesta->headers->get('X-Frame-Options'));
         $this->assertStringContainsString("form-action 'none'", $politica);
         $this->assertStringContainsString("connect-src 'self'", $politica);
     }

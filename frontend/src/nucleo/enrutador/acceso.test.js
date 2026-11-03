@@ -19,6 +19,11 @@ describe('decidirAcceso', () => {
     expect(decidirAcceso('publica', conPermisos())).toEqual({ tipo: 'inicio' })
   })
 
+  it('la ruta abierta se abre con sesión y sin ella', () => {
+    expect(decidirAcceso('abierta', sinSesion)).toEqual({ tipo: 'permitir' })
+    expect(decidirAcceso('abierta', conPermisos())).toEqual({ tipo: 'permitir' })
+  })
+
   it('basta con tener uno de los permisos declarados', () => {
     expect(decidirAcceso(['ver_propios', 'ver_todos'], conPermisos('ver_todos'))).toEqual({ tipo: 'permitir' })
     expect(decidirAcceso('ver_auditoria', conPermisos('ver_todos'))).toEqual({ tipo: 'sin-permiso' })

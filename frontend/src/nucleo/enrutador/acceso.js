@@ -1,6 +1,7 @@
 /**
  * Qué puede abrir cada persona (RF-F05). Cada ruta declara en `meta.permiso`:
  *   - 'publica'      solo sin sesión (el inicio de sesión);
+ *   - 'abierta'      cualquiera, con sesión o sin ella (la documentación técnica);
  *   - 'autenticado'  cualquier persona con sesión;
  *   - 'cambio-de-contrasena' solo quien debe cambiar la contraseña que le puso un administrador; mientras deba
  *                    hacerlo, ninguna otra ruta con sesión se abre (la API tampoco la atiende);
@@ -10,7 +11,7 @@
  */
 
 /** @typedef {import('@/modulos/identidad/index.js').Permiso} Permiso */
-/** @typedef {'publica' | 'autenticado' | 'cambio-de-contrasena' | Permiso | Permiso[]} PermisoDeRuta */
+/** @typedef {'publica' | 'abierta' | 'autenticado' | 'cambio-de-contrasena' | Permiso | Permiso[]} PermisoDeRuta */
 
 /**
  * @typedef {object} EstadoDeSesion
@@ -29,6 +30,9 @@
  * @returns {Decision}
  */
 export function decidirAcceso(permiso, sesion) {
+  if (permiso === 'abierta') {
+    return { tipo: 'permitir' }
+  }
   if (permiso === 'publica') {
     return sesion.autenticada ? { tipo: 'inicio' } : { tipo: 'permitir' }
   }

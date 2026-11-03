@@ -4,6 +4,7 @@ import {
   navegacion as navegacionAutomatizaciones,
   rutas as rutasAutomatizaciones,
 } from '@/modulos/automatizaciones/index.js'
+import { rutas as rutasDocumentacion } from '@/modulos/documentacion/index.js'
 import {
   navegacion as navegacionIdentidad,
   rutas as rutasIdentidad,
@@ -32,11 +33,13 @@ export const navegacion = [
 ]
 
 /**
- * Rutas de la aplicación: las públicas y, dentro de la estructura con barra y menú, las de cada módulo.
+ * Rutas de la aplicación: las públicas, la documentación (con su propia barra y menú) y, dentro de la
+ * estructura con barra y menú, las de cada módulo.
  * @type {import('vue-router').RouteRecordRaw[]}
  */
 export const rutas = [
   ...rutasPublicas,
+  ...rutasDocumentacion,
   {
     path: '/',
     component: () => import('@/nucleo/disposicion/EstructuraDeAplicacion.vue'),
@@ -76,7 +79,9 @@ export function crearEnrutador(historial = createWebHistory()) {
   const enrutador = createRouter({
     history: historial,
     routes: rutas,
-    scrollBehavior: (_destino, _origen, posicionGuardada) => posicionGuardada ?? { top: 0 },
+    // Con #ancla baja hasta ella, dejando sitio para la barra fija; si no, arriba o donde se quedó al volver.
+    scrollBehavior: (destino, _origen, posicionGuardada) =>
+      posicionGuardada ?? (destino.hash ? { el: destino.hash, top: 72 } : { top: 0 }),
   })
 
   let sesionRestaurada = false
