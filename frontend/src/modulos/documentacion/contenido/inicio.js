@@ -226,7 +226,7 @@ export const inicio = {
           filas: [
             [
               'backend/app',
-              'Un módulo por carpeta: Identidad, Incidentes, Automatizaciones y Auditoría. Las rutas de la API están en `backend/routes/api.php`.',
+              'Un módulo por carpeta: Identidad, Incidentes, Automatizaciones y Auditoría. Cada módulo declara sus rutas en su `rutas.php`, como `backend/app/Incidentes/rutas.php`; `backend/routes/api.php` aplica el middleware común y los reúne.',
             ],
             ['backend/database', 'Migraciones, fábricas y los datos de ejemplo de la demostración.'],
             ['backend/tests', 'Pruebas de las reglas de negocio (Unit) y de la API contra MySQL (Feature).'],

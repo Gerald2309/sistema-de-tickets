@@ -40,7 +40,7 @@ export const calidad = {
           filas: [
             [
               'Backend',
-              '505 pruebas en 75 archivos: dominio sin base de datos (Unit) e integración contra MySQL (Feature).',
+              '689 pruebas en 75 archivos, con 8.554 comprobaciones: reglas de negocio sin base de datos (Unit) e integración contra MySQL (Feature).',
             ],
             [
               'Frontend',

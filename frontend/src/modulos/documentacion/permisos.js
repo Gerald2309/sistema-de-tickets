@@ -104,7 +104,7 @@ export function evaluar({ rol, accion, creador, asignado }) {
     const pasa = tiene('ver_auditoria')
     capa(
       'Ruta y política',
-      'backend/routes/api.php',
+      'backend/app/Auditoria/rutas.php',
       pasa,
       pasa ? 'Tiene `ver_auditoria`.' : 'La ruta exige `ver_auditoria` con `can()`.',
     )

@@ -17,7 +17,7 @@ const altaDeIncidente = {
     { id: 'axios', x: 50, y: 304, w: 250, h: 58, tipo: 'api/cliente.js', titulo: 'axios + Bearer' },
     { id: 'cache', x: 50, y: 464, w: 250, h: 58, tipo: 'vue-query', titulo: 'Invalida y recarga' },
     { id: 'echo', x: 50, y: 544, w: 250, h: 58, tipo: 'plugins/tiempo-real.js', titulo: 'Echo escucha' },
-    { id: 'ruta', x: 370, y: 64, w: 320, h: 58, tipo: 'routes/api.php', titulo: 'auth:sanctum · can(crear)' },
+    { id: 'ruta', x: 370, y: 64, w: 320, h: 58, tipo: 'Incidentes/rutas.php', titulo: 'auth:sanctum · can(crear)' },
     { id: 'request', x: 370, y: 144, w: 320, h: 58, tipo: 'CrearIncidenteRequest', titulo: 'Valida y normaliza' },
     { id: 'ctl', x: 370, y: 224, w: 320, h: 58, tipo: 'IncidenteController@store', titulo: 'Orquesta y responde' },
     {
@@ -101,11 +101,18 @@ const pasos = [
     capa: 'back',
     nodos: ['ruta'],
     aristas: ['axios>ruta'],
-    archivo: 'backend/routes/api.php',
+    archivo: 'backend/app/Incidentes/rutas.php',
     texto:
-      'Sanctum valida el token, el limitador frena abusos y la política decide si esta persona puede crear incidentes. Toda ruta declara su autorización: el middleware `autorizacion.declarada` rechaza la que la olvide.',
-    codigo: `Route::middleware(['auth:sanctum', 'throttle:api', 'autorizacion.declarada'])->group(function () {
-    Route::post('incidentes', [IncidenteController::class, 'store'])->can('crear', Incidente::class);`,
+      'La ruta vive en el módulo y `backend/routes/api.php` la carga dentro del grupo con el middleware común: Sanctum valida el token, el limitador frena abusos y la política decide si esta persona puede crear incidentes. Toda ruta declara su autorización: el middleware `autorizacion.declarada` rechaza la que la olvide.',
+    codigo: `// backend/routes/api.php
+Route::middleware(['auth:sanctum', 'throttle:api', 'autorizacion.declarada'])->group(function () {
+    foreach (['Identidad', 'Incidentes', 'Automatizaciones', 'Auditoria'] as $modulo) {
+        require app_path("{$modulo}/rutas.php");
+    }
+});
+
+// backend/app/Incidentes/rutas.php
+Route::post('incidentes', [IncidenteController::class, 'store'])->can('crear', Incidente::class);`,
   },
   {
     titulo: 'Validación',

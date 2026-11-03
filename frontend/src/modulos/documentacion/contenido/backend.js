@@ -9,7 +9,16 @@ const capas = {
   alto: 600,
   nodos: [
     { id: 'z-http', zona: true, x: 40, y: 36, w: 880, h: 120, titulo: 'ENTRADA · HTTP' },
-    { id: 'ruta', x: 60, y: 66, w: 200, h: 70, tipo: 'routes/api.php', titulo: 'Ruta', sub: 'auth:sanctum · throttle' },
+    {
+      id: 'ruta',
+      x: 60,
+      y: 66,
+      w: 200,
+      h: 70,
+      tipo: '{Módulo}/rutas.php',
+      titulo: 'Ruta',
+      sub: 'auth:sanctum · throttle',
+    },
     {
       id: 'req',
       x: 290,
@@ -125,7 +134,7 @@ export const backend = {
           filas: [
             [
               'Ruta',
-              'Declara método, URI, middleware (`auth:sanctum`, `throttle:api`) y la autorización con `can()`. El middleware `autorizacion.declarada` rechaza cualquier ruta que no la declare.',
+              'Cada módulo declara las suyas en su `rutas.php` (método, URI y la autorización con `can()`). `backend/routes/api.php` las reúne dentro del middleware común (`auth:sanctum`, `throttle:api`) y `autorizacion.declarada` rechaza cualquier ruta que no declare su permiso.',
             ],
             [
               'FormRequest',
