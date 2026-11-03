@@ -231,10 +231,6 @@ export const arquitectura = {
               'Un solo despliegue, dividido en módulos con fronteras vigiladas por pruebas en el back y en el front.',
             ],
             [
-              'Dominio aislado',
-              'Las reglas de negocio no dependen de Laravel ni de los modelos: se prueban en milisegundos.',
-            ],
-            [
               'Nada sale antes del commit',
               'Eventos, avisos y trabajos se disparan solo cuando la transacción se confirma.',
             ],

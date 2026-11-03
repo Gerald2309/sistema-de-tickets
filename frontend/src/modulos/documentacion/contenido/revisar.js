@@ -6,7 +6,7 @@ export const revisar = {
   titulo: 'Para revisar el proyecto',
   enMenu: 'Para revisar',
   grupo: 'inicio',
-  icono: iconos.exito,
+  icono: iconos.documentacion,
   entradilla:
     'Por dónde empezar si tiene poco tiempo: qué leer en orden, qué comprobar en la demo con las cuentas de prueba y qué limitaciones conocemos. Cada ruta de archivo enlaza al código en GitHub.',
   secciones: [
@@ -19,7 +19,7 @@ export const revisar = {
             ['1 · Visión general', 'La página Arquitectura (planos C4) y el `README.md`: qué hay y cómo se levanta.'],
             [
               '2 · Las fronteras',
-              '`backend/tests/Unit/ArquitecturaTest.php` y `frontend/pruebas/unitarias/arquitectura.test.js`: los módulos dependen en un solo sentido y el dominio no conoce Laravel.',
+              '`backend/tests/Unit/ArquitecturaTest.php` y `frontend/pruebas/unitarias/arquitectura.test.js`: los módulos dependen en un solo sentido.',
             ],
             [
               '3 · La regla de acceso',

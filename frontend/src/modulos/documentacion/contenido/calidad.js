@@ -59,7 +59,7 @@ export const calidad = {
           filas: [
             [
               'Arquitectura del backend',
-              '`ArquitecturaTest`: el dominio no importa Laravel ni modelos, y los módulos dependen en un solo sentido.',
+              '`ArquitecturaTest`: los módulos dependen en un solo sentido y cada capa usa solo lo que le corresponde.',
             ],
             [
               'Arquitectura del frontend',

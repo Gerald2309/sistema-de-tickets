@@ -246,7 +246,7 @@ const ejecucion = {
       y: 370,
       w: 320,
       h: 62,
-      tipo: 'Dominio · PHP puro',
+      tipo: 'Dominio',
       titulo: 'Flujo::recorrer(Hechos)',
       sub: 'qué camino y qué acciones',
     },
@@ -587,10 +587,6 @@ export const automatizaciones = {
             [
               'Flujo en JSON',
               'Un árbol se lee y se guarda entero; en tablas normalizadas habría que reconstruirlo en cada ejecución. El dominio lo valida antes de guardarlo.',
-            ],
-            [
-              'Dominio en PHP puro',
-              'Las reglas se prueban en milisegundos y no dependen de Laravel ni de los modelos.',
             ],
             [
               'Revisión cada 5 minutos',

@@ -31,12 +31,19 @@ export const decisiones = {
       ],
     },
     {
-      titulo: 'ADR-02 · Dominio en PHP puro',
+      titulo: 'ADR-02 · Reglas de negocio en su propia capa',
       bloques: [
         {
           tipo: 'filas',
           filas: [
-            ['Decisión', 'Las reglas de negocio de `app/*/Dominio` no importan Laravel ni los modelos.'],
+            [
+              'Decisión',
+              'Las reglas de negocio (estados y transiciones, plazos, alcance, flujos de automatización) viven en `app/*/Dominio` y no dependen del framework.',
+            ],
+            [
+              'Alcance',
+              'Es solo esa capa: rutas, validación, controladores, acciones, consultas, modelos, colas y eventos son Laravel.',
+            ],
             ['Descartado', 'Reglas dentro de modelos o controladores: difíciles de probar sin base de datos.'],
             [
               'Consecuencia',

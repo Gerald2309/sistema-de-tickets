@@ -62,7 +62,7 @@ const capas = {
       titulo: 'Lecturas',
       sub: 'SQL para listas y cifras',
     },
-    { id: 'z-dom', zona: true, x: 40, y: 336, w: 430, h: 120, titulo: 'DOMINIO · PHP PURO' },
+    { id: 'z-dom', zona: true, x: 40, y: 336, w: 430, h: 120, titulo: 'DOMINIO' },
     {
       id: 'dom',
       x: 70,
@@ -71,7 +71,7 @@ const capas = {
       h: 70,
       tipo: 'Dominio',
       titulo: 'Reglas y valores',
-      sub: 'sin Illuminate, sin modelos',
+      sub: 'estados, plazos, permisos',
       clave: true,
     },
     { id: 'z-inf', zona: true, x: 490, y: 336, w: 430, h: 120, titulo: 'PERSISTENCIA' },
@@ -113,7 +113,7 @@ export const backend = {
         {
           tipo: 'nota',
           texto:
-            'Regla vigilada: ningún archivo de `app/*/Dominio` puede importar `Illuminate` ni `App\\*\\Models` (`backend/tests/Unit/ArquitecturaTest.php`).',
+            'La capa de dominio guarda las reglas de negocio y no depende del framework, para probarlas sin base de datos (lo vigila `backend/tests/Unit/ArquitecturaTest.php`). El resto del módulo usa Laravel con normalidad: rutas, validación, Eloquent, colas, eventos y notificaciones.',
         },
       ],
     },
