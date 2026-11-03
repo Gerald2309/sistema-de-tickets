@@ -3,6 +3,10 @@
 Sistema de gestión de solicitudes e incidentes: una API REST en Laravel 13 (PHP 8.5) con MySQL 8.4 y un
 frontend en Vue 3 con Vuetify. Todo corre en Docker.
 
+**Documentación técnica:** https://mesadeayuda.geraldine-echeverri.online/documentacion (arquitectura C4, backend,
+frontend, recorrido de un incidente, modelo de datos, seguridad, calidad, despliegue y la API para probar). En local,
+en http://localhost:8000/documentacion.
+
 ## Instalación
 
 Requisitos: Docker con Docker Compose v2, y los puertos 8000 y 8080 libres.

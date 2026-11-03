@@ -39,6 +39,7 @@ import {
   mdiClockEditOutline,
   mdiClockOutline,
   mdiClose,
+  mdiDatabaseOutline,
   mdiDotsHorizontal,
   mdiDownloadOutline,
   mdiDragVertical,
@@ -228,5 +229,6 @@ export const iconos = Object.freeze({
   frontend: mdiMonitorDashboard,
   recorrido: mdiRoutes,
   api: mdiApi,
+  datos: mdiDatabaseOutline,
   abrirAparte: mdiOpenInNew,
 })

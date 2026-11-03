@@ -83,7 +83,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', alPulsarTecla))
     <div class="cuerpo">
       <MenuDeDocumentacion :actual="actual?.id ?? ''" />
       <main v-if="actual" id="contenido" class="contenido">
-        <div class="migas">Documentación · {{ actual.grupo === 'tecnico' ? 'Técnico' : 'Administración' }}</div>
+        <div class="migas">
+          Documentación ·
+          {{ { aplicacion: 'Mesa de ayuda', administracion: 'Administración', tecnico: 'Técnico' }[actual.grupo] }}
+        </div>
         <h1 class="titulo-pagina">{{ actual.titulo }}</h1>
         <p class="entradilla"><TextoTecnico :texto="actual.entradilla" /></p>
         <section
