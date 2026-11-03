@@ -24,7 +24,7 @@ const nombresDe = (acciones) =>
         <small>de {{ resultado.evaluados }} incidentes de los últimos {{ resultado.dias }} días</small>
       </p>
 
-      <h3 class="rotulo mt-6">Por dónde salió cada uno</h3>
+      <h3 class="rotulo seccion">Por dónde salió cada uno</h3>
       <ul class="caminos">
         <li v-for="(camino, i) in resultado.caminos" :key="i" class="camino">
           <div class="camino__cabeza">
@@ -39,7 +39,7 @@ const nombresDe = (acciones) =>
       </ul>
 
       <template v-if="resultado.ejemplos.length">
-        <h3 class="rotulo mt-6">Algunos que habrían recibido acciones</h3>
+        <h3 class="rotulo seccion">Algunos que habrían recibido acciones</h3>
         <ul class="ejemplos">
           <li v-for="ejemplo in resultado.ejemplos" :key="ejemplo.id">
             <RouterLink :to="{ name: 'incidente', params: { id: ejemplo.id } }">{{ ejemplo.codigo }}</RouterLink>
@@ -48,7 +48,7 @@ const nombresDe = (acciones) =>
         </ul>
       </template>
     </template>
-    <p class="nota mt-6">Se evalúan las condiciones, no el disparador, y no se cambia nada.</p>
+    <p class="nota seccion">Se evalúan las condiciones, no el disparador, y no se cambia nada.</p>
   </div>
 </template>
 
@@ -104,6 +104,20 @@ const nombresDe = (acciones) =>
   display: block;
   height: 100%;
   background: var(--acento);
+}
+
+.seccion {
+  margin-top: 24px;
+}
+
+.ejemplos a {
+  color: var(--acento-texto);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ejemplos a:hover {
+  text-decoration: underline;
 }
 
 .ejemplos li {
