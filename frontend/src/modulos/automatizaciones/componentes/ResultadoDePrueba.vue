@@ -16,6 +16,18 @@ const nombresDe = (acciones) =>
 
 <template>
   <div>
+    <!-- Lo que haría ya la próxima revisión: responde «¿por qué no ha avisado todavía?». -->
+    <div v-if="resultado.ahora" class="ahora">
+      <p class="rotulo">Ahora mismo, según el disparador</p>
+      <p v-if="resultado.ahora.lesToca" class="ahora__texto">
+        Le toca a <b>{{ resultado.ahora.lesToca }}</b> {{ resultado.ahora.lesToca === 1 ? 'incidente' : 'incidentes' }};
+        <b>{{ resultado.ahora.conAcciones }}</b> cumplirían las condiciones y recibirían acciones.
+      </p>
+      <p v-else class="ahora__texto">
+        Ningún incidente cumple todavía el disparador. Cuando alguno lo cumpla, la regla actuará en la siguiente
+        revisión, cada cinco minutos.
+      </p>
+    </div>
     <p v-if="!resultado.evaluados" class="nota">No hay incidentes creados en los últimos {{ resultado.dias }} días.</p>
     <template v-else>
       <p class="rotulo">Habría hecho algo con</p>
@@ -53,6 +65,19 @@ const nombresDe = (acciones) =>
 </template>
 
 <style scoped>
+.ahora {
+  margin-bottom: 24px;
+  padding: 12px 14px;
+  background: var(--acento-fondo);
+  border-left: 3px solid var(--acento);
+  border-radius: var(--radio);
+}
+
+.ahora__texto {
+  margin: 0;
+  font-size: 13.5px;
+}
+
 .rotulo {
   margin: 0 0 4px;
   color: var(--tenue);

@@ -83,12 +83,21 @@ export async function eliminarAutomatizacion(id) {
 }
 
 /**
- * `POST automatizaciones/prueba`: qué habrían hecho los pasos con los incidentes recientes. No cambia nada.
+ * `POST automatizaciones/prueba`: qué habrían hecho los pasos con los incidentes recientes y, con un disparador por
+ * tiempo, a cuántos les toca ahora mismo. No cambia nada.
  * @param {Paso[]} pasos
+ * @param {Disparo} disparo
  * @returns {Promise<import('../tipos.js').ResultadoDePrueba>}
  */
-export async function probarPasos(pasos) {
-  const { data } = await http.post('automatizaciones/prueba', { pasos })
-  const { dias, evaluados, con_acciones: conAcciones, caminos, ejemplos } = data.data
-  return { dias, evaluados, conAcciones, caminos, ejemplos }
+export async function probarPasos(pasos, disparo) {
+  const { data } = await http.post('automatizaciones/prueba', { pasos, ...disparo })
+  const { dias, evaluados, con_acciones: conAcciones, caminos, ejemplos, ahora } = data.data
+  return {
+    dias,
+    evaluados,
+    conAcciones,
+    caminos,
+    ejemplos,
+    ahora: ahora ? { lesToca: ahora.les_toca, conAcciones: ahora.con_acciones } : null,
+  }
 }

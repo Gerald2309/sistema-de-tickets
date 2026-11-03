@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\DB;
 // su nombre. La auditoría anota, en una línea, qué cambió.
 class GuardarAutomatizacion
 {
-    public function __construct(private readonly RegistrarAuditoria $registrarAuditoria) {}
+    public function __construct(
+        private readonly RegistrarAuditoria $registrarAuditoria,
+        private readonly RevisarEnseguida $revisarEnseguida,
+    ) {}
 
     /**
      * @param  Automatizacion|null  $automatizacion  null para crear una nueva
@@ -33,6 +36,7 @@ class GuardarAutomatizacion
             $guardada = $automatizacion ?? new Automatizacion;
             $guardada->fill(['nombre' => $nombre, 'activa' => $activa, 'pasos' => $flujo->aArreglo(), 'autor_id' => $autor->id, ...$disparo->aArreglo()]);
             $guardada->save();
+            $this->revisarEnseguida->ejecutar($guardada);
 
             $antes === null ? $this->auditarCreacion($autor, $guardada, $ip) : $this->auditarCambios($autor, $guardada, $antes, $ip);
 

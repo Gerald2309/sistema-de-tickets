@@ -58,6 +58,8 @@
  * @property {number} conAcciones
  * @property {Array<{ decisiones: Array<{ campo: string, cumple: boolean }>, acciones: string[], cantidad: number }>} caminos
  * @property {Array<{ id: number, codigo: string, titulo: string }>} ejemplos
+ * @property {{ lesToca: number, conAcciones: number } | null} ahora con un disparador por tiempo: a cuántos les llegó el
+ *   momento ahora mismo y cuántos de ellos recibirían acciones
  */
 
 /**

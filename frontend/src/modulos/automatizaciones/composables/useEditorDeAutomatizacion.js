@@ -78,7 +78,7 @@ export function useEditorDeAutomatizacion(id) {
   })
 
   const prueba = useMutation({
-    mutationFn: () => probarPasos(structuredClone(toRaw(borrador.pasos))),
+    mutationFn: () => probarPasos(structuredClone(toRaw(borrador.pasos)), { ...borrador.disparo }),
     onSuccess: () => (errores.value = {}),
     onError: (causa) => alFallar(causa, 'No se pudo probar'),
   })

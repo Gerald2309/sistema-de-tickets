@@ -3,13 +3,16 @@
 namespace App\Automatizaciones\Consultas;
 
 use App\Automatizaciones\Dominio\Accion;
+use App\Automatizaciones\Dominio\Disparador;
+use App\Automatizaciones\Dominio\Disparo;
 use App\Automatizaciones\Dominio\Flujo;
 use App\Incidentes\Dominio\CodigoIncidente;
 use App\Incidentes\Models\Incidente;
 use Carbon\CarbonImmutable;
 
 // Qué habría hecho un flujo con los incidentes creados en los últimos días: por qué camino salió cada uno y
-// cuántos habrían recibido acciones. Solo lee: no cambia nada. Evalúa las condiciones, no el disparador.
+// cuántos habrían recibido acciones. Solo lee: no cambia nada. Con un disparador por tiempo, dice además a
+// cuántos incidentes les llegó el momento ahora mismo: lo que haría la próxima revisión.
 class SimularAutomatizacion
 {
     public const DIAS = 30;
@@ -19,6 +22,8 @@ class SimularAutomatizacion
 
     private const EJEMPLOS = 5;
 
+    public function __construct(private readonly IncidentesPorDisparar $incidentesPorDisparar) {}
+
     /**
      * @return array{
      *     dias: int,
@@ -26,9 +31,39 @@ class SimularAutomatizacion
      *     con_acciones: int,
      *     caminos: list<array{decisiones: list<array{campo: string, cumple: bool}>, acciones: list<string>, cantidad: int}>,
      *     ejemplos: list<array{id: int, codigo: string, titulo: string}>,
+     *     ahora: array{les_toca: int, con_acciones: int}|null,
      * }
      */
-    public function ejecutar(Flujo $flujo, CarbonImmutable $ahora): array
+    public function ejecutar(Flujo $flujo, CarbonImmutable $ahora, ?Disparo $disparo = null): array
+    {
+        return [...$this->conLosRecientes($flujo, $ahora), 'ahora' => $this->conElDisparador($flujo, $ahora, $disparo)];
+    }
+
+    /**
+     * A quiénes les toca ya, según el disparador, y cuántos de ellos recibirían acciones.
+     *
+     * @return array{les_toca: int, con_acciones: int}|null null si el disparador no depende del tiempo
+     */
+    private function conElDisparador(Flujo $flujo, CarbonImmutable $ahora, ?Disparo $disparo): ?array
+    {
+        if ($disparo === null || $disparo->disparador === Disparador::Creacion) {
+            return null;
+        }
+
+        $ids = $this->incidentesPorDisparar->ids($disparo, null, $ahora, self::MAXIMO);
+        $conAcciones = 0;
+
+        foreach (Incidente::query()->withoutEagerLoads()->select(HechosDelIncidente::COLUMNAS)->whereKey($ids)->cursor() as $incidente) {
+            $conAcciones += $flujo->accionesPara(HechosDelIncidente::de($incidente, $ahora)) === [] ? 0 : 1;
+        }
+
+        return ['les_toca' => count($ids), 'con_acciones' => $conAcciones];
+    }
+
+    /**
+     * @return array{dias: int, evaluados: int, con_acciones: int, caminos: list<array{decisiones: list<array{campo: string, cumple: bool}>, acciones: list<string>, cantidad: int}>, ejemplos: list<array{id: int, codigo: string, titulo: string}>}
+     */
+    private function conLosRecientes(Flujo $flujo, CarbonImmutable $ahora): array
     {
         $caminos = [];
         $ejemplos = [];

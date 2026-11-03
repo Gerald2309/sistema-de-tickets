@@ -2,8 +2,7 @@
 
 namespace App\Automatizaciones\Http\Requests;
 
-use App\Automatizaciones\Dominio\Disparo;
-use App\Automatizaciones\Dominio\Excepciones\FlujoInvalido;
+use App\Automatizaciones\Http\Requests\Concerns\ValidaElDisparo;
 use App\Automatizaciones\Http\Requests\Concerns\ValidaLosPasos;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -11,11 +10,7 @@ use Illuminate\Validation\Validator;
 // Crear o reemplazar una automatización completa: nombre, si está activa, cuándo se dispara y sus pasos.
 class GuardarAutomatizacionRequest extends FormRequest
 {
-    use ValidaLosPasos;
-
-    private const MEDIDA = ['espera_minutos', 'porcentaje', 'plazo'];
-
-    private ?Disparo $disparoLeido = null;
+    use ValidaElDisparo, ValidaLosPasos;
 
     // Los permisos los comprueba la ruta (->can('administrar_automatizaciones')).
     public function authorize(): bool
@@ -56,23 +51,12 @@ class GuardarAutomatizacionRequest extends FormRequest
                 return;
             }
 
-            try {
-                $this->disparoLeido = Disparo::desde($this->input('disparador'), $this->only(self::MEDIDA));
-            } catch (FlujoInvalido $error) {
-                $validador->errors()->add($error->ruta, $error->getMessage());
-            }
-
+            $this->validarDisparo($validador);
             $this->validarPasos($validador);
 
             if ($validador->errors()->isEmpty() && $this->boolean('activa') && ! $this->flujo()->tieneAcciones()) {
                 $validador->errors()->add('pasos', trans('automatizaciones.sin_acciones'));
             }
         }];
-    }
-
-    // Solo después de validar.
-    public function disparo(): Disparo
-    {
-        return $this->disparoLeido ??= Disparo::desde($this->input('disparador'), $this->only(self::MEDIDA));
     }
 }

@@ -6,7 +6,9 @@ use App\Automatizaciones\Dominio\Disparador;
 use App\Automatizaciones\Dominio\PlazoDelSla;
 use App\Automatizaciones\Models\Automatizacion;
 use App\Automatizaciones\Models\EjecucionDeAutomatizacion;
+use App\Identidad\Dominio\ClavePermiso;
 use App\Identidad\Models\User;
+use App\Incidentes\Dominio\Categoria;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Models\Incidente;
 use Carbon\CarbonImmutable;
@@ -124,6 +126,33 @@ class RevisarPorTiempoTest extends TestCase
         $this->assertSame([$vencido->id, $conTiempo->id], $this->revisar(), 'A los dos les llegó el momento.');
         $this->assertSame(1, $vencido->mensajes()->count());
         $this->assertSame(0, $conTiempo->mensajes()->count(), 'La condición lo mandó por el camino No.');
+    }
+
+    public function test_al_encenderla_actua_enseguida_sin_esperar_la_revision(): void
+    {
+        $administrador = $this->usuarioConPermisos(ClavePermiso::AdministrarAutomatizaciones);
+        $apagada = $this->automatizacion(Disparador::SinRespuesta, ['espera_minutos' => 60, 'activa' => false]);
+        $esperando = $this->incidente(120);
+
+        $this->conToken($this->iniciarSesion($administrador))
+            ->patchJson("/api/v1/automatizaciones/{$apagada->id}/estado", ['activa' => true])
+            ->assertOk();
+
+        $this->assertSame(['Revisar'], $esperando->mensajes()->pluck('cuerpo')->all());
+    }
+
+    public function test_probar_dice_a_cuantos_les_toca_ahora_segun_el_disparador(): void
+    {
+        $administrador = $this->usuarioConPermisos(ClavePermiso::AdministrarAutomatizaciones);
+        $this->incidente(120, ['categoria' => Categoria::Red]);
+        $this->incidente(120, ['categoria' => Categoria::Correo]);
+        $this->incidente(30);
+
+        $this->conToken($this->iniciarSesion($administrador))->postJson('/api/v1/automatizaciones/prueba', [
+            'disparador' => 'sin_respuesta',
+            'espera_minutos' => 60,
+            'pasos' => [['tipo' => 'condicion', 'campo' => 'categoria', 'valores' => ['red'], 'si' => [self::NOTA]]],
+        ])->assertOk()->assertJsonPath('data.ahora', ['les_toca' => 2, 'con_acciones' => 1]);
     }
 
     public function test_cada_incidente_la_recibe_una_sola_vez(): void

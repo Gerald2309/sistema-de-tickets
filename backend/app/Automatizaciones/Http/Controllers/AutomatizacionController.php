@@ -76,11 +76,13 @@ class AutomatizacionController extends Controller
      * Probar unos pasos con los incidentes recientes
      *
      * No cambia nada: dice por qué camino habría salido cada incidente creado en los últimos 30 días y cuántos
-     * habrían recibido acciones.
+     * habrían recibido acciones. Con un disparador por tiempo, también a cuántos les toca ahora mismo.
      */
     public function probar(ProbarAutomatizacionRequest $request, SimularAutomatizacion $simularAutomatizacion): JsonResponse
     {
-        return response()->json(['data' => $simularAutomatizacion->ejecutar($request->flujo(), Date::now()->toImmutable())]);
+        $disparo = $request->conDisparo() ? $request->disparo() : null;
+
+        return response()->json(['data' => $simularAutomatizacion->ejecutar($request->flujo(), Date::now()->toImmutable(), $disparo)]);
     }
 
     private function guardar(GuardarAutomatizacionRequest $request, GuardarAutomatizacion $guardarAutomatizacion, ?Automatizacion $automatizacion): Automatizacion

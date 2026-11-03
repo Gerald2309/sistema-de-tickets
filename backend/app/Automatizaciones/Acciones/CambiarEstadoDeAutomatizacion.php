@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\DB;
 // Enciende o apaga una automatización. Quien la enciende pasa a ser su autor: lo que haga queda a su nombre.
 class CambiarEstadoDeAutomatizacion
 {
-    public function __construct(private readonly RegistrarAuditoria $registrarAuditoria) {}
+    public function __construct(
+        private readonly RegistrarAuditoria $registrarAuditoria,
+        private readonly RevisarEnseguida $revisarEnseguida,
+    ) {}
 
     public function ejecutar(User $usuario, Automatizacion $automatizacion, bool $activa, ?string $ip): Automatizacion
     {
@@ -27,6 +30,7 @@ class CambiarEstadoDeAutomatizacion
             }
 
             $automatizacion->save();
+            $this->revisarEnseguida->ejecutar($automatizacion);
             $this->registrarAuditoria->ejecutar(
                 $activa ? AccionAuditoria::AutomatizacionActivada : AccionAuditoria::AutomatizacionDesactivada,
                 $usuario->id,

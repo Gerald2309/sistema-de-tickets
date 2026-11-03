@@ -5,7 +5,6 @@ namespace App\Automatizaciones\Consultas;
 use App\Automatizaciones\Dominio\Disparador;
 use App\Automatizaciones\Dominio\Disparo;
 use App\Automatizaciones\Dominio\PlazoDelSla;
-use App\Automatizaciones\Models\Automatizacion;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Vencimiento;
 use App\Incidentes\Models\Incidente;
@@ -21,17 +20,20 @@ class IncidentesPorDisparar
     /**
      * Los más antiguos primero, como máximo `$maximo`: los demás quedan para la próxima revisión.
      *
+     * @param  int|null  $automatizacionId  para dejar fuera los que ya la recibieron; null si aún no se guarda (una prueba)
      * @return list<int>
      */
-    public function ids(Automatizacion $automatizacion, CarbonImmutable $ahora, int $maximo): array
+    public function ids(Disparo $disparo, ?int $automatizacionId, CarbonImmutable $ahora, int $maximo): array
     {
         $consulta = Incidente::query()
             ->withoutEagerLoads()
-            ->whereNotExists(fn (QueryBuilder $ejecuciones) => $ejecuciones->from('ejecuciones_de_automatizacion')
-                ->whereColumn('ejecuciones_de_automatizacion.incidente_id', 'incidentes.id')
-                ->where('ejecuciones_de_automatizacion.automatizacion_id', $automatizacion->id));
+            ->when($automatizacionId !== null, fn (Builder $pendientes) => $pendientes->whereNotExists(
+                fn (QueryBuilder $ejecuciones) => $ejecuciones->from('ejecuciones_de_automatizacion')
+                    ->whereColumn('ejecuciones_de_automatizacion.incidente_id', 'incidentes.id')
+                    ->where('ejecuciones_de_automatizacion.automatizacion_id', $automatizacionId),
+            ));
 
-        $this->llegoElMomento($consulta, $automatizacion->disparo(), $ahora);
+        $this->llegoElMomento($consulta, $disparo, $ahora);
 
         /** @var list<int> */
         return $consulta->orderBy('incidentes.id')->limit($maximo)->pluck('incidentes.id')->all();

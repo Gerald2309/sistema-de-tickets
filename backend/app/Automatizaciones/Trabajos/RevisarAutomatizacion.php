@@ -35,7 +35,9 @@ class RevisarAutomatizacion implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        foreach ($incidentesPorDisparar->ids($automatizacion, Date::now()->toImmutable(), self::LOTE) as $incidenteId) {
+        $ids = $incidentesPorDisparar->ids($automatizacion->disparo(), $automatizacion->id, Date::now()->toImmutable(), self::LOTE);
+
+        foreach ($ids as $incidenteId) {
             $aplicarAutomatizaciones->aplicarA($automatizacion, $incidenteId);
         }
     }
