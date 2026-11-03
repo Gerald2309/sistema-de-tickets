@@ -4,12 +4,14 @@ namespace App\Providers;
 
 use App\Auditoria\Acciones\RegistrarAuditoria;
 use App\Auditoria\Dominio\AccionAuditoria;
+use App\Automatizaciones\Oyentes\AplicarAlCrearse;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Documentacion\SeccionesDeLaApi;
 use App\Http\Errores\DocumentarProblemas;
 use App\Incidentes\Acciones\AvisarCambios;
 use App\Incidentes\Consultas\CacheDelPanel;
 use App\Incidentes\Eventos\AcuerdoDeServicioCambiado;
+use App\Incidentes\Eventos\IncidenteCreado;
 use App\Incidentes\Eventos\IncidentesCambiados;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -82,6 +84,8 @@ class AppServiceProvider extends ServiceProvider
                 );
             }
         });
+        // Incidentes no conoce las automatizaciones: solo avisa que se creó uno.
+        Event::listen(IncidenteCreado::class, AplicarAlCrearse::class);
     }
 
     private function vigilarConsultasLentas(): void

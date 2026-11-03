@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property-read User $autor todo mensaje tiene autor (usuario_id no admite nulos)
  */
-#[Fillable(['incidente_id', 'usuario_id', 'cuerpo', 'interno', 'clave_de_idempotencia'])]
+#[Fillable(['incidente_id', 'usuario_id', 'origen', 'cuerpo', 'interno', 'clave_de_idempotencia'])]
 class MensajeIncidente extends Model
 {
     // Solo se inserta: un mensaje enviado no se modifica.

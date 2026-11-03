@@ -38,6 +38,17 @@ final readonly class Accion
         return new self($tipo, $datos);
     }
 
+    // Los datos ya tienen la clase que pide su tipo (DatoDeAccion): leerlos es solo nombrarlos.
+    public function entero(string $clave): int
+    {
+        return (int) $this->datos[$clave];
+    }
+
+    public function texto(string $clave): string
+    {
+        return (string) $this->datos[$clave];
+    }
+
     /**
      * @return array<string, int|string>
      */

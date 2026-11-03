@@ -8,6 +8,7 @@ use App\Incidentes\Dominio\EntradaHistorial;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Prioridad;
 use App\Incidentes\Dominio\TipoDeCambio;
+use App\Incidentes\Eventos\IncidenteCreado;
 use App\Incidentes\Models\Incidente;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Date;
@@ -57,6 +58,7 @@ class CrearIncidente
 
                 $this->registrarHistorial->ejecutar($incidente, $creador, [EntradaHistorial::creacion()]);
                 $this->avisarCambios->registrar($incidente, TipoDeCambio::Creado);
+                event(new IncidenteCreado($incidente->id));
 
                 // Se recarga para traer los valores por defecto de la base (prioridad y categoría), que viven solo allí.
                 return $incidente->refresh()->load(Incidente::RELACIONES_VISIBLES);

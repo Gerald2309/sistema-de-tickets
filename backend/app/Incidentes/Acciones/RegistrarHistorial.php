@@ -13,11 +13,13 @@ class RegistrarHistorial
 {
     /**
      * @param  list<EntradaHistorial>  $entradas
+     * @param  string|null  $origen  el proceso que hizo el cambio a nombre del autor (una automatización)
      */
-    public function ejecutar(Incidente $incidente, User $autor, array $entradas): void
+    public function ejecutar(Incidente $incidente, User $autor, array $entradas, ?string $origen = null): void
     {
         $incidente->historial()->createMany(array_map(fn (EntradaHistorial $entrada) => [
             'usuario_id' => $autor->id,
+            'origen' => $origen,
             'evento' => $entrada->evento,
             'campo' => $entrada->campo,
             'valor_anterior' => $entrada->valorAnterior,

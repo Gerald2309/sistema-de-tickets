@@ -22,13 +22,14 @@ class ActualizarIncidente
 
     /**
      * @param  array<string, mixed>  $datos  ya validados y con el permiso de cada campo comprobado
+     * @param  string|null  $origen  el proceso que hace el cambio a nombre del autor (una automatización)
      *
      * @throws TransicionInvalida si el estado nuevo no es un paso permitido del ciclo de vida.
      * @throws ValidationException si se resuelve sin indicar la solución.
      */
-    public function ejecutar(User $autor, Incidente $incidente, array $datos): Incidente
+    public function ejecutar(User $autor, Incidente $incidente, array $datos, ?string $origen = null): Incidente
     {
-        return DB::transaction(function () use ($autor, $incidente, $datos) {
+        return DB::transaction(function () use ($autor, $incidente, $datos, $origen) {
             // Se relee con bloqueo: dos cambios de estado simultáneos no pueden validarse contra el mismo estado.
             $actual = Incidente::lockForUpdate()->findOrFail($incidente->id);
             $antes = $this->valoresVigilados($actual);
@@ -46,6 +47,7 @@ class ActualizarIncidente
                     $actual,
                     $autor,
                     CambiosVigilados::modificaciones($antes, $this->valoresVigilados($actual)),
+                    $origen,
                 );
                 // Quien deja de estar asignado también se entera: el incidente sale de su lista.
                 $this->avisarCambios->registrar($actual, TipoDeCambio::Actualizado, $asignadoAnterior);

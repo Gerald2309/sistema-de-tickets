@@ -29,11 +29,19 @@ class EscribirMensaje
      * (`wasRecentlyCreated` dice cuál de los dos casos fue).
      *
      * @param  list<UploadedFile>  $imagenes  ya validadas
+     * @param  string|null  $origen  el proceso que escribe a nombre del autor (una automatización)
      *
      * @throws ConversacionCerrada si el incidente está cerrado.
      */
-    public function ejecutar(User $autor, Incidente $incidente, ?string $cuerpo, bool $interno, array $imagenes, ?string $claveDeIdempotencia = null): MensajeIncidente
-    {
+    public function ejecutar(
+        User $autor,
+        Incidente $incidente,
+        ?string $cuerpo,
+        bool $interno,
+        array $imagenes,
+        ?string $claveDeIdempotencia = null,
+        ?string $origen = null,
+    ): MensajeIncidente {
         $previo = $this->yaEscrito($autor, $incidente, $claveDeIdempotencia);
         if ($previo !== null) {
             return $previo;
@@ -46,9 +54,10 @@ class EscribirMensaje
         $guardadas = [];
 
         try {
-            return DB::transaction(function () use ($autor, $incidente, $cuerpo, $interno, $imagenes, $claveDeIdempotencia, &$guardadas) {
+            return DB::transaction(function () use ($autor, $incidente, $cuerpo, $interno, $imagenes, $claveDeIdempotencia, $origen, &$guardadas) {
                 $mensaje = $incidente->mensajes()->create([
                     'usuario_id' => $autor->id,
+                    'origen' => $origen,
                     'cuerpo' => $cuerpo,
                     'interno' => $interno,
                     'clave_de_idempotencia' => $claveDeIdempotencia,

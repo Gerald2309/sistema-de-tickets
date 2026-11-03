@@ -15,8 +15,6 @@ final readonly class PlazosDeServicio
         'baja' => ['respuesta_minutos' => 480, 'resolucion_minutos' => 4320],
     ];
 
-    private const NOMBRES = ['critica' => 'crítica', 'alta' => 'alta', 'media' => 'media', 'baja' => 'baja'];
-
     /**
      * @param  array<string, array{respuesta_minutos: int, resolucion_minutos: int}>  $plazos  una entrada por prioridad
      */
@@ -61,7 +59,7 @@ final readonly class PlazosDeServicio
             $antes = $this->plazos[$prioridad->value];
             $despues = $nuevo->plazos[$prioridad->value];
             if ($antes != $despues) {
-                $cambios[] = 'prioridad '.self::NOMBRES[$prioridad->value].': '
+                $cambios[] = 'prioridad '.$prioridad->nombre().': '
                     .'respuesta '.self::duracion($antes['respuesta_minutos']).' → '.self::duracion($despues['respuesta_minutos'])
                     .', resolución '.self::duracion($antes['resolucion_minutos']).' → '.self::duracion($despues['resolucion_minutos']);
             }

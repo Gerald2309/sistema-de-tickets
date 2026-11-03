@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read User $autor todo cambio tiene autor (usuario_id no admite nulos)
  */
-#[Fillable(['incidente_id', 'usuario_id', 'evento', 'campo', 'valor_anterior', 'valor_nuevo'])]
+#[Fillable(['incidente_id', 'usuario_id', 'origen', 'evento', 'campo', 'valor_anterior', 'valor_nuevo'])]
 class HistorialIncidente extends Model
 {
     // Solo se inserta: la fila nunca se modifica.
