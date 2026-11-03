@@ -4,6 +4,7 @@ import ControlSegmentado from '@/compartido/componentes/ControlSegmentado.vue'
 import PlanoTecnico from './PlanoTecnico.vue'
 import RecorridoPorPasos from './RecorridoPorPasos.vue'
 import ReferenciaDeApi from './ReferenciaDeApi.vue'
+import SimuladorDePermisos from './SimuladorDePermisos.vue'
 import SimuladorDeRegla from './SimuladorDeRegla.vue'
 import TextoTecnico from './TextoTecnico.vue'
 
@@ -67,6 +68,8 @@ const opciones = computed(() => {
   />
 
   <SimuladorDeRegla v-else-if="bloque.tipo === 'simulador'" />
+
+  <SimuladorDePermisos v-else-if="bloque.tipo === 'permisos'" />
 
   <ReferenciaDeApi v-else-if="bloque.tipo === 'api'" />
 </template>

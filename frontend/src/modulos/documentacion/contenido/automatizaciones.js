@@ -553,7 +553,7 @@ export const automatizaciones = {
             ],
             [
               'Estado',
-              'useAutomatizaciones y useEditorDeAutomatizacion, con vue-query y claves propias en `api/claves.js`.',
+              'useAutomatizaciones y useEditorDeAutomatizacion, con vue-query y claves propias en `frontend/src/modulos/automatizaciones/api/claves.js`.',
             ],
           ],
         },

@@ -44,7 +44,7 @@ export const calidad = {
             ],
             [
               'Frontend',
-              '228 pruebas en 46 archivos: lógica pura y vistas montadas con la aplicación real y la API simulada con MSW.',
+              '238 pruebas en 48 archivos: lógica pura y vistas montadas con la aplicación real y la API simulada con MSW.',
             ],
             ['Punta a punta', '18 recorridos en 7 archivos, en tres navegadores.'],
           ],

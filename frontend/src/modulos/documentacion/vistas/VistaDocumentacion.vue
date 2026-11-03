@@ -85,7 +85,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', alPulsarTecla))
       <main v-if="actual" id="contenido" class="contenido">
         <div class="migas">
           Documentación ·
-          {{ { aplicacion: 'Mesa de ayuda', administracion: 'Administración', tecnico: 'Técnico' }[actual.grupo] }}
+          {{
+            { inicio: 'Inicio', aplicacion: 'Mesa de ayuda', administracion: 'Administración', tecnico: 'Técnico' }[
+              actual.grupo
+            ]
+          }}
         </div>
         <h1 class="titulo-pagina">{{ actual.titulo }}</h1>
         <p class="entradilla"><TextoTecnico :texto="actual.entradilla" /></p>

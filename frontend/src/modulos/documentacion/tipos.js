@@ -69,6 +69,7 @@
  *   | { tipo: 'focos', plano: Plano, focos: Foco[] }
  *   | { tipo: 'recorrido', plano: Plano, pasos: Paso[] }
  *   | { tipo: 'simulador' }
+ *   | { tipo: 'permisos' }
  *   | { tipo: 'api' }} Bloque
  */
 
@@ -84,7 +85,7 @@
  * @property {string} id el segmento de la dirección: /documentacion/{id}
  * @property {string} titulo
  * @property {string} [enMenu] un nombre más corto para el menú
- * @property {'aplicacion' | 'administracion' | 'tecnico'} grupo
+ * @property {'inicio' | 'aplicacion' | 'administracion' | 'tecnico'} grupo
  * @property {string} icono
  * @property {string} entradilla
  * @property {Seccion[]} secciones

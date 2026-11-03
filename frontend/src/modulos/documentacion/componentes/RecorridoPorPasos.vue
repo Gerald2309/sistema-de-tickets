@@ -2,6 +2,8 @@
 import { computed, ref, watch } from 'vue'
 import PlanoTecnico from './PlanoTecnico.vue'
 import TextoTecnico from './TextoTecnico.vue'
+import { iconos } from '@/compartido/iconos.js'
+import { enlaceAlCodigo } from '../repositorio.js'
 
 /**
  * Un recorrido sobre un plano: cada paso ilumina sus cajas y flechas y muestra el archivo, la explicación y el
@@ -34,7 +36,16 @@ watch(
       <section class="detalle" aria-live="polite">
         <h3 class="detalle__titulo">{{ actual + 1 }} · {{ paso.titulo }}</h3>
         <p class="detalle__texto"><TextoTecnico :texto="paso.texto" /></p>
-        <p class="detalle__archivo">{{ paso.archivo }}</p>
+        <p class="detalle__archivo">
+          <a
+            v-if="enlaceAlCodigo(paso.archivo)"
+            :href="enlaceAlCodigo(paso.archivo) ?? undefined"
+            target="_blank"
+            rel="noopener"
+            >{{ paso.archivo }} <v-icon :icon="iconos.abrirAparte" size="12"
+          /></a>
+          <template v-else>{{ paso.archivo }}</template>
+        </p>
         <pre v-if="paso.codigo" class="detalle__codigo">{{ paso.codigo }}</pre>
         <div class="detalle__navegar">
           <span class="detalle__contador num">{{ actual + 1 }} / {{ pasos.length }}</span>
@@ -95,6 +106,11 @@ watch(
   color: var(--tenue);
   font: 11.5px var(--mono);
   overflow-wrap: anywhere;
+}
+
+.detalle__archivo a {
+  color: var(--acento);
+  text-decoration: none;
 }
 
 .detalle__codigo {

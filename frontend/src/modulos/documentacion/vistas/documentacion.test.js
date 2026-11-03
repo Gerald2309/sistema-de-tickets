@@ -9,14 +9,14 @@ describe('documentación técnica', { timeout: 20_000 }, () => {
     document.body.innerHTML = ''
   })
 
-  it('se abre sin sesión y sin pedirla, en la página de arquitectura', async () => {
+  it('se abre sin sesión y sin pedirla, en la guía para revisar', async () => {
     montada = await montarAplicacion('/documentacion')
 
-    await vi.waitFor(() => expect(montada?.router.currentRoute.value.params.pagina).toBe('arquitectura'))
-    await vi.waitFor(() => expect(montada?.envoltorio.text()).toContain('Planos C4'))
+    await vi.waitFor(() => expect(montada?.router.currentRoute.value.params.pagina).toBe('revisar'))
+    await vi.waitFor(() => expect(montada?.envoltorio.text()).toContain('Ruta de 10 minutos'))
     expect(montada.router.currentRoute.value.name).toBe('documentacion')
     expect(montada.envoltorio.text()).toContain('Mesa de ayuda · Documentación técnica')
-    expect(montada.envoltorio.find('[aria-label="Plano A-01: Contexto"]').exists()).toBe(true)
+    expect(montada.envoltorio.find('a[href$="backend/tests/Unit/ArquitecturaTest.php"]').exists()).toBe(true)
   })
 
   it('cambia el nivel del plano C4', async () => {

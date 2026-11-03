@@ -12,6 +12,7 @@ import { incidentes } from './incidentes.js'
 import { instalacion } from './instalacion.js'
 import { auditoria, empresas, miDia, panel, roles, usuarios } from './pantallas.js'
 import { recorrido } from './recorrido.js'
+import { revisar } from './revisar.js'
 import { seguridad } from './seguridad.js'
 import { tiempoReal } from './tiempo-real.js'
 
@@ -20,6 +21,7 @@ import { tiempoReal } from './tiempo-real.js'
  * @type {import('../tipos.js').Pagina[]}
  */
 export const PAGINAS = [
+  revisar,
   panel,
   miDia,
   incidentes,
@@ -43,12 +45,13 @@ export const PAGINAS = [
   api,
 ]
 
-/** Grupos del menú, en orden; el de la aplicación no lleva rótulo, como en el menú de la mesa de ayuda. */
+/** Grupos del menú, en orden; el de entrada no lleva rótulo, como en el menú de la mesa de ayuda. */
 export const GRUPOS = /** @type {const} */ ([
-  { id: 'aplicacion', titulo: '' },
+  { id: 'inicio', titulo: '' },
+  { id: 'aplicacion', titulo: 'Mesa de ayuda' },
   { id: 'administracion', titulo: 'Administración' },
   { id: 'tecnico', titulo: 'Técnico' },
 ])
 
-/** Página de entrada: la arquitectura general. */
-export const PAGINA_INICIAL = arquitectura.id
+/** Página de entrada: la guía para quien revisa el proyecto. */
+export const PAGINA_INICIAL = revisar.id

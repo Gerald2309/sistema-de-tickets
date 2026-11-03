@@ -214,7 +214,7 @@ export const arquitectura = {
             {
               etiqueta: '3 · Componentes',
               plano: componentes,
-              nota: 'Los cuatro módulos del backend y en qué sentido pueden depender. Lo vigila `tests/Unit/ArquitecturaTest.php`: una flecha al revés hace fallar la CI.',
+              nota: 'Los cuatro módulos del backend y en qué sentido pueden depender. Lo vigila `backend/tests/Unit/ArquitecturaTest.php`: una flecha al revés hace fallar la CI.',
             },
           ],
         },

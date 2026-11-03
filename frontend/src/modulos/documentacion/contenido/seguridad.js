@@ -10,6 +10,18 @@ export const seguridad = {
     'Amenazas y controles según STRIDE, con la prueba que vigila cada uno. La autorización real la aplica siempre la API; la interfaz solo la refleja. Resumen de `docs/modelo-de-amenazas.md`.',
   secciones: [
     {
+      titulo: 'Simulador de permisos',
+      extra: 'misma regla que AlcanceIncidentes e IncidentePolicy',
+      bloques: [
+        { tipo: 'permisos' },
+        {
+          tipo: 'nota',
+          texto:
+            'Cuatro capas, en orden: autenticación (401), ruta y política (404 si no lo ve, 403 si lo ve pero no puede), permiso por campo (403) y el caso de uso (409 si otra persona lo tomó primero). Cada capa enlaza a su código.',
+        },
+      ],
+    },
+    {
       titulo: 'Roles y permisos',
       extra: 'permiso_rol de los datos de ejemplo',
       bloques: [

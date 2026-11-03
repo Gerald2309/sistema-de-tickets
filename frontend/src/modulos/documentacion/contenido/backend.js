@@ -113,7 +113,7 @@ export const backend = {
         {
           tipo: 'nota',
           texto:
-            'Regla vigilada: ningún archivo de `app/*/Dominio` puede importar `Illuminate` ni `App\\*\\Models` (`tests/Unit/ArquitecturaTest.php`).',
+            'Regla vigilada: ningún archivo de `app/*/Dominio` puede importar `Illuminate` ni `App\\*\\Models` (`backend/tests/Unit/ArquitecturaTest.php`).',
         },
       ],
     },
