@@ -9,10 +9,10 @@ import { despliegue } from './despliegue.js'
 import { frontend } from './frontend.js'
 import { glosario } from './glosario.js'
 import { incidentes } from './incidentes.js'
+import { inicio } from './inicio.js'
 import { instalacion } from './instalacion.js'
 import { auditoria, empresas, miDia, panel, roles, usuarios } from './pantallas.js'
 import { recorrido } from './recorrido.js'
-import { revisar } from './revisar.js'
 import { seguridad } from './seguridad.js'
 import { tiempoReal } from './tiempo-real.js'
 
@@ -21,7 +21,7 @@ import { tiempoReal } from './tiempo-real.js'
  * @type {import('../tipos.js').Pagina[]}
  */
 export const PAGINAS = [
-  revisar,
+  inicio,
   panel,
   miDia,
   incidentes,
@@ -53,5 +53,5 @@ export const GRUPOS = /** @type {const} */ ([
   { id: 'tecnico', titulo: 'Técnico' },
 ])
 
-/** Página de entrada: la guía para quien revisa el proyecto. */
-export const PAGINA_INICIAL = revisar.id
+/** Página de entrada: qué es el sistema y qué hay en cada sección. */
+export const PAGINA_INICIAL = inicio.id
