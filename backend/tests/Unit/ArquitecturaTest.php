@@ -13,9 +13,10 @@ class ArquitecturaTest extends TestCase
 {
     // Módulo => módulos de los que no puede depender.
     private const PROHIBIDO = [
-        'Auditoria' => ['Identidad', 'Incidentes'],
-        'Identidad' => ['Incidentes'],
-        'Incidentes' => ['Auditoria'],
+        'Auditoria' => ['Identidad', 'Incidentes', 'Automatizaciones'],
+        'Identidad' => ['Incidentes', 'Automatizaciones'],
+        'Incidentes' => ['Auditoria', 'Automatizaciones'],
+        'Automatizaciones' => ['Auditoria'],
     ];
 
     public function test_el_dominio_de_cada_modulo_no_depende_de_laravel_ni_de_los_modelos(): void
