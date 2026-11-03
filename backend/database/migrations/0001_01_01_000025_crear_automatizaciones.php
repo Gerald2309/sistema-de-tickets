@@ -1,6 +1,7 @@
 <?php
 
 use App\Automatizaciones\Dominio\Disparador;
+use App\Automatizaciones\Dominio\PlazoDelSla;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,6 +17,10 @@ return new class extends Migration
             $table->string('nombre', 120);
             $table->boolean('activa')->default(false);
             $table->enum('disparador', Disparador::cases());
+            // La medida del disparador; solo se llena la que ese disparador usa (Disparo).
+            $table->unsignedInteger('espera_minutos')->nullable();
+            $table->unsignedTinyInteger('porcentaje')->nullable();
+            $table->enum('plazo', PlazoDelSla::cases())->nullable();
             $table->json('pasos');
             // Quien la creó o la editó por última vez.
             $table->foreignId('autor_id')->constrained('users')->restrictOnDelete();

@@ -25,8 +25,13 @@ class AplicarAutomatizaciones
         $automatizaciones = Automatizacion::query()->activasPara($disparador)->with('autor')->get();
 
         foreach ($automatizaciones as $automatizacion) {
-            DB::transaction(fn () => $this->aplicar($automatizacion, $incidenteId));
+            $this->aplicarA($automatizacion, $incidenteId);
         }
+    }
+
+    public function aplicarA(Automatizacion $automatizacion, int $incidenteId): void
+    {
+        DB::transaction(fn () => $this->aplicar($automatizacion, $incidenteId));
     }
 
     private function aplicar(Automatizacion $automatizacion, int $incidenteId): void
