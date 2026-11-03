@@ -2,7 +2,7 @@ import { watch } from 'vue'
 import { http } from '@/compartido/api/cliente.js'
 import { tiempoReal } from '@/compartido/tiempo-real.js'
 import { crearAgrupador } from '@/compartido/utilidades/agrupador.js'
-import { useSesion } from '@/modulos/identidad/index.js'
+import { invalidarAvisosPersonales, useSesion } from '@/modulos/identidad/index.js'
 import { invalidarIncidentes } from '@/modulos/incidentes/index.js'
 
 /**
@@ -81,14 +81,20 @@ export async function conectarTiempoReal({ queryClient, alTerminarLaSesion }) {
     })
     echo.connector.pusher.connection.bind('state_change', (/** @type {{ current: string }} */ { current }) => {
       const conectado = current === 'connected'
-      // Al reconectar pudieron perderse avisos: se refresca todo lo de incidentes una vez.
+      // Al reconectar pudieron perderse avisos: se refresca todo lo de incidentes y la campanita una vez.
       if (conectado && estuvoConectado && !tiempoReal.conectado) {
         invalidarIncidentes(queryClient)
+        invalidarAvisosPersonales(queryClient)
       }
       estuvoConectado ||= conectado
       tiempoReal.conectado = conectado
     })
-    echo.private(veTodo ? 'incidentes' : `usuario.${id}`).listen('.incidentes.cambiados', alAvisar)
+    // El canal propio trae siempre los avisos de la campanita; los cambios de incidentes llegan por él o, a
+    // quien ve todo, por el canal general.
+    const canalPropio = echo.private(`usuario.${id}`)
+    const canalDeIncidentes = veTodo ? echo.private('incidentes') : canalPropio
+    canalPropio.listen('.aviso.nuevo', () => invalidarAvisosPersonales(queryClient))
+    canalDeIncidentes.listen('.incidentes.cambiados', alAvisar)
   }
 
   watch(

@@ -69,6 +69,7 @@ class DatosDemoSeeder extends Seeder
         }
 
         $this->reportesDeUnaCaidaDeRed($solicitantes);
+        $this->call(AutomatizacionesDeEjemploSeeder::class);
     }
 
     /**

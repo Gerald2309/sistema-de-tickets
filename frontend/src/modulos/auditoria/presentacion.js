@@ -22,6 +22,11 @@ export const ACCIONES = Object.freeze({
   cliente_creado: { nombre: 'Empresa creada', icono: iconos.empresaCreada },
   cliente_modificado: { nombre: 'Empresa modificada', icono: iconos.empresaModificada },
   acuerdo_de_servicio_modificado: { nombre: 'SLA modificado', icono: iconos.acuerdoModificado },
+  automatizacion_creada: { nombre: 'Automatización creada', icono: iconos.automatizacionCreada },
+  automatizacion_modificada: { nombre: 'Automatización modificada', icono: iconos.automatizacionModificada },
+  automatizacion_activada: { nombre: 'Automatización encendida', icono: iconos.automatizacionActivada },
+  automatizacion_desactivada: { nombre: 'Automatización apagada', icono: iconos.automatizacionDesactivada },
+  automatizacion_eliminada: { nombre: 'Automatización eliminada', icono: iconos.automatizacionEliminada },
   alerta_de_seguridad: { nombre: 'Alerta de seguridad', icono: iconos.alertaDeSeguridad, alerta: true },
 })
 

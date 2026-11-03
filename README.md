@@ -88,10 +88,10 @@ docker compose exec app php artisan migrate:fresh --seed
 
 | Seeder | Qué crea |
 |---|---|
-| `PermisosSeeder` | El catálogo fijo de 13 permisos |
+| `PermisosSeeder` | El catálogo fijo de 14 permisos |
 | `RolesSeeder` | Los roles Administrador, Soporte N1, N2 y N3, y Solicitante, con sus permisos |
 | `AdministradorSeeder` | El primer administrador, con `ADMIN_*` |
-| `DatosDemoSeeder` | Fuera de producción: 5 empresas cliente, usuarios de cada perfil, 750 incidentes en todos los estados con su historial, y la auditoría de las altas |
+| `DatosDemoSeeder` | Fuera de producción: 5 empresas cliente, usuarios de cada perfil, 750 incidentes en todos los estados con su historial, la auditoría de las altas y 3 automatizaciones de ejemplo apagadas (`AutomatizacionesDeEjemploSeeder`) |
 
 Aparte, para medir el rendimiento sobre una base vacía:
 
@@ -106,7 +106,7 @@ Todas las cuentas usan la contraseña de demostración **`Psicol-Mesa-De-Ayuda-2
 
 | Perfil | Correo | Qué puede hacer |
 |---|---|---|
-| Administrador | `admin@empresa-ejemplo.com` | Todo: incidentes, usuarios, empresas, roles y permisos, auditoría |
+| Administrador | `admin@empresa-ejemplo.com` | Todo: incidentes, usuarios, empresas, roles y permisos, automatizaciones, auditoría |
 | Soporte N1 | `cristina.guillen@empresa-ejemplo.com` | Ve todos los incidentes, toma uno libre y lo trabaja; tiene «Mi día» |
 | Soporte N2 | `diego.betancourt@empresa-ejemplo.com` | Igual que N1, para el segundo nivel |
 | Soporte N3 | `valentina.ojeda@empresa-ejemplo.com` | Igual que N1, para el tercer nivel |
@@ -117,3 +117,15 @@ El resto de usuarios de la demostración tiene contraseñas aleatorias.
 Una persona que cree un administrador, o a la que le restablezca la contraseña, debe elegir la suya al entrar:
 hasta entonces la aplicación solo le muestra ese cambio. En «Mi cuenta» cada persona ve su ingreso anterior y sus
 sesiones abiertas, y puede cerrar las que no reconozca.
+
+## Automatizaciones
+
+En «Administración → Automatizaciones» se arman reglas como un flujo: **cuándo** (al crearse un incidente, SLA por
+vencer o vencido, sin respuesta o resuelto sin confirmar por un tiempo), **si** (empresa, categoría, prioridad o
+palabras; cada condición abre un camino Sí y uno No, hasta 3 seguidas) y **entonces** (asignar, responder con
+variables como `{nombre}` o `{número}`, avisar en la campanita, cambiar prioridad o categoría, nota interna, cerrar).
+«Probar» muestra qué habría hecho con los incidentes de los últimos 30 días sin cambiar nada.
+
+Lo que hace una regla queda a nombre de quien la guardó, con el nombre de la regla como origen en el historial;
+cada regla se aplica una sola vez por incidente. Las de tiempo las revisa el programador cada cinco minutos y el
+trabajo lo hace la cola. Crear, editar, encender, apagar y eliminar queda en la auditoría.

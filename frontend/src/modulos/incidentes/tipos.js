@@ -75,6 +75,7 @@
  * @property {string | null} valorAnterior
  * @property {string | null} valorNuevo
  * @property {Referencia} autor
+ * @property {string | null} origen la automatización que hizo el cambio a nombre del autor; solo la ve soporte
  * @property {string} creadoEn
  */
 
@@ -92,6 +93,7 @@
  * @property {string | null} cuerpo falta si el mensaje es solo imágenes
  * @property {boolean} interno nota interna: solo la ve soporte
  * @property {Referencia} autor
+ * @property {string | null} origen la automatización que lo escribió a nombre del autor; solo la ve soporte
  * @property {Adjunto[]} adjuntos
  * @property {string} creadoEn
  */

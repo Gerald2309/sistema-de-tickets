@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { navegacion as navegacionAuditoria, rutas as rutasAuditoria } from '@/modulos/auditoria/index.js'
 import {
+  navegacion as navegacionAutomatizaciones,
+  rutas as rutasAutomatizaciones,
+} from '@/modulos/automatizaciones/index.js'
+import {
   navegacion as navegacionIdentidad,
   rutas as rutasIdentidad,
   rutasPublicas,
@@ -20,7 +24,12 @@ const NOMBRE_PRODUCTO = 'Psicol – Mesa de ayuda'
  * Entradas del menú de todos los módulos, en orden. El menú y la ruta inicial salen de aquí.
  * @type {import('@/modulos/identidad/index.js').EntradaDeNavegacion[]}
  */
-export const navegacion = [...navegacionIncidentes, ...navegacionIdentidad, ...navegacionAuditoria]
+export const navegacion = [
+  ...navegacionIncidentes,
+  ...navegacionIdentidad,
+  ...navegacionAutomatizaciones,
+  ...navegacionAuditoria,
+]
 
 /**
  * Rutas de la aplicación: las públicas y, dentro de la estructura con barra y menú, las de cada módulo.
@@ -41,6 +50,7 @@ export const rutas = [
       },
       ...rutasIncidentes,
       ...rutasIdentidad,
+      ...rutasAutomatizaciones,
       ...rutasAuditoria,
       {
         path: 'sin-permiso',

@@ -30,7 +30,9 @@ const lineas = computed(() =>
     .map((entrada) => ({
       ...describirEntrada(entrada, personas.nombreDe),
       id: entrada.id,
-      autor: entrada.autor.nombre,
+      autor: entrada.origen
+        ? `${entrada.autor.nombre}, por la automatización «${entrada.origen}»`
+        : entrada.autor.nombre,
       cuando: fechaHora(entrada.creadoEn),
     })),
 )

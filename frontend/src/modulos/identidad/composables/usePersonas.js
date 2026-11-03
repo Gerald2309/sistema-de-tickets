@@ -15,7 +15,13 @@ export function useBuscadorDePersonas(opciones = {}) {
   const sesion = useSesion()
   const texto = ref('')
   const permitido = computed(() =>
-    sesion.tieneAlguno('reasignar', 'ver_todos', 'ver_auditoria', 'administrar_usuarios'),
+    sesion.tieneAlguno(
+      'reasignar',
+      'ver_todos',
+      'ver_auditoria',
+      'administrar_usuarios',
+      'administrar_automatizaciones',
+    ),
   )
 
   const coincidencias = useQuery({
@@ -87,10 +93,12 @@ export function agruparPorRol(personas) {
   ])
 }
 
-/** Empresas cliente activas, para filtros (G-03). */
+/** Empresas cliente activas, para filtros (G-03) y condiciones de las automatizaciones. */
 export function useEmpresas() {
   const sesion = useSesion()
-  const permitido = computed(() => sesion.tieneAlguno('administrar_usuarios', 'ver_todos'))
+  const permitido = computed(() =>
+    sesion.tieneAlguno('administrar_usuarios', 'ver_todos', 'administrar_automatizaciones'),
+  )
   const consulta = useQuery({
     queryKey: clavesDeIdentidad.listaDeClientes({ activo: true }),
     queryFn: ({ signal }) => listarClientes({ activo: true }, signal),

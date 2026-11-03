@@ -117,6 +117,7 @@ export function aEntradaHistorial(dto) {
     valorAnterior: dto.valor_anterior ?? null,
     valorNuevo: dto.valor_nuevo ?? null,
     autor: referenciaObligatoria(dto.autor),
+    origen: dto.origen ?? null,
     creadoEn: dto.created_at,
   }
 }
@@ -131,6 +132,7 @@ export function aMensaje(dto) {
     cuerpo: dto.cuerpo ?? null,
     interno: Boolean(dto.interno),
     autor: referenciaObligatoria(dto.autor),
+    origen: dto.origen ?? null,
     adjuntos: (dto.adjuntos ?? []).map((/** @type {any} */ adjunto) => ({
       id: adjunto.id,
       nombre: adjunto.nombre,

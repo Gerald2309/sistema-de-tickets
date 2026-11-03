@@ -20,6 +20,9 @@ export { rutas, rutasPublicas } from './rutas.js'
 export { useSesion } from './tienda/sesion.js'
 export { clavesDeIdentidad } from './api/claves.js'
 export { agruparPorRol, useBuscadorDePersonas, useEmpresas } from './composables/usePersonas.js'
+export { useRoles } from './composables/useUsuarios.js'
+export { invalidarAvisosPersonales } from './composables/useAvisosPersonales.js'
+export { default as CampanitaDeAvisos } from './componentes/CampanitaDeAvisos.vue'
 
 /** @type {EntradaDeNavegacion[]} */
 export const navegacion = [

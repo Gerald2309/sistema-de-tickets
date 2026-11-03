@@ -4,10 +4,16 @@ import { describe, expect, it } from 'vitest'
 
 // Reglas de dependencia del frontend (arquitectura.md §3.3), como ArquitecturaTest del backend:
 //   nucleo → modulos → compartido; un módulo solo usa otro por su index.js; incidentes y auditoria pueden
-//   usar identidad; identidad no usa a nadie; compartido no usa nada de la aplicación; solo api/ usa HTTP.
+//   usar identidad; automatizaciones, identidad e incidentes; identidad no usa a nadie; compartido no usa nada
+//   de la aplicación; solo api/ usa HTTP.
 
 const RAIZ = join(import.meta.dirname, '..', '..', 'src')
-const PUEDE_USAR = { incidentes: ['identidad'], auditoria: ['identidad'], identidad: [] }
+const PUEDE_USAR = {
+  incidentes: ['identidad'],
+  auditoria: ['identidad'],
+  automatizaciones: ['identidad', 'incidentes'],
+  identidad: [],
+}
 
 /** @returns {string[]} archivos de código de src/, sin pruebas */
 function archivos(carpeta = RAIZ) {

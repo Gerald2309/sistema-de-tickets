@@ -41,7 +41,7 @@ export function filtrosDeUsuarios(consulta) {
   })
 }
 
-/** Roles para filtros y selectores: quien administra usuarios los consulta para asignarlos. */
+/** Roles para filtros y selectores: para asignarlos a usuarios o para avisar a un rol desde una automatización. */
 export function useRoles() {
   return useQuery({
     queryKey: clavesDeIdentidad.roles(),

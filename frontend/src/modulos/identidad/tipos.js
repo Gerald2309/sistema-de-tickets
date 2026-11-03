@@ -8,7 +8,7 @@
  * escrito en una vista o una ruta falla en `npm run tipos` en lugar de ocultar el botón en silencio.
  * @typedef {'crear_incidente' | 'ver_propios' | 'editar_propios' | 'ver_todos' | 'editar_todos' | 'cambiar_estado'
  *   | 'reasignar' | 'borrar' | 'ver_historial' | 'ver_dashboard' | 'administrar_roles' | 'administrar_usuarios'
- *   | 'ver_auditoria'} Permiso
+ *   | 'ver_auditoria' | 'administrar_automatizaciones'} Permiso
  */
 
 /**

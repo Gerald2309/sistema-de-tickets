@@ -103,6 +103,17 @@ class AplicarAlCrearseTest extends TestCase
             ->assertJsonPath('data.0.origen', self::NOMBRE);
     }
 
+    public function test_quien_reporta_no_ve_el_nombre_interno_de_la_automatizacion(): void
+    {
+        $this->automatizacion([self::responder('Recibido.')]);
+        $incidente = $this->crearIncidente();
+
+        $this->conToken($this->iniciarSesion($this->solicitante))->getJson("/api/v1/incidentes/{$incidente->id}/mensajes")
+            ->assertOk()
+            ->assertJsonPath('data.0.cuerpo', 'Recibido.')
+            ->assertJsonMissingPath('data.0.origen');
+    }
+
     public function test_si_no_cumple_la_condicion_sigue_el_camino_no(): void
     {
         $this->automatizacion([self::condicion('categoria', ['red'], si: [self::asignar($this->diego->id)], no: [

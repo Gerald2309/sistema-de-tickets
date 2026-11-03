@@ -128,6 +128,9 @@ function alPegar(evento) {
               <span v-if="mensaje.interno" class="mensaje__etiqueta">
                 <v-icon :icon="iconos.notaInterna" size="14" />Nota interna
               </span>
+              <span v-if="mensaje.origen" class="mensaje__etiqueta">
+                <v-icon :icon="iconos.automatizaciones" size="14" />Por la automatización «{{ mensaje.origen }}»
+              </span>
             </div>
             <p v-if="mensaje.cuerpo" class="mensaje__cuerpo">{{ mensaje.cuerpo }}</p>
             <div v-if="mensaje.adjuntos.length" class="mensaje__adjuntos">

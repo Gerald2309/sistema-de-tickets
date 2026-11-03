@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { iconos } from '@/compartido/iconos.js'
 import logoPsicol from '@/compartido/recursos/psicol-logo.png'
-import { useSesion } from '@/modulos/identidad/index.js'
+import { CampanitaDeAvisos, useSesion } from '@/modulos/identidad/index.js'
 
 defineProps({ menuPermanente: { type: Boolean, default: false } })
 defineEmits(['alternar-menu', 'abrir-paleta'])
@@ -40,6 +40,7 @@ const atajo = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
       <kbd>{{ atajo }}</kbd>
     </button>
     <v-spacer />
+    <CampanitaDeAvisos />
     <v-menu location="bottom end">
       <template #activator="{ props }">
         <!-- El nombre accesible contiene el texto visible (WCAG 2.5.3); las iniciales son decorativas. -->

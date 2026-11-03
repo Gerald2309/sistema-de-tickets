@@ -53,6 +53,11 @@ export const GRUPOS_DE_PERMISOS = Object.freeze([
         descripcion: 'Crear, renombrar y eliminar roles y fijar sus permisos.',
       },
       { clave: 'ver_auditoria', nombre: 'Ver la auditoría', descripcion: 'El registro de acciones de administración.' },
+      {
+        clave: 'administrar_automatizaciones',
+        nombre: 'Administrar automatizaciones',
+        descripcion: 'Crear y editar reglas que actúan sobre los incidentes a su nombre.',
+      },
     ],
   },
 ])
