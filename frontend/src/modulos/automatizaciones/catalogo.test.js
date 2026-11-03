@@ -6,6 +6,7 @@ import {
   disparoInicial,
   fraseDeLaAutomatizacion,
   nuevoPaso,
+  operadoresDe,
   textoDelPaso,
   vistaPrevia,
 } from './catalogo.js'
@@ -26,7 +27,7 @@ describe('catálogo de automatizaciones', () => {
 
   it('cada disparador empieza con su medida y se describe con ella', () => {
     expect(describirDisparo(disparoInicial('sin_respuesta'))).toBe('Sin respuesta de soporte por 4 horas')
-    expect(describirDisparo(disparoInicial('sla_por_vencer'))).toBe('Al 80 % del plazo de respuesta')
+    expect(describirDisparo(disparoInicial('sla_por_vencer'))).toBe('Al 80 % del plazo de respuesta o más')
     expect(disparoInicial('creacion')).toEqual({
       disparador: 'creacion',
       espera_minutos: null,
@@ -38,11 +39,28 @@ describe('catálogo de automatizaciones', () => {
   it('una condición se lee con los nombres de lo elegido', () => {
     const empresa = { ...nuevoPaso('condicion', 'empresa'), valores: [1, 2] }
     expect(textoDelPaso(empresa, nombres)).toBe('La empresa es Banco Aliado o Transportes Sabana')
-    expect(textoDelPaso({ ...empresa, niega: true }, nombres)).toBe(
+    expect(textoDelPaso({ ...empresa, operador: 'no_es_ninguna_de' }, nombres)).toBe(
       'La empresa no es Banco Aliado ni Transportes Sabana',
     )
     expect(textoDelPaso({ ...nuevoPaso('condicion', 'palabras'), valores: ['vpn'] }, nombres)).toBe('Menciona «vpn»')
     expect(textoDelPaso(nuevoPaso('condicion', 'categoria'), nombres)).toBe('La categoría es … (elija al menos una)')
+  })
+
+  it('donde hay orden, la condición se lee como una comparación', () => {
+    const prioridad = { ...nuevoPaso('condicion', 'prioridad'), operador: 'al_menos', valores: ['alta'] }
+    expect(textoDelPaso(/** @type {any} */ (prioridad), nombres)).toBe('La prioridad es al menos alta')
+    expect(textoDelPaso(nuevoPaso('condicion', 'plazo_respuesta_consumido'), nombres)).toBe(
+      'El plazo de respuesta consumido es al menos el 80 %',
+    )
+    const igual = { ...nuevoPaso('condicion', 'plazo_resolucion_consumido'), operador: 'igual', valores: [100] }
+    expect(textoDelPaso(/** @type {any} */ (igual), nombres)).toBe('El plazo de resolución consumido es el 100 %')
+  })
+
+  it('cada campo ofrece solo las comparaciones que tienen sentido', () => {
+    const valores = (/** @type {string} */ campo) => operadoresDe(campo).map((operador) => operador.valor)
+    expect(valores('empresa')).toEqual(['es_una_de', 'no_es_ninguna_de'])
+    expect(valores('prioridad')).toEqual(['es_una_de', 'no_es_ninguna_de', 'al_menos', 'como_maximo'])
+    expect(valores('plazo_respuesta_consumido')).toEqual(['al_menos', 'como_maximo', 'igual'])
   })
 
   it('el flujo entero se lee en una frase, con las ramas entre paréntesis', () => {

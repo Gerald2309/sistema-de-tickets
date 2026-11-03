@@ -44,7 +44,7 @@ class SimularAutomatizacion
             ->cursor();
 
         foreach ($incidentes as $incidente) {
-            $recorrido = $flujo->recorrer(HechosDelIncidente::de($incidente));
+            $recorrido = $flujo->recorrer(HechosDelIncidente::de($incidente, $ahora));
             $decisiones = array_map(fn (array $decision) => ['campo' => $decision['campo']->value, 'cumple' => $decision['cumple']], $recorrido->decisiones);
             $clave = json_encode($decisiones, JSON_THROW_ON_ERROR);
 

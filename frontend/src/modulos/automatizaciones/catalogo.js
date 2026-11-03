@@ -73,7 +73,7 @@ export function describirDisparo(disparo) {
   const plazo = PLAZOS[disparo.plazo ?? ''] ?? '…'
   switch (disparo.disparador) {
     case 'sla_por_vencer':
-      return `Al ${disparo.porcentaje} % del plazo de ${plazo}`
+      return `Al ${disparo.porcentaje} % del plazo de ${plazo} o más`
     case 'sla_vencido':
       return `Venció el plazo de ${plazo}`
     case 'sin_respuesta':
@@ -116,7 +116,72 @@ export const CONDICIONES = Object.freeze({
     icono: iconos.palabras,
     sujeto: 'El texto',
   },
+  plazo_respuesta_consumido: {
+    titulo: 'Plazo de respuesta consumido',
+    descripcion: 'Qué parte del plazo para responder ya pasó',
+    icono: iconos.plazo,
+    sujeto: 'El plazo de respuesta consumido',
+  },
+  plazo_resolucion_consumido: {
+    titulo: 'Plazo de resolución consumido',
+    descripcion: 'Qué parte del plazo para resolver ya pasó',
+    icono: iconos.vencido,
+    sujeto: 'El plazo de resolución consumido',
+  },
 })
+
+/** @param {string} campo */
+const esPlazo = (campo) => campo.startsWith('plazo_')
+
+/**
+ * Si el operador compara con un solo valor en orden (≥, ≤, =) en lugar de con una lista.
+ * @param {string} operador
+ * @returns {boolean}
+ */
+export const comparaConUnValor = (operador) => ['al_menos', 'como_maximo', 'igual'].includes(operador)
+
+/**
+ * Las comparaciones que admite cada campo, como se leen en el panel (CampoDeCondicion::operadores en el backend):
+ * con orden (prioridad, plazos) se puede comparar con un valor.
+ * @param {string} campo
+ * @returns {Array<{ valor: string, nombre: string }>}
+ */
+export function operadoresDe(campo) {
+  if (esPlazo(campo)) {
+    return [
+      { valor: 'al_menos', nombre: 'Es al menos (≥)' },
+      { valor: 'como_maximo', nombre: 'Es como máximo (≤)' },
+      { valor: 'igual', nombre: 'Es igual a (=)' },
+    ]
+  }
+  const lista =
+    campo === 'palabras'
+      ? [
+          { valor: 'es_una_de', nombre: 'Menciona alguna de' },
+          { valor: 'no_es_ninguna_de', nombre: 'No menciona ninguna de' },
+        ]
+      : [
+          { valor: 'es_una_de', nombre: 'Es una de' },
+          { valor: 'no_es_ninguna_de', nombre: 'No es ninguna de' },
+        ]
+  return campo === 'prioridad'
+    ? [
+        ...lista,
+        { valor: 'al_menos', nombre: 'Es al menos (≥)' },
+        { valor: 'como_maximo', nombre: 'Es como máximo (≤)' },
+      ]
+    : lista
+}
+
+/**
+ * El valor con el que empieza una comparación: lo más común para cada campo.
+ * @param {string} campo
+ * @returns {number | string}
+ */
+export const valorParaComparar = (campo) => (esPlazo(campo) ? 80 : 'alta')
+
+/** @type {Readonly<Record<string, string>>} cómo se lee cada comparación en una frase */
+const COMPARACION_EN_FRASE = Object.freeze({ al_menos: 'es al menos', como_maximo: 'es como máximo', igual: 'es' })
 
 const CIERRE =
   'Cerramos tu caso {número} porque no recibimos confirmación. Si el problema sigue, crea una nueva solicitud.'
@@ -206,9 +271,20 @@ export const AYUDA = Object.freeze({
  * @returns {Paso}
  */
 export function nuevoPaso(tipo, clave) {
-  return tipo === 'condicion'
-    ? { tipo, campo: /** @type {any} */ (clave), valores: [], niega: false, si: [], no: [] }
-    : { tipo, accion: clave, ...structuredClone(ACCIONES[clave].datos) }
+  if (tipo === 'accion') {
+    return { tipo, accion: clave, ...structuredClone(ACCIONES[clave].datos) }
+  }
+  // Un plazo consumido solo se compara («al menos el 80 %»); lo demás empieza como una lista vacía.
+  return esPlazo(clave)
+    ? {
+        tipo,
+        campo: /** @type {any} */ (clave),
+        operador: 'al_menos',
+        valores: [valorParaComparar(clave)],
+        si: [],
+        no: [],
+      }
+    : { tipo, campo: /** @type {any} */ (clave), operador: 'es_una_de', valores: [], si: [], no: [] }
 }
 
 /**
@@ -240,14 +316,18 @@ export function textoDelPaso(paso, nombres) {
         ? (nombres.empresa(Number(valor)) ?? '…')
         : paso.campo === 'palabras'
           ? `«${valor}»`
-          : (bloque.opciones?.[valor] ?? String(valor))
-    const lista = paso.valores.length
-      ? paso.valores.map(nombre).join(paso.niega ? ' ni ' : ' o ')
-      : '… (elija al menos una)'
-    if (paso.campo === 'palabras') {
-      return `${paso.niega ? 'No menciona' : 'Menciona'} ${lista}`
+          : esPlazo(paso.campo)
+            ? `el ${valor} %`
+            : (bloque.opciones?.[valor] ?? String(valor))
+    if (comparaConUnValor(paso.operador)) {
+      return `${bloque.sujeto} ${COMPARACION_EN_FRASE[paso.operador]} ${paso.valores.length ? nombre(paso.valores[0]) : '…'}`
     }
-    return `${bloque.sujeto} ${paso.niega ? 'no es' : 'es'} ${lista}`
+    const niega = paso.operador === 'no_es_ninguna_de'
+    const lista = paso.valores.length ? paso.valores.map(nombre).join(niega ? ' ni ' : ' o ') : '… (elija al menos una)'
+    if (paso.campo === 'palabras') {
+      return `${niega ? 'No menciona' : 'Menciona'} ${lista}`
+    }
+    return `${bloque.sujeto} ${niega ? 'no es' : 'es'} ${lista}`
   }
   switch (paso.accion) {
     case 'asignar':

@@ -14,12 +14,16 @@ final readonly class Hechos
 
     /**
      * @param  string  $texto  título y descripción
+     * @param  int|null  $consumoDeRespuesta  porcentaje del plazo de respuesta que ya pasó (ConsumoDelPlazo)
+     * @param  int|null  $consumoDeResolucion  porcentaje del plazo de resolución que ya pasó
      */
     public function __construct(
         public ?int $empresaId,
         public Categoria $categoria,
         public Prioridad $prioridad,
         string $texto,
+        public ?int $consumoDeRespuesta = null,
+        public ?int $consumoDeResolucion = null,
     ) {
         $this->texto = self::normalizar($texto);
     }

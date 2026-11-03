@@ -11,9 +11,9 @@ trait PasosDeEjemplo
      * @param  list<array<string, mixed>>  $no
      * @return array<string, mixed>
      */
-    private static function condicion(string $campo, array $valores, array $si = [], array $no = [], bool $niega = false): array
+    private static function condicion(string $campo, array $valores, array $si = [], array $no = [], string $operador = 'es_una_de'): array
     {
-        return ['tipo' => 'condicion', 'campo' => $campo, 'valores' => $valores, 'niega' => $niega, 'si' => $si, 'no' => $no];
+        return ['tipo' => 'condicion', 'campo' => $campo, 'operador' => $operador, 'valores' => $valores, 'si' => $si, 'no' => $no];
     }
 
     /**

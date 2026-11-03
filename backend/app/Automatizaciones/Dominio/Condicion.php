@@ -6,20 +6,25 @@ namespace App\Automatizaciones\Dominio;
 final readonly class Condicion
 {
     /**
-     * @param  non-empty-list<int|string>  $valores
-     * @param  bool  $niega  «no es ninguna de» en lugar de «es una de»
+     * @param  non-empty-list<int|string>  $valores  uno solo si el operador compara con un valor (≥, ≤, =)
      */
     public function __construct(
         public CampoDeCondicion $campo,
+        public Operador $operador,
         public array $valores,
-        public bool $niega,
         public Flujo $si,
         public Flujo $no,
     ) {}
 
     public function seCumple(Hechos $hechos): bool
     {
-        return $this->campo->coincide($hechos, $this->valores) !== $this->niega;
+        if (! $this->operador->comparaConUnValor()) {
+            return $this->campo->coincide($hechos, $this->valores) === ($this->operador === Operador::EsUnaDe);
+        }
+
+        $medida = $this->campo->medidaDe($hechos);
+
+        return $medida !== null && $this->operador->cumple($medida, $this->campo->medidaDelValor($this->valores[0]));
     }
 
     /**
@@ -30,8 +35,8 @@ final readonly class Condicion
         return [
             'tipo' => 'condicion',
             'campo' => $this->campo->value,
+            'operador' => $this->operador->value,
             'valores' => $this->valores,
-            'niega' => $this->niega,
             'si' => $this->si->aArreglo(),
             'no' => $this->no->aArreglo(),
         ];

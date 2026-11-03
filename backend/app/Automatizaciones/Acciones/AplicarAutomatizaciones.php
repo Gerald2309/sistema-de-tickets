@@ -8,6 +8,7 @@ use App\Automatizaciones\Models\Automatizacion;
 use App\Automatizaciones\Models\EjecucionDeAutomatizacion;
 use App\Incidentes\Models\Incidente;
 use DomainException;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -60,7 +61,9 @@ class AplicarAutomatizaciones
         $hechas = 0;
 
         try {
-            foreach ($automatizacion->flujo()->accionesPara(HechosDelIncidente::de($incidente)) as $accion) {
+            $hechos = HechosDelIncidente::de($incidente, Date::now()->toImmutable());
+
+            foreach ($automatizacion->flujo()->accionesPara($hechos) as $accion) {
                 $this->ejecutarAccion->ejecutar($accion, $incidente->refresh(), $automatizacion);
                 $hechas++;
             }

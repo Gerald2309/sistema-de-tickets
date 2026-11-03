@@ -71,16 +71,23 @@ final class LectorDeFlujo
 
         $campo = CampoDeCondicion::tryFrom(is_string($paso['campo'] ?? null) ? $paso['campo'] : '')
             ?? throw new FlujoInvalido("{$ruta}.campo", 'Esa condición no existe.');
-        $niega = $paso['niega'] ?? false;
+        // Sin operador, «es una de»: la comparación más común.
+        $operador = Operador::tryFrom(is_string($paso['operador'] ?? null) ? $paso['operador'] : Operador::EsUnaDe->value);
 
-        if (! is_bool($niega)) {
-            throw new FlujoInvalido("{$ruta}.niega", 'Debe ser verdadero o falso.');
+        if ($operador === null || ! in_array($operador, $campo->operadores(), true)) {
+            throw new FlujoInvalido("{$ruta}.operador", 'Esa comparación no sirve para esta condición.');
+        }
+
+        $valores = $this->valores($campo, $paso['valores'] ?? null, "{$ruta}.valores");
+
+        if ($operador->comparaConUnValor() && count($valores) !== 1) {
+            throw new FlujoInvalido("{$ruta}.valores", 'Para comparar, elija un solo valor.');
         }
 
         return new Condicion(
             $campo,
-            $this->valores($campo, $paso['valores'] ?? null, "{$ruta}.valores"),
-            $niega,
+            $operador,
+            $valores,
             $this->flujo($paso['si'] ?? [], "{$ruta}.si", $seguidas),
             $this->flujo($paso['no'] ?? [], "{$ruta}.no", $seguidas),
         );

@@ -112,6 +112,20 @@ class RevisarPorTiempoTest extends TestCase
         $this->assertSame([$vencido->id], $this->revisar());
     }
 
+    public function test_una_condicion_puede_mirar_cuanto_del_plazo_ya_paso(): void
+    {
+        $this->automatizacion(Disparador::SinRespuesta, ['espera_minutos' => 60], [[
+            'tipo' => 'condicion', 'campo' => 'plazo_respuesta_consumido', 'operador' => 'al_menos', 'valores' => [100], 'si' => [self::NOTA],
+        ]]);
+        // Los dos llevan 2 horas sin respuesta; solo al primero ya se le acabó el plazo.
+        $vencido = $this->incidente(120, ['vence_respuesta_en' => $this->ahora->subMinutes(30)]);
+        $conTiempo = $this->incidente(120, ['vence_respuesta_en' => $this->ahora->addHour()]);
+
+        $this->assertSame([$vencido->id, $conTiempo->id], $this->revisar(), 'A los dos les llegó el momento.');
+        $this->assertSame(1, $vencido->mensajes()->count());
+        $this->assertSame(0, $conTiempo->mensajes()->count(), 'La condición lo mandó por el camino No.');
+    }
+
     public function test_cada_incidente_la_recibe_una_sola_vez(): void
     {
         $this->automatizacion(Disparador::SinRespuesta, ['espera_minutos' => 60]);

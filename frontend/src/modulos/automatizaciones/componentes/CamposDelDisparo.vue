@@ -60,7 +60,7 @@ const cambiarEspera = (cantidad, unidad) =>
     </div>
     <v-text-field
       v-if="medida === 'porcentaje'"
-      label="Al llegar a este porcentaje del plazo"
+      label="Cuando se haya consumido este porcentaje del plazo o más"
       type="number"
       min="1"
       max="99"

@@ -85,10 +85,43 @@ class FlujoTest extends TestCase
         )));
     }
 
+    /**
+     * @return array<string, array{string, Prioridad, bool}>
+     */
+    public static function prioridadesEnOrden(): array
+    {
+        return [
+            'al menos alta: crítica sí' => ['al_menos', Prioridad::Critica, true],
+            'al menos alta: alta sí' => ['al_menos', Prioridad::Alta, true],
+            'al menos alta: media no' => ['al_menos', Prioridad::Media, false],
+            'como máximo alta: baja sí' => ['como_maximo', Prioridad::Baja, true],
+            'como máximo alta: crítica no' => ['como_maximo', Prioridad::Critica, false],
+        ];
+    }
+
+    #[DataProvider('prioridadesEnOrden')]
+    public function test_la_prioridad_se_compara_en_orden(string $operador, Prioridad $prioridad, bool $cumple): void
+    {
+        $flujo = LectorDeFlujo::leer([self::condicion('prioridad', ['alta'], si: [self::asignar(7)], operador: $operador)]);
+
+        $this->assertSame($cumple, $flujo->accionesPara(new Hechos(null, Categoria::Red, $prioridad, '')) !== []);
+    }
+
+    public function test_el_plazo_consumido_se_compara_con_el_porcentaje_y_sin_plazo_no_se_cumple(): void
+    {
+        $alMenos80 = LectorDeFlujo::leer([self::condicion('plazo_respuesta_consumido', [80], si: [self::asignar(7)], operador: 'al_menos')]);
+        $conConsumo = fn (?int $porcentaje) => new Hechos(null, Categoria::Red, Prioridad::Media, '', consumoDeRespuesta: $porcentaje);
+
+        $this->assertNotSame([], $alMenos80->accionesPara($conConsumo(80)));
+        $this->assertNotSame([], $alMenos80->accionesPara($conConsumo(130)));
+        $this->assertSame([], $alMenos80->accionesPara($conConsumo(79)));
+        $this->assertSame([], $alMenos80->accionesPara($conConsumo(null)));
+    }
+
     public function test_no_es_ninguna_de_invierte_el_camino(): void
     {
         $flujo = LectorDeFlujo::leer([
-            self::condicion('empresa', [self::TRANSPORTES], si: [self::asignar(7)], no: [self::asignar(8)], niega: true),
+            self::condicion('empresa', [self::TRANSPORTES], si: [self::asignar(7)], no: [self::asignar(8)], operador: 'no_es_ninguna_de'),
         ]);
 
         $this->assertSame([self::asignar(8)], self::pasos($flujo->accionesPara(self::hechos())));

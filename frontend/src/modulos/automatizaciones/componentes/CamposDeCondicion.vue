@@ -3,9 +3,11 @@ import { computed, ref } from 'vue'
 import { iconos } from '@/compartido/iconos.js'
 import { useEmpresas } from '@/modulos/identidad/index.js'
 import { CATEGORIAS, PRIORIDADES } from '@/modulos/incidentes/index.js'
-import { CONDICIONES } from '../catalogo.js'
+import { CONDICIONES, comparaConUnValor, operadoresDe, valorParaComparar } from '../catalogo.js'
 
-/** Un paso «Si»: «es una de» o «no es ninguna de», y qué opciones (o palabras) mira. */
+/**
+ * Un paso «Si»: cómo compara (una lista de opciones o, donde hay orden, ≥, ≤ o = con un valor) y con qué.
+ */
 const props = defineProps({
   paso: { type: /** @type {import('vue').PropType<import('../tipos.js').Condicion>} */ (Object), required: true },
 })
@@ -15,17 +17,21 @@ const { empresas } = useEmpresas()
 const buscado = ref('')
 
 const conPalabras = computed(() => props.paso.campo === 'palabras')
-const operadores = computed(() =>
-  conPalabras.value
-    ? [
-        { valor: false, nombre: 'Menciona alguna de' },
-        { valor: true, nombre: 'No menciona ninguna de' },
-      ]
-    : [
-        { valor: false, nombre: 'Es una de' },
-        { valor: true, nombre: 'No es ninguna de' },
-      ],
-)
+const conUnValor = computed(() => comparaConUnValor(props.paso.operador))
+const conPorcentaje = computed(() => props.paso.campo.startsWith('plazo_'))
+const prioridades = Object.entries(PRIORIDADES).map(([valor, { nombre }]) => ({ valor, nombre }))
+
+/**
+ * Al pasar de una lista a comparar con un valor queda uno solo; si no había, el más común.
+ * @param {import('../tipos.js').Condicion['operador']} operador
+ */
+function cambiarOperador(operador) {
+  const valores =
+    comparaConUnValor(operador) && props.paso.valores.length !== 1
+      ? [valorParaComparar(props.paso.campo)]
+      : props.paso.valores
+  emit('cambiar', { operador, valores })
+}
 
 /** @type {import('vue').ComputedRef<Array<{ valor: number | string, nombre: string }>>} */
 const opciones = computed(() => {
@@ -63,14 +69,35 @@ function marcar(valor, marcada) {
   <div>
     <v-select
       :label="CONDICIONES[paso.campo].sujeto"
-      :items="operadores"
+      :items="operadoresDe(paso.campo)"
       item-title="nombre"
       item-value="valor"
-      :model-value="paso.niega"
-      @update:model-value="emit('cambiar', { niega: $event })"
+      :model-value="paso.operador"
+      @update:model-value="cambiarOperador"
+    />
+    <v-text-field
+      v-if="conPorcentaje"
+      label="Porcentaje del plazo"
+      hint="100 % es cuando se vence; más de 100, que ya está vencido."
+      persistent-hint
+      type="number"
+      min="0"
+      max="1000"
+      suffix="%"
+      :model-value="paso.valores[0]"
+      @update:model-value="emit('cambiar', { valores: [Math.max(0, Math.round(Number($event)))] })"
+    />
+    <v-select
+      v-else-if="conUnValor"
+      label="Prioridad"
+      :items="prioridades"
+      item-title="nombre"
+      item-value="valor"
+      :model-value="paso.valores[0]"
+      @update:model-value="emit('cambiar', { valores: [$event] })"
     />
     <v-combobox
-      v-if="conPalabras"
+      v-else-if="conPalabras"
       label="Palabras o frases"
       hint="Escriba una y pulse Enter. No importan las mayúsculas ni las tildes."
       persistent-hint

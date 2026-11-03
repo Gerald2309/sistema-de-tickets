@@ -10,7 +10,7 @@ const condicion = (/** @type {any[]} */ si = [], /** @type {any[]} */ no = []) =
   tipo: /** @type {const} */ ('condicion'),
   campo: /** @type {const} */ ('prioridad'),
   valores: ['alta'],
-  niega: false,
+  operador: 'es_una_de',
   si,
   no,
 })

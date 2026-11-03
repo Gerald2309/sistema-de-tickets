@@ -19,18 +19,18 @@ class LectorDeFlujoTest extends TestCase
             self::condicion('categoria', ['red'],
                 si: [['tipo' => 'accion', 'accion' => 'nota_interna', 'texto' => 'Revisar la VPN de {empresa}']],
                 no: [['tipo' => 'accion', 'accion' => 'cerrar', 'mensaje' => 'Lo cerramos.']],
-                niega: true,
+                operador: 'no_es_ninguna_de',
             ),
         ];
 
         $this->assertSame($pasos, LectorDeFlujo::leer($pasos)->aArreglo());
     }
 
-    public function test_sin_niega_se_entiende_es_una_de(): void
+    public function test_sin_operador_se_entiende_es_una_de(): void
     {
-        $sinNiega = ['tipo' => 'condicion', 'campo' => 'prioridad', 'valores' => ['alta']];
+        $sinOperador = ['tipo' => 'condicion', 'campo' => 'prioridad', 'valores' => ['alta']];
 
-        $this->assertSame([self::condicion('prioridad', ['alta'])], LectorDeFlujo::leer([$sinNiega])->aArreglo());
+        $this->assertSame([self::condicion('prioridad', ['alta'])], LectorDeFlujo::leer([$sinOperador])->aArreglo());
     }
 
     public function test_admite_tres_condiciones_seguidas(): void
@@ -73,7 +73,11 @@ class LectorDeFlujoTest extends TestCase
             'una opción que no es de ese campo' => [[self::condicion('categoria', ['red', 'alta'])], 'pasos.0.valores.1'],
             'una empresa con id de texto' => [[self::condicion('empresa', ['5'])], 'pasos.0.valores.0'],
             'opciones repetidas' => [[self::condicion('prioridad', ['alta', 'alta'])], 'pasos.0.valores'],
-            'niega que no es sí o no' => [[['tipo' => 'condicion', 'campo' => 'prioridad', 'valores' => ['alta'], 'niega' => 'si']], 'pasos.0.niega'],
+            'una comparación que no existe' => [[self::condicion('prioridad', ['alta'], operador: 'mayor')], 'pasos.0.operador'],
+            'comparar en orden una empresa' => [[self::condicion('empresa', [1], operador: 'al_menos')], 'pasos.0.operador'],
+            'una lista de plazos consumidos' => [[self::condicion('plazo_respuesta_consumido', [80])], 'pasos.0.operador'],
+            'comparar con dos valores' => [[self::condicion('prioridad', ['alta', 'media'], operador: 'al_menos')], 'pasos.0.valores'],
+            'un porcentaje negativo' => [[self::condicion('plazo_resolucion_consumido', [-1], operador: 'al_menos')], 'pasos.0.valores.0'],
             'un camino que no es una lista' => [[['tipo' => 'condicion', 'campo' => 'prioridad', 'valores' => ['alta'], 'si' => 'asignar']], 'pasos.0.si'],
             'cuatro condiciones seguidas' => [[$cuatroSeguidas], 'pasos.0.si.0.si.0.si.0'],
             'más pasos de la cuenta' => [array_fill(0, LectorDeFlujo::MAXIMO_DE_PASOS + 1, self::asignar(7)), 'pasos.'.LectorDeFlujo::MAXIMO_DE_PASOS],

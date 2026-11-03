@@ -20,9 +20,10 @@
 /**
  * @typedef {object} Condicion un paso «Si»: abre un camino Sí y uno No
  * @property {'condicion'} tipo
- * @property {'empresa' | 'categoria' | 'prioridad' | 'palabras'} campo
+ * @property {'empresa' | 'categoria' | 'prioridad' | 'palabras' | 'plazo_respuesta_consumido' | 'plazo_resolucion_consumido'} campo
+ * @property {'es_una_de' | 'no_es_ninguna_de' | 'al_menos' | 'como_maximo' | 'igual'} operador ≥, ≤ e = solo
+ *   donde hay orden (prioridad, plazos consumidos), y entonces con un solo valor
  * @property {Array<number | string>} valores
- * @property {boolean} niega «no es ninguna de» en lugar de «es una de»
  * @property {Paso[]} si
  * @property {Paso[]} no
  */
