@@ -1,25 +1,17 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import ContadorAnimado from '@/compartido/componentes/ContadorAnimado.vue'
 import { iconos } from '@/compartido/iconos.js'
-import { PAGINAS } from '../contenido/index.js'
 import { MAPA } from '../contenido/inicio.js'
 import PlanoTecnico from './PlanoTecnico.vue'
 
 /**
- * Portada de la documentación: qué es el sistema, sus cifras, un mapa navegable de las secciones y lo que hace,
- * con pequeñas animaciones. Las cifras salen del código (rutas de la API y pruebas) y del propio contenido.
+ * Portada de la documentación: qué es el sistema, un mapa navegable de las secciones y lo que hace, con
+ * pequeñas animaciones.
  */
 defineEmits(['buscar'])
 const enrutador = useRouter()
 
 const TECNOLOGIAS = ['Laravel 13', 'PHP 8.5', 'Vue 3', 'Vuetify 4', 'MySQL 8.4', 'Redis', 'Reverb', 'Docker']
-const CIFRAS = [
-  { valor: 74, rotulo: 'endpoints de la API', pagina: 'api' },
-  { valor: 744, rotulo: 'pruebas automáticas', pagina: 'calidad' },
-  { valor: PAGINAS.length, rotulo: 'páginas de documentación', pagina: 'arquitectura' },
-  { valor: 4, rotulo: 'módulos con fronteras vigiladas', pagina: 'backend' },
-]
 const CAPACIDADES = [
   {
     titulo: 'Plazos que se vigilan solos',
@@ -73,13 +65,6 @@ const ir = (pagina) => enrutador.push({ name: 'documentacion', params: { pagina 
       <ul class="heroe__tecnologias" aria-label="Tecnologías">
         <li v-for="tecnologia in TECNOLOGIAS" :key="tecnologia">{{ tecnologia }}</li>
       </ul>
-    </section>
-
-    <section class="cifras" aria-label="El proyecto en cifras">
-      <button v-for="cifra in CIFRAS" :key="cifra.rotulo" type="button" class="cifra" @click="ir(cifra.pagina)">
-        <ContadorAnimado :valor="cifra.valor" class="cifra__valor num" />
-        <span class="cifra__rotulo">{{ cifra.rotulo }}</span>
-      </button>
     </section>
 
     <section class="tarjeta mapa" aria-labelledby="titulo-mapa">
@@ -248,42 +233,6 @@ const ir = (pagina) => enrutador.push({ name: 'documentacion', params: { pagina 
   background: var(--acento-fondo);
   border: 1px solid var(--acento-borde);
   border-radius: var(--radio-chip);
-}
-
-.cifras {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.cifra {
-  display: grid;
-  gap: 2px;
-  padding: 16px 18px;
-  text-align: left;
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  cursor: pointer;
-  transition:
-    border-color var(--rapida),
-    box-shadow var(--rapida);
-}
-
-.cifra:hover {
-  border-color: var(--acento-borde);
-  box-shadow: var(--sombra-1);
-}
-
-.cifra__valor {
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.cifra__rotulo {
-  color: var(--suave);
-  font-size: 13px;
 }
 
 .mapa__ayuda {
@@ -577,7 +526,6 @@ const ir = (pagina) => enrutador.push({ name: 'documentacion', params: { pagina 
 }
 
 @media (width <= 1100px) {
-  .cifras,
   .capacidades {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -588,7 +536,6 @@ const ir = (pagina) => enrutador.push({ name: 'documentacion', params: { pagina 
     padding: 28px 20px 24px;
   }
 
-  .cifras,
   .capacidades {
     grid-template-columns: 1fr;
   }
