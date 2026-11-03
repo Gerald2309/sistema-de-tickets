@@ -4,12 +4,14 @@ import { automatizaciones } from './automatizaciones.js'
 import { backend } from './backend.js'
 import { calidad } from './calidad.js'
 import { datos } from './datos.js'
+import { decisiones } from './decisiones.js'
 import { despliegue } from './despliegue.js'
 import { frontend } from './frontend.js'
 import { incidentes } from './incidentes.js'
 import { instalacion } from './instalacion.js'
 import { recorrido } from './recorrido.js'
 import { seguridad } from './seguridad.js'
+import { tiempoReal } from './tiempo-real.js'
 
 /**
  * Las páginas, en el orden del menú.
@@ -25,8 +27,10 @@ export const PAGINAS = [
   recorrido,
   datos,
   seguridad,
+  tiempoReal,
   calidad,
   despliegue,
+  decisiones,
   api,
 ]
 
