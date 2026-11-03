@@ -7,8 +7,10 @@ import { datos } from './datos.js'
 import { decisiones } from './decisiones.js'
 import { despliegue } from './despliegue.js'
 import { frontend } from './frontend.js'
+import { glosario } from './glosario.js'
 import { incidentes } from './incidentes.js'
 import { instalacion } from './instalacion.js'
+import { auditoria, empresas, miDia, panel, roles, usuarios } from './pantallas.js'
 import { recorrido } from './recorrido.js'
 import { seguridad } from './seguridad.js'
 import { tiempoReal } from './tiempo-real.js'
@@ -18,8 +20,14 @@ import { tiempoReal } from './tiempo-real.js'
  * @type {import('../tipos.js').Pagina[]}
  */
 export const PAGINAS = [
+  panel,
+  miDia,
   incidentes,
+  usuarios,
+  roles,
+  empresas,
   automatizaciones,
+  auditoria,
   instalacion,
   arquitectura,
   backend,
@@ -31,6 +39,7 @@ export const PAGINAS = [
   calidad,
   despliegue,
   decisiones,
+  glosario,
   api,
 ]
 
