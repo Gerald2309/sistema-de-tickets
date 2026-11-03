@@ -1,10 +1,11 @@
 <script setup>
-import { computed, useId } from 'vue'
+import { computed, ref, useId } from 'vue'
 import { idDeArista, trazar } from '../plano.js'
 
 /**
  * Un plano como dibujo técnico: papel cuadriculado, marco, zonas punteadas, cajas, flechas en ángulo recto y
- * cajetín. Si se indica `iluminados`, esas cajas y flechas se resaltan y el resto se atenúa.
+ * cajetín. Si se indica `iluminados`, esas cajas y flechas se resaltan y el resto se atenúa. Las cajas con
+ * `pagina` son enlaces: al pasar por encima se iluminan con sus conexiones y al elegirlas emiten `elegir`.
  */
 const props = defineProps({
   plano: { type: /** @type {import('vue').PropType<import('../tipos.js').Plano>} */ (Object), required: true },
@@ -13,6 +14,20 @@ const props = defineProps({
     default: null,
   },
 })
+const emit = defineEmits(['elegir'])
+
+// La caja sobre la que está el puntero o el foco, en un plano navegable.
+const encima = ref(/** @type {string | null} */ (null))
+const resaltados = computed(() => {
+  if (!encima.value) {
+    return props.iluminados
+  }
+  const conectadas = (props.plano.aristas ?? []).filter((a) => a.de === encima.value || a.a === encima.value)
+  return {
+    nodos: [encima.value, ...conectadas.flatMap((a) => [a.de, a.a])],
+    aristas: conectadas.map(idDeArista),
+  }
+})
 
 // Las definiciones del SVG (cuadrícula, puntas de flecha) llevan un id propio: una página tiene varios planos.
 const id = useId()
@@ -20,6 +35,7 @@ const CAJETIN = { ancho: 250, alto: 58, margen: 16 }
 
 const zonas = computed(() => props.plano.nodos.filter((nodo) => nodo.zona))
 const cajas = computed(() => props.plano.nodos.filter((nodo) => !nodo.zona))
+const navegable = computed(() => cajas.value.some((caja) => caja.pagina))
 const flechas = computed(() => {
   const porId = Object.fromEntries(props.plano.nodos.map((nodo) => [nodo.id, nodo]))
   return (props.plano.aristas ?? []).map((arista) => ({
@@ -35,16 +51,16 @@ const cajetin = computed(() => ({
 
 /** @param {string} nodo */
 const estadoDe = (nodo) =>
-  !props.iluminados ? '' : props.iluminados.nodos.includes(nodo) ? 'plano__caja--activa' : 'plano__caja--atenuada'
+  !resaltados.value ? '' : resaltados.value.nodos.includes(nodo) ? 'plano__caja--activa' : 'plano__caja--atenuada'
 /** @param {string} arista */
-const activa = (arista) => props.iluminados?.aristas.includes(arista) ?? false
+const activa = (arista) => resaltados.value?.aristas.includes(arista) ?? false
 </script>
 
 <template>
   <div class="plano">
     <svg
       :viewBox="`0 0 ${plano.ancho} ${plano.alto}`"
-      role="img"
+      :role="navegable ? 'group' : 'img'"
       :aria-label="`Plano ${plano.codigo}: ${plano.titulo}`"
       class="plano__lienzo"
     >
@@ -95,7 +111,16 @@ const activa = (arista) => props.iluminados?.aristas.includes(arista) ?? false
         v-for="caja in cajas"
         :key="caja.id"
         class="plano__caja"
-        :class="[{ 'plano__caja--clave': caja.clave }, estadoDe(caja.id)]"
+        :class="[{ 'plano__caja--clave': caja.clave, 'plano__caja--enlace': caja.pagina }, estadoDe(caja.id)]"
+        :role="caja.pagina ? 'link' : undefined"
+        :tabindex="caja.pagina ? 0 : undefined"
+        :aria-label="caja.pagina ? `${caja.titulo}: ${caja.sub ?? ''}` : undefined"
+        @click="caja.pagina && emit('elegir', caja.pagina)"
+        @keydown.enter="caja.pagina && emit('elegir', caja.pagina)"
+        @mouseenter="caja.pagina && (encima = caja.id)"
+        @mouseleave="encima = null"
+        @focus="caja.pagina && (encima = caja.id)"
+        @blur="encima = null"
       >
         <rect :x="caja.x" :y="caja.y" :width="caja.w" :height="caja.h" rx="3" />
         <text v-if="caja.tipo" :x="caja.x + 10" :y="caja.y + 15" class="plano__tipo">{{ caja.tipo }}</text>
@@ -187,6 +212,16 @@ const activa = (arista) => props.iluminados?.aristas.includes(arista) ?? false
 
 .plano__caja--atenuada {
   opacity: 0.45;
+}
+
+.plano__caja--enlace {
+  cursor: pointer;
+  outline: none;
+}
+
+.plano__caja--enlace:focus-visible rect {
+  stroke: var(--acento);
+  stroke-width: 3;
 }
 
 .plano__tipo {

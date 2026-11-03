@@ -13,10 +13,18 @@ describe('documentación técnica', { timeout: 20_000 }, () => {
     montada = await montarAplicacion('/documentacion')
 
     await vi.waitFor(() => expect(montada?.router.currentRoute.value.params.pagina).toBe('inicio'))
-    await vi.waitFor(() => expect(montada?.envoltorio.text()).toContain('Cómo está organizado el repositorio'))
+    await vi.waitFor(() => expect(montada?.envoltorio.text()).toContain('Mapa del sistema'))
     expect(montada.router.currentRoute.value.name).toBe('documentacion')
     expect(montada.envoltorio.text()).toContain('Mesa de ayuda · Documentación técnica')
     expect(montada.envoltorio.find('a[href$="backend/routes/api.php"]').exists()).toBe(true)
+  })
+
+  it('el mapa del sistema lleva a la página de cada pieza', async () => {
+    montada = await montarAplicacion('/documentacion')
+    await vi.waitFor(() => expect(montada?.envoltorio.text()).toContain('Mapa del sistema'))
+
+    await montada.envoltorio.find('[role="link"][aria-label^="Seguridad"]').trigger('click')
+    await vi.waitFor(() => expect(montada?.router.currentRoute.value.params.pagina).toBe('seguridad'))
   })
 
   it('cambia el nivel del plano C4', async () => {

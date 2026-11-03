@@ -17,6 +17,7 @@
  * @property {string} [sub]
  * @property {boolean} [zona] un área punteada que agrupa cajas (un carril, una capa)
  * @property {boolean} [clave] la pieza central del plano, con borde de acento
+ * @property {string} [pagina] en un plano navegable, la página de la documentación a la que lleva
  */
 
 /**
@@ -88,6 +89,7 @@
  * @property {'inicio' | 'aplicacion' | 'administracion' | 'tecnico'} grupo
  * @property {string} icono
  * @property {string} entradilla
+ * @property {boolean} [portada] la página de entrada: lleva la portada en lugar del título
  * @property {Seccion[]} secciones
  */
 

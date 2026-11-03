@@ -7,6 +7,7 @@ import { construirIndice } from '../busqueda.js'
 import BloqueDeDocumentacion from '../componentes/BloqueDeDocumentacion.vue'
 import BuscadorDeDocumentacion from '../componentes/BuscadorDeDocumentacion.vue'
 import MenuDeDocumentacion from '../componentes/MenuDeDocumentacion.vue'
+import PortadaDeDocumentacion from '../componentes/PortadaDeDocumentacion.vue'
 import TextoTecnico from '../componentes/TextoTecnico.vue'
 import { PAGINAS, PAGINA_INICIAL } from '../contenido/index.js'
 
@@ -83,16 +84,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', alPulsarTecla))
     <div class="cuerpo">
       <MenuDeDocumentacion :actual="actual?.id ?? ''" />
       <main v-if="actual" id="contenido" class="contenido">
-        <div class="migas">
-          Documentación ·
-          {{
-            { inicio: 'Inicio', aplicacion: 'Mesa de ayuda', administracion: 'Administración', tecnico: 'Técnico' }[
-              actual.grupo
-            ]
-          }}
-        </div>
-        <h1 class="titulo-pagina">{{ actual.titulo }}</h1>
-        <p class="entradilla"><TextoTecnico :texto="actual.entradilla" /></p>
+        <PortadaDeDocumentacion v-if="actual.portada" @buscar="buscando = true" />
+        <template v-else>
+          <div class="migas">
+            Documentación ·
+            {{
+              { inicio: 'Inicio', aplicacion: 'Mesa de ayuda', administracion: 'Administración', tecnico: 'Técnico' }[
+                actual.grupo
+              ]
+            }}
+          </div>
+          <h1 class="titulo-pagina">{{ actual.titulo }}</h1>
+          <p class="entradilla"><TextoTecnico :texto="actual.entradilla" /></p>
+        </template>
         <section
           v-for="(seccion, i) in actual.secciones"
           :id="`seccion-${i}`"
