@@ -182,8 +182,9 @@ class AutomatizacionesApiTest extends TestCase
     public function test_probar_dice_que_habria_hecho_sin_cambiar_nada(): void
     {
         $solicitante = $this->crearUsuario();
-        $this->incidenteDe($solicitante, ['categoria' => Categoria::Correo]);
-        $deRed = $this->incidenteDe($solicitante, ['categoria' => Categoria::Red, 'titulo' => 'Sin internet']);
+        // Recientes a propósito: la fábrica elige la fecha al azar y la prueba mira solo los últimos 30 días.
+        $this->incidenteDe($solicitante, ['categoria' => Categoria::Correo, 'created_at' => now()]);
+        $deRed = $this->incidenteDe($solicitante, ['categoria' => Categoria::Red, 'titulo' => 'Sin internet', 'created_at' => now()]);
 
         $this->como()->postJson('/api/v1/automatizaciones/prueba', ['pasos' => $this->datos()['pasos']])
             ->assertOk()
