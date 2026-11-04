@@ -169,6 +169,7 @@ class TiempoRealTest extends TestCase
         $autorizar($tokenSolicitante, 'private-incidentes')->assertForbidden();
         $autorizar($tokenSolicitante, "private-usuario.{$solicitante->id}")->assertOk();
         $autorizar($tokenSolicitante, "private-usuario.{$this->soporte->id}")->assertForbidden();
+        $autorizar($tokenSolicitante, "private-usuario.{$solicitante->id}abc")->assertForbidden();
         $this->sinCredencial()->postJson('/api/v1/broadcasting/auth', ['socket_id' => '1234.5678', 'channel_name' => 'private-incidentes'])->assertUnauthorized();
     }
 }

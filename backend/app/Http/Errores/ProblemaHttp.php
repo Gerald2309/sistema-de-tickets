@@ -4,6 +4,7 @@ namespace App\Http\Errores;
 
 use App\Http\Middleware\CabecerasDeApi;
 use App\Identidad\Dominio\Excepciones\RolEnUso;
+use App\Identidad\Dominio\Excepciones\RolFueraDeAlcance;
 use App\Identidad\Dominio\Excepciones\UltimoAdministrador;
 use App\Incidentes\Dominio\Estado;
 use App\Incidentes\Dominio\Excepciones\ConversacionCerrada;
@@ -78,6 +79,12 @@ final class ProblemaHttp
                 $excepcion->getMessage(),
                 tipo: 'urn:incidentes:problema:ultimo-administrador',
                 titulo: 'Operación no permitida: último administrador',
+            ),
+            $excepcion instanceof RolFueraDeAlcance => self::respuesta(
+                403,
+                $excepcion->getMessage(),
+                tipo: 'urn:incidentes:problema:rol-fuera-de-alcance',
+                titulo: 'Rol fuera de su alcance',
             ),
             $excepcion instanceof RolEnUso => self::respuesta(
                 409,

@@ -6,6 +6,7 @@ use App\Automatizaciones\Consultas\HechosDelIncidente;
 use App\Automatizaciones\Dominio\Disparador;
 use App\Automatizaciones\Models\Automatizacion;
 use App\Automatizaciones\Models\EjecucionDeAutomatizacion;
+use App\Identidad\Dominio\ClavePermiso;
 use App\Incidentes\Models\Incidente;
 use DomainException;
 use Illuminate\Support\Facades\Date;
@@ -56,6 +57,10 @@ class AplicarAutomatizaciones
     {
         if (! $automatizacion->autor->activo) {
             return ['acciones_hechas' => 0, 'error' => trans('automatizaciones.autor_inactivo')];
+        }
+        // Actúa a nombre de su autor: si ya no puede administrar automatizaciones, la regla tampoco.
+        if (! $automatizacion->autor->permisos()->tiene(ClavePermiso::AdministrarAutomatizaciones)) {
+            return ['acciones_hechas' => 0, 'error' => trans('automatizaciones.autor_sin_permiso')];
         }
 
         $hechas = 0;

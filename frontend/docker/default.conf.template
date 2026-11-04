@@ -3,6 +3,13 @@
 # El registro de accesos incluye el identificador de cada petición, el mismo que recibe la API.
 log_format con_peticion '$remote_addr - [$time_local] "$request" $status $body_bytes_sent $request_time peticion=$request_id';
 
+# Protocolo con el que llegó el navegador: detrás de Cloudflare viene en X-Forwarded-Proto (cloudflared habla con
+# este Nginx por HTTP); sin esa cabecera, el de esta conexión.
+map $http_x_forwarded_proto $protocolo {
+    default $http_x_forwarded_proto;
+    '' $scheme;
+}
+
 map $http_upgrade $conexion {
     default upgrade;
     '' close;
@@ -17,6 +24,21 @@ server {
     set $api http://api;
     set $reverb http://reverb:8080;
     server_tokens off;
+
+    # IP real del cliente. El puerto solo se publica en 127.0.0.1, así que únicamente un proceso del propio servidor
+    # (cloudflared) llega hasta aquí: se toma la IP que informa Cloudflare y se descarta cualquier X-Forwarded-For
+    # que mande el cliente.
+    set_real_ip_from 10.0.0.0/8;
+    set_real_ip_from 172.16.0.0/12;
+    set_real_ip_from 192.168.0.0/16;
+    set_real_ip_from 127.0.0.1;
+    real_ip_header CF-Connecting-IP;
+
+    # Quien entra por HTTP a través de Cloudflare pasa a HTTPS antes de enviar nada (contraseña ni token).
+    if ($http_x_forwarded_proto = "http") {
+        return 301 https://$host$request_uri;
+    }
+
     access_log /var/log/nginx/access.log con_peticion;
     root /usr/share/nginx/html;
     index index.html;
@@ -51,8 +73,9 @@ server {
         proxy_pass $api;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        # Solo la IP real: la API no recibe la cadena que pudo inventar el cliente.
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $protocolo;
         # El mismo identificador en el log de Nginx y en el de la API (correlación de punta a punta).
         proxy_set_header X-Request-Id $request_id;
         # Las descargas grandes (exportación) pueden tardar.
@@ -67,7 +90,7 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $conexion;
         proxy_set_header Host $http_host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $remote_addr;
         proxy_read_timeout 3600s;
     }
 

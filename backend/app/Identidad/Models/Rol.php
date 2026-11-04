@@ -2,6 +2,7 @@
 
 namespace App\Identidad\Models;
 
+use App\Identidad\Dominio\ConjuntoPermisos;
 use Database\Factories\RolFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -33,5 +34,10 @@ class Rol extends Model
     public function permisos(): BelongsToMany
     {
         return $this->belongsToMany(Permiso::class, 'permiso_rol', 'rol_id', 'permiso_id');
+    }
+
+    public function conjuntoDePermisos(): ConjuntoPermisos
+    {
+        return new ConjuntoPermisos($this->loadMissing('permisos')->permisos->map(fn (Permiso $permiso) => $permiso->clave));
     }
 }

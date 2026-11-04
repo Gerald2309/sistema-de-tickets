@@ -3,6 +3,9 @@
 namespace Tests\Unit\Identidad;
 
 use App\Identidad\Dominio\Administracion;
+use App\Identidad\Dominio\ClavePermiso;
+use App\Identidad\Dominio\ConjuntoPermisos;
+use App\Identidad\Dominio\Excepciones\RolFueraDeAlcance;
 use App\Identidad\Dominio\Excepciones\UltimoAdministrador;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -26,6 +29,21 @@ class AdministracionTest extends TestCase
             'nadie administra usuarios' => [2, 0],
             'nadie administra nada' => [0, 0],
         ];
+    }
+
+    public function test_quien_administra_usuarios_no_asigna_permisos_de_administracion_que_no_tiene(): void
+    {
+        $gestor = new ConjuntoPermisos([ClavePermiso::AdministrarUsuarios]);
+
+        Administracion::exigirQuePuedaAsignar($gestor, new ConjuntoPermisos([ClavePermiso::VerTodos, ClavePermiso::Borrar]));
+        Administracion::exigirQuePuedaAsignar($gestor, new ConjuntoPermisos([ClavePermiso::AdministrarUsuarios]));
+        Administracion::exigirQuePuedaAsignar(
+            new ConjuntoPermisos([ClavePermiso::AdministrarRoles]),
+            new ConjuntoPermisos(ClavePermiso::cases()),
+        );
+
+        $this->expectException(RolFueraDeAlcance::class);
+        Administracion::exigirQuePuedaAsignar($gestor, new ConjuntoPermisos([ClavePermiso::VerTodos, ClavePermiso::VerAuditoria]));
     }
 
     #[DataProvider('conteosInsuficientes')]

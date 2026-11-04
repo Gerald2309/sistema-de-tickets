@@ -111,6 +111,25 @@ class AutenticacionTest extends TestCase
             ->assertHeader('Retry-After');
     }
 
+    public function test_el_limite_por_correo_no_se_elude_con_tildes(): void
+    {
+        $usuario = $this->crearUsuario(atributos: ['email' => 'ana@ejemplo.com']);
+        $limite = (int) config('seguridad.limites.login_email');
+        // MySQL compara sin tildes: «ána» encuentra la misma cuenta, así que cuenta para el mismo límite.
+        $conTilde = 'ána@ejemplo.com';
+
+        for ($intento = 1; $intento <= $limite; $intento++) {
+            $this->postJson('/api/v1/auth/login', ['email' => $intento % 2 ? $conTilde : $usuario->email, 'password' => 'mal']);
+        }
+
+        $this->postJson('/api/v1/auth/login', ['email' => $usuario->email, 'password' => self::PASSWORD])->assertTooManyRequests();
+    }
+
+    public function test_un_correo_que_no_es_texto_responde_422(): void
+    {
+        $this->postJson('/api/v1/auth/login', ['email' => ['x'], 'password' => 'x'])->assertUnprocessable();
+    }
+
     public function test_sin_credencial_la_ruta_protegida_responde_401(): void
     {
         $this->postJson('/api/v1/auth/logout')

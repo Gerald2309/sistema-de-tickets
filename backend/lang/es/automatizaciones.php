@@ -9,4 +9,5 @@ return [
     'ya_no_atiende' => 'La persona a la que asigna ya no puede atender incidentes.',
     'avisada_inactiva' => 'La persona a la que avisa ya no está activa.',
     'autor_inactivo' => 'Quien la guardó ya no está activo, y lo que hace queda a su nombre.',
+    'autor_sin_permiso' => 'Quien la guardó ya no puede administrar automatizaciones, y lo que hace queda a su nombre.',
 ];

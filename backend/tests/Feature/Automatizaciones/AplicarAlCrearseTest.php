@@ -7,6 +7,7 @@ use App\Automatizaciones\Dominio\Disparador;
 use App\Automatizaciones\Models\Automatizacion;
 use App\Automatizaciones\Models\EjecucionDeAutomatizacion;
 use App\Identidad\Models\Cliente;
+use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
 use App\Incidentes\Dominio\CodigoIncidente;
 use App\Incidentes\Dominio\Estado;
@@ -183,6 +184,18 @@ class AplicarAlCrearseTest extends TestCase
 
         $this->assertNull($incidente->usuario_asignado_id);
         $this->assertSame(0, $this->ejecucion($incidente)->acciones_hechas);
+    }
+
+    public function test_si_quien_la_guardo_pierde_el_permiso_no_hace_nada(): void
+    {
+        $this->automatizacion([self::asignar($this->diego->id)]);
+        $this->administrador->update(['rol_id' => Rol::where('nombre', 'Soporte N1')->firstOrFail()->id]);
+
+        $incidente = $this->crearIncidente();
+
+        $this->assertNull($incidente->usuario_asignado_id);
+        $this->assertSame(0, $this->ejecucion($incidente)->acciones_hechas);
+        $this->assertSame(trans('automatizaciones.autor_sin_permiso'), $this->ejecucion($incidente)->error);
     }
 
     public function test_avisar_a_un_rol_deja_un_aviso_a_cada_persona_activa_de_ese_rol(): void

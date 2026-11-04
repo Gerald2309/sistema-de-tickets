@@ -195,6 +195,26 @@ class UsuariosTest extends TestCase
         $this->conToken($this->token)->putJson("/api/v1/usuarios/{$usuario->id}/rol", ['rol_id' => 9999])->assertUnprocessable();
     }
 
+    public function test_quien_solo_administra_usuarios_no_asigna_permisos_de_administracion_que_le_faltan(): void
+    {
+        $gestor = $this->usuarioConPermisos(ClavePermiso::AdministrarUsuarios, ClavePermiso::VerTodos);
+        $token = $this->iniciarSesion($gestor);
+        $administrador = Rol::where('nombre', 'Administrador')->firstOrFail();
+        $usuario = $this->crearUsuario();
+
+        $this->conToken($token)->putJson("/api/v1/usuarios/{$gestor->id}/rol", ['rol_id' => $administrador->id])
+            ->assertForbidden()->assertJsonPath('type', 'urn:incidentes:problema:rol-fuera-de-alcance');
+        $this->conToken($token)->postJson('/api/v1/usuarios', [
+            'name' => 'Nueva', 'email' => 'nueva@ejemplo.com', 'password' => 'Una-Contrasena-Larga-2026!', 'rol_id' => $administrador->id,
+        ])->assertForbidden();
+        $this->assertNotSame($administrador->id, $gestor->fresh()->rol_id);
+        $this->assertNull(User::where('email', 'nueva@ejemplo.com')->first());
+
+        // Un rol sin permisos de administración se asigna con normalidad.
+        $soporte = Rol::where('nombre', 'Soporte N2')->firstOrFail();
+        $this->conToken($token)->putJson("/api/v1/usuarios/{$usuario->id}/rol", ['rol_id' => $soporte->id])->assertOk();
+    }
+
     public function test_exige_el_permiso_de_administrar_usuarios(): void
     {
         $usuario = $this->crearUsuario();

@@ -4,6 +4,9 @@ namespace App\Identidad\Acciones;
 
 use App\Auditoria\Acciones\RegistrarAuditoria;
 use App\Auditoria\Dominio\AccionAuditoria;
+use App\Identidad\Dominio\Administracion;
+use App\Identidad\Dominio\Excepciones\RolFueraDeAlcance;
+use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -13,9 +16,13 @@ class CrearUsuario
 
     /**
      * @param  array{name: string, email: string, password: string, rol_id: int, cliente_id: int|null}  $datos
+     *
+     * @throws RolFueraDeAlcance
      */
     public function ejecutar(User $administrador, array $datos, ?string $ip): User
     {
+        Administracion::exigirQuePuedaAsignar($administrador->permisos(), Rol::findOrFail($datos['rol_id'])->conjuntoDePermisos());
+
         return DB::transaction(function () use ($administrador, $datos, $ip) {
             // La contraseña la puso el administrador: la persona la cambia al entrar por primera vez.
             $usuario = User::create($datos + ['debe_cambiar_contrasena' => true])->refresh()->load(['rol', 'cliente']);

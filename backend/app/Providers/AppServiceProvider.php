@@ -126,9 +126,12 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->user()?->id ?: $request->ip()));
 
         // Dos límites a la vez: por correo (fuerza bruta sobre una cuenta) y por IP (rociado de correos).
+        // El correo se cuenta sin tildes ni mayúsculas, igual que lo compara MySQL (utf8mb4_0900_ai_ci):
+        // «ádmin@…» y «admin@…» son la misma cuenta y comparten el límite. Si no es texto, la validación
+        // lo rechaza después; aquí solo no debe romper.
         RateLimiter::for('login', fn (Request $request) => [
             Limit::perMinute((int) config('seguridad.limites.login_email'))
-                ->by('email:'.Str::lower(trim((string) $request->input('email')))),
+                ->by('email:'.Str::lower(Str::ascii(trim(is_string($correo = $request->input('email')) ? $correo : '')))),
             Limit::perMinute((int) config('seguridad.limites.login_ip'))->by('ip:'.$request->ip()),
         ]);
     }

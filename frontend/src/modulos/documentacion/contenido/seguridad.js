@@ -57,11 +57,11 @@ export const seguridad = {
           filas: [
             [
               'Suplantación: probar contraseñas',
-              'Límite por correo (5/min) y por IP (30/min); mensaje genérico; hash ficticio para no revelar por el tiempo qué cuentas existen; argon2id; alerta al superar el umbral (`VigilarIniciosFallidos`, `AlertasDeSeguridadTest`).',
+              'Límite por correo (5/min, contado sin tildes ni mayúsculas, como compara MySQL) y por IP (30/min, la que informa Cloudflare, no la que manda el cliente); mensaje genérico; hash ficticio para no revelar por el tiempo qué cuentas existen; argon2id; alerta al superar el umbral (`VigilarIniciosFallidos`, `AlertasDeSeguridadTest`).',
             ],
             [
               'Suplantación: robar un token',
-              'El token solo viaja al mismo origen; CSP estricta; CORS cerrado (`cliente.js`, `CorsTest`). Vence a las 8 horas (`SANCTUM_EXPIRATION=480`).',
+              'El token solo viaja al mismo origen; CSP estricta; CORS cerrado (`cliente.js`, `CorsTest`). HTTP redirige a HTTPS y HSTS fija HTTPS en el navegador. Vence a las 8 horas (`SANCTUM_EXPIRATION=480`).',
             ],
             [
               'Manipulación: tocar lo ajeno',
@@ -94,7 +94,7 @@ export const seguridad = {
             ],
             [
               'Elevación de privilegios',
-              'Toda ruta declara su permiso y la que no lo hace queda cerrada (`ExigirAutorizacionDeclarada`, `ContratoDeApiTest`).',
+              'Toda ruta declara su permiso y la que no lo hace queda cerrada (`ExigirAutorizacionDeclarada`, `ContratoDeApiTest`). Quien administra usuarios no asigna permisos de administración que no tiene; una automatización no actúa si su autor perdió el permiso.',
             ],
             [
               'Cadena de suministro',

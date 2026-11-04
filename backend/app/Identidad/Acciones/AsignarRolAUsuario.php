@@ -4,6 +4,8 @@ namespace App\Identidad\Acciones;
 
 use App\Auditoria\Acciones\RegistrarAuditoria;
 use App\Auditoria\Dominio\AccionAuditoria;
+use App\Identidad\Dominio\Administracion;
+use App\Identidad\Dominio\Excepciones\RolFueraDeAlcance;
 use App\Identidad\Dominio\Excepciones\UltimoAdministrador;
 use App\Identidad\Models\Rol;
 use App\Identidad\Models\User;
@@ -18,6 +20,7 @@ class AsignarRolAUsuario
 
     /**
      * @throws UltimoAdministrador
+     * @throws RolFueraDeAlcance
      */
     public function ejecutar(User $administrador, User $usuario, int $rolId, ?string $ip): User
     {
@@ -26,11 +29,13 @@ class AsignarRolAUsuario
 
             $usuario = User::findOrFail($usuario->id);
             if ($usuario->rol_id !== $rolId) {
+                $rol = Rol::findOrFail($rolId);
+                Administracion::exigirQuePuedaAsignar($administrador->permisos(), $rol->conjuntoDePermisos());
+
                 $usuario->update(['rol_id' => $rolId]);
                 $this->bloqueo->exigirQueQuedenAdministradores();
 
-                $nombreDelRol = Rol::findOrFail($rolId)->nombre;
-                $this->registrarAuditoria->ejecutar(AccionAuditoria::RolAsignado, $administrador->id, $usuario->id, "Rol «{$nombreDelRol}»", $ip);
+                $this->registrarAuditoria->ejecutar(AccionAuditoria::RolAsignado, $administrador->id, $usuario->id, "Rol «{$rol->nombre}»", $ip);
             }
 
             return $usuario->load(['rol', 'cliente']);

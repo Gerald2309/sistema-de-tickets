@@ -7,6 +7,9 @@ frontend en Vue 3 con Vuetify. Todo corre en Docker.
 frontend, recorrido de un incidente, modelo de datos, seguridad, calidad, despliegue y la API para probar). En local,
 en http://localhost:8000/documentacion.
 
+> **Nota:** el proyecto se siguió trabajando después de la fecha de entrega de la prueba, así que este repositorio
+> incluye cambios posteriores a ella.
+
 ## Instalación
 
 Requisitos: Docker con Docker Compose v2, y los puertos 8000 y 8080 libres.

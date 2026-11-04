@@ -56,9 +56,7 @@ class User extends Authenticatable
      */
     public function permisos(): ConjuntoPermisos
     {
-        return $this->conjuntoDePermisos ??= new ConjuntoPermisos(
-            $this->loadMissing('rol.permisos')->rol->permisos->map(fn (Permiso $permiso) => $permiso->clave),
-        );
+        return $this->conjuntoDePermisos ??= $this->loadMissing('rol.permisos')->rol->conjuntoDePermisos();
     }
 
     /**

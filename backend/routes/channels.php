@@ -11,4 +11,5 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('incidentes', fn (User $usuario) => $usuario->permisos()->tiene(ClavePermiso::VerTodos));
 
 // Cada persona escucha los cambios de los incidentes que creó o tiene asignados.
-Broadcast::channel('usuario.{id}', fn (User $usuario, int $id) => $usuario->id === $id);
+// El id llega como texto desde el nombre del canal: uno que no sea un número se rechaza sin error.
+Broadcast::channel('usuario.{id}', fn (User $usuario, string $id) => ctype_digit($id) && $usuario->id === (int) $id);
