@@ -42,7 +42,7 @@ services:
 
   # Cola de trabajos y caché. Guarda en disco (AOF): un trabajo encolado no se pierde si el contenedor se reinicia.
   redis:
-    image: redis:7.4-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    image: redis:8.0-alpine@sha256:5f61955be8ab2ccee9372b84ae4d4da2e2b156f87281e3f218544055e7ee04d4
     container_name: incidentes-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
